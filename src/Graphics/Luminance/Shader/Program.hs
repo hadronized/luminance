@@ -1,0 +1,80 @@
+-----------------------------------------------------------------------------
+-- |
+-- Copyright   : (C) 2015 Dimitri Sabadie
+-- License     : BSD3
+--
+-- Maintainer  : Dimitri Sabadie <dimitri.sabadie@gmail.com>
+-- Stability   : experimental
+-- Portability : portable
+----------------------------------------------------------------------------
+
+module Graphics.Luminance.Shader.Program where
+
+import Control.Applicative ( liftA2 )
+import Control.Monad.IO.Class ( MonadIO(..) )
+import Data.Foldable ( traverse_ )
+import Foreign.C ( peekCString, withCString )
+import Foreign.Marshal.Alloc ( alloca )
+import Foreign.Marshal.Array ( allocaArray )
+import Foreign.Ptr ( castPtr, nullPtr )
+import Foreign.Storable ( peek )
+import Graphics.Luminance.Shader.Stage ( Stage(..) )
+import Graphics.Luminance.Shader.Uniform ( Uniform(..) )
+import Graphics.Luminance.Memory
+import Graphics.GL
+
+newtype Program = Program { programID :: GC GLuint }
+
+shaderProgram :: (MonadIO m)
+              => [Stage]
+              -> ((forall a. (Uniform a) => Either String Int -> m (Maybe (a -> m ()))) -> m i)
+              -> m (Either String (Program,i))
+shaderProgram stages buildIface = do
+  (pid,linked,cl) <- liftIO $ do
+    pid <- glCreateProgram
+    traverse_ (glAttachShader pid . unGC . stageID) stages
+    glLinkProgram pid
+    linked <- isLinked pid
+    ll <- clogLength pid
+    cl <- clog ll pid
+    pure (pid,linked,cl)
+  if
+    | linked    -> do
+        prog <- Program <$> embedGC pid (glDeleteProgram pid)
+        iface <- buildIface $ ifaceWith prog
+        pure $ Right (prog,iface)
+    | otherwise -> pure $ Left cl
+
+isLinked :: GLuint -> IO Bool
+isLinked pid = do
+  ok <- alloca $ liftA2 (*>) (glGetProgramiv pid GL_LINK_STATUS) peek
+  pure $ ok == GL_TRUE
+
+clogLength :: GLuint -> IO Int
+clogLength pid =
+  fmap fromIntegral .
+    alloca $ liftA2 (*>) (glGetProgramiv pid GL_INFO_LOG_LENGTH) peek
+
+clog :: Int -> GLuint -> IO String
+clog l pid =
+  allocaArray l $
+    liftA2 (*>) (glGetProgramInfoLog pid (fromIntegral l) nullPtr)
+      (peekCString . castPtr)
+
+ifaceWith :: (MonadIO m,Uniform a)
+          => Program
+          -> Either String Int
+          -> m (Maybe (a -> m ()))
+ifaceWith prog access = case access of
+    Left name -> do
+      location <- liftIO . withCString name $ glGetUniformLocation pid
+      if
+        | isActive location -> pure . Just $ uploadUniform pid location
+        | otherwise         -> pure Nothing
+    Right sem
+      | isActive sem -> pure . Just $ uploadUniform pid (fromIntegral sem)
+      | otherwise    -> pure Nothing
+  where
+    pid = unGC $ programID prog
+    isActive :: (Ord a,Num a) => a -> Bool
+    isActive = (> -1)
