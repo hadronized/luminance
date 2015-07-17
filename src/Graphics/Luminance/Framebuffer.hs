@@ -12,7 +12,15 @@ module Graphics.Luminance.Framebuffer where
 
 import Graphics.Luminance.Memory ( GC )
 
-newtype Framebuffer = Framebuffer { framebufferID :: GC GLuint }
+data Framebuffer :: * -> * -> * where
+  ColorOnlyFramebuffer  :: GC GLuint -> Framebuffer (Color t f) NoDepth
+  DepthOnlyFramebuffer  :: GC GLuint -> Framebuffer NoColor (Depth t f)
+  ColorDepthFramebuffer :: GC GLuint -> Framebuffer (Color ct cf) (Depth dt df)
 
--- TODO: think about the semantics of framebuffer and the relationship between
--- framebuffers and textures
+data Color t f
+
+data Depth t f
+
+data NoColor
+
+data NoDepth
