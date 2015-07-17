@@ -28,12 +28,6 @@ data CUInts
 -- |Channels are floating values.
 data CFloats
 
--- |A color channel.
-data CColor
-
--- |A depth channel.
-data CDepth
-
 -- |A red channel.
 data CR
 
