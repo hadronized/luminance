@@ -11,31 +11,31 @@
 module Graphics.Luminance.Pixel where
 
 -- |A 8-bit channel.
-data C8
+data C8 = C8 deriving (Eq,Ord,Show)
 
 -- |A 16-bit channel.
-data C16
+data C16 = C16 deriving (Eq,Ord,Show)
 
 -- |A 32-bit channel.
-data C32
+data C32 = C32 deriving (Eq,Ord,Show)
 
 -- |Channels are integral values.
-data CInts
+data CInts = CInts deriving (Eq,Ord,Show)
 
 -- |Channels are unsigned integral values.
-data CUInts
+data CUInts = CUInts deriving (Eq,Ord,Show)
 
 -- |Channels are floating values.
-data CFloats
+data CFloats = CFloats deriving (Eq,Ord,Show)
 
 -- |A red channel.
-data CR
+data CR = CR deriving (Eq,Ord,Show)
 
 -- |A green channel.
-data CG
+data CG = CG deriving (Eq,Ord,Show)
 
 -- |A blue channel.
-data CB
+data CB = CB deriving (Eq,Ord,Show)
 
 -- |An alpha channel.
-data CA
+data CA = CA deriving (Eq,Ord,Show)
