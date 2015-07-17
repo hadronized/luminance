@@ -28,5 +28,11 @@ data CUInts
 -- |Channels are floating values.
 data CFloats
 
--- |A pixel format.
-data Format b t
+-- |A color channel.
+data CColor b
+
+-- |A depth channel.
+data CDepth b
+
+-- |A red channel. 't' is the underlying type and @f b@ the channel kind.
+data CR t (f b)
