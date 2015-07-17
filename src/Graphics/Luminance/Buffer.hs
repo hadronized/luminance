@@ -17,6 +17,7 @@ import Graphics.Luminance.Memory
 
 newtype Buffer a = Buffer { bufferID :: GC GLuint }
 
+-- WRONG! We cannot call glDeleteBuffers that way…
 mkBuffers :: (MonadIO m)
           => GLenum
           -> [Word32]
