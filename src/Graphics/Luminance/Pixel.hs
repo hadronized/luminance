@@ -35,13 +35,13 @@ data CColor
 data CDepth
 
 -- |A red channel.
-data CR t b
+data CR
 
 -- |A green channel.
-data CG t b
+data CG
 
 -- |A blue channel.
-data CB t b
+data CB
 
 -- |An alpha channel.
-data CA t b
+data CA
