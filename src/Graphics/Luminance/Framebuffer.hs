@@ -31,7 +31,16 @@ defaultFramebuffer :: (MonadIO m) => m CompleteFramebuffer
 defaultFramebuffer = Framebuffer <$> embedGC -1 (pure ())
 
 mkFramebuffer :: (MonadIO m) => m (Framebuffer c d)
-mkFramebuffer nb = liftIO $ do
+mkFramebuffer = liftIO $ do
   p <- malloc
   glGenFramebuffers 1 p
   peek p >>= $ \fb -> Framebuffer <$> embdGC fb (glDeleteFramebuffers 1 p)
+
+colorFramebuffer :: (MonadIO m) => t -> f -> m (ColorFramebuffer t f)
+colorFramebuffer _ _ = mkFramebuffer
+
+depthFramebuffer :: (MonadIO m) => t -> f -> m (DepthFramebuffer t f)
+depthFramebuffer _ _ = mkFramebuffer
+
+colorDepthFramebuffer :: (MonadIO m) => t -> f -> m (ColorDepthFramebuffer t f)
+colorDepthFramebuffer _ _ = mkFramebuffer
