@@ -1,5 +1,5 @@
 name:                luminance
-version:             0.1.0.0
+version:             0.1
 -- synopsis:
 -- description:
 license:             BSD3
@@ -31,12 +31,15 @@ library
   default-extensions:  DeriveFoldable
                      , DeriveFunctor
                      , FlexibleInstances
+                     , GeneralizedNewtypeDeriving
                      , MultiWayIf
                      , RankNTypes
+                     , ScopedTypeVariables
                      , StandaloneDeriving
 
   build-depends:       base         >= 4.8 && < 4.9
                      , gl           >= 0.7 && < 0.8
+                     , mtl          >= 2.2 && < 2.3
                      , transformers >= 0.4 && < 0.5
 
   hs-source-dirs:      src
