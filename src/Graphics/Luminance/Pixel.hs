@@ -29,10 +29,19 @@ data CUInts
 data CFloats
 
 -- |A color channel.
-data CColor b
+data CColor
 
 -- |A depth channel.
-data CDepth b
+data CDepth
 
--- |A red channel. 't' is the underlying type and @f b@ the channel kind.
-data CR t (f b)
+-- |A red channel.
+data CR t b
+
+-- |A green channel.
+data CG t b
+
+-- |A blue channel.
+data CB t b
+
+-- |An alpha channel.
+data CA t b
