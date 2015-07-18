@@ -13,9 +13,10 @@ module Graphics.Luminance.Buffer where
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.State ( State, get, put, runState )
 import Data.Bits ( (.|.) )
-import Data.Word ( Word8, Word32 )
-import Foreign.Ptr ( castPtr, plusPtr )
-import Foreign.Storable ( sizeOf )
+import Data.Word ( Word32 )
+import Foreign.Marshal.Array ( peekArray )
+import Foreign.Ptr ( plusPtr )
+import Foreign.Storable ( Storable(..) )
 import Graphics.GL
 import Graphics.Luminance.Memory
 
@@ -28,42 +29,50 @@ data ReadOnly = ReadOnly deriving (Eq,Ord,Show)
 
 data WriteOnly = WriteOnly deriving (Eq,Ord,Show)
 
-{-
 readBuffer :: (MonadIO m)
-           => GLenum
-           -> Word32
--}
+           => BuildRegion a
+           -> m (ReadBuffer,a)
+readBuffer = mkBufferWithRegions ReadOnly $
+  GL_MAP_READ_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
+
+writeBuffer :: (MonadIO m)
+            => BuildRegion a
+            -> m (ReadBuffer,a)
+writeBuffer = mkBufferWithRegions ReadOnly $
+  GL_MAP_WRITE_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
+
 mkBuffer :: (MonadIO m)
          => rw
-         -> GLenum
          -> GLbitfield
          -> Word32
          -> m (Buffer rw)
-mkBuffer _ target flags size = liftIO $ do
+mkBuffer _ flags size = liftIO $ do
   p <- malloc
   glGenBuffers 1 p
   peek p >>= \bid -> do
-    createStorage bid target flags size
+    createStorage bid flags size
     Buffer <$> embedGC bid (glDeleteBuffers 1 p)
 
 mkBufferWithRegions :: (MonadIO m)
                     => rw
-                    -> GLenum
                     -> GLbitfield
                     -> BuildRegion a
                     -> m (Buffer rw,a)
-mkBufferWithRegions rw target flags buildRegions =
+mkBufferWithRegions rw flags buildRegions =
     (,)
-      <$> mkBuffer rw target flags bytes
+      <$> mkBuffer rw flags bytes
       <*> pure a
   where
     (a,bytes) = runState (runBuildRegion buildRegions) 0
 
-createStorage :: GLuint -> GLenum -> GLbitfield -> Word32 -> IO ()
-createStorage bid target flags size = do
-  glBindBuffer target bid
-  glBufferStorage target (fromIntegral size) nullPtr flags
-  glBindBuffer target 0
+createStorage :: GLuint -> GLbitfield -> Word32 -> IO ()
+createStorage bid flags size = do
+  glBindBuffer universalTarget bid
+  glBufferStorage universalTarget (fromIntegral size) nullPtr flags
+  glBindBuffer universalTarget 0
+
+universalTarget :: GLenum
+universalTarget = GL_COPY_WRITE_BUFFER
 
 data Region a = Region {
     regionPtr :: Ptr a
@@ -81,8 +90,20 @@ newtype BuildRegion a = BuildRegion { runBuildRegion :: State Word32 a }
 newRegion :: forall a. (Storable a) => Word32 -> BuildRegion (Region a)
 newRegion size = BuildRegion $ do
     offset <- get
-    put $ offset + sizeOfR sizeR
-    pure $ Region (nullPtr `plusPtr` fromIntegral offset) sizeR
+    put $ offset + sizeOfR regionS
+    pure $ Region (nullPtr `plusPtr` fromIntegral offset) regionS
   where
-    sizeR :: RegionSize a
-    sizeR = RegionSize size
+    regionS :: RegionSize a
+    regionS = RegionSize size
+
+readWholeRegion :: (MonadIO m,Storable a) => Region a -> m [a]
+readWholeRegion (Region p (RegionSize nb)) = liftIO $
+  peekArray (fromIntegral nb) p
+
+(!?) :: (MonadIO m,Storable a) => Region a -> Word32 -> m (Maybe a)
+Region p (RegionSize nb) !? i
+  | i >= nb = pure Nothing
+  | otherwise = liftIO $ Just <$> peekElemOff p (fromIntegral i)
+
+(!) :: (MonadIO m,Storable a) => Region a -> Word32 -> m (Maybe a)
+Region p _ ! i = liftIO $ Just <$> peekElemOff p (fromIntegral i)
