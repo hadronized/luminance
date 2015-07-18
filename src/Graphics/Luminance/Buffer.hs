@@ -14,7 +14,7 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.State ( State, get, put, runState )
 import Data.Bits ( (.|.) )
 import Data.Word ( Word32 )
-import Foreign.Marshal.Array ( peekArray )
+import Foreign.Marshal.Array ( peekArray, pokeArray )
 import Foreign.Ptr ( plusPtr )
 import Foreign.Storable ( Storable(..) )
 import Graphics.GL
@@ -96,9 +96,17 @@ newRegion size = BuildRegion $ do
     regionS :: RegionSize a
     regionS = RegionSize size
 
-readWholeRegion :: (MonadIO m,Storable a) => Region a -> m [a]
-readWholeRegion (Region p (RegionSize nb)) = liftIO $
+readWhole :: (MonadIO m,Storable a) => Region a -> m [a]
+readWhole (Region p (RegionSize nb)) = liftIO $
   peekArray (fromIntegral nb) p
+
+writeWhole :: (MonadIO m,Storable a) => Region a -> [a] -> m ()
+writeWhole (Region p (RegionSize nb)) values =
+  liftIO . pokeArray p $ take (fromIntegral nb) values
+
+clearWith :: (MonadIO m,Storable a) => Region a -> a -> m ()
+clearWith (Region p (RegionSize nb)) a =
+  liftIO . pokeArray p $ replicate (fromIntegral nb) a
 
 (!?) :: (MonadIO m,Storable a) => Region a -> Word32 -> m (Maybe a)
 Region p (RegionSize nb) !? i
@@ -107,3 +115,11 @@ Region p (RegionSize nb) !? i
 
 (!) :: (MonadIO m,Storable a) => Region a -> Word32 -> m (Maybe a)
 Region p _ ! i = liftIO $ Just <$> peekElemOff p (fromIntegral i)
+
+writeAt :: (MonadIO m,Storable a) => Region a -> Word32 -> a -> m ()
+writeAt (Region p (RegionSize nb)) i a
+  | i >= nb = pure ()
+  | otherwise = liftIO $ pokeElemOff p (fromIntegral i) a
+
+writeAt' :: (MonadIO m,Storable a) => Region a -> Word32 -> a -> m ()
+writeAt' (Region p _) i a = liftIO $ pokeElemOff p (fromIntegral i) a
