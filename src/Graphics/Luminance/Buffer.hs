@@ -32,21 +32,20 @@ data WriteOnly = WriteOnly deriving (Eq,Ord,Show)
 readBuffer :: (MonadIO m)
            => BuildRegion a
            -> m (ReadBuffer,a)
-readBuffer = mkBufferWithRegions ReadOnly $
+readBuffer = mkBufferWithRegions $
   GL_MAP_READ_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
 
 writeBuffer :: (MonadIO m)
             => BuildRegion a
-            -> m (ReadBuffer,a)
-writeBuffer = mkBufferWithRegions ReadOnly $
+            -> m (WriteBuffer,a)
+writeBuffer = mkBufferWithRegions $
   GL_MAP_WRITE_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
 
 mkBuffer :: (MonadIO m)
-         => rw
-         -> GLbitfield
+         => GLbitfield
          -> Word32
          -> m (Buffer rw)
-mkBuffer _ flags size = liftIO $ do
+mkBuffer flags size = liftIO $ do
   p <- malloc
   glGenBuffers 1 p
   peek p >>= \bid -> do
@@ -54,13 +53,12 @@ mkBuffer _ flags size = liftIO $ do
     Buffer <$> embedGC bid (glDeleteBuffers 1 p)
 
 mkBufferWithRegions :: (MonadIO m)
-                    => rw
-                    -> GLbitfield
+                    => GLbitfield
                     -> BuildRegion a
                     -> m (Buffer rw,a)
-mkBufferWithRegions rw flags buildRegions =
+mkBufferWithRegions flags buildRegions =
     (,)
-      <$> mkBuffer rw flags bytes
+      <$> mkBuffer flags bytes
       <*> pure a
   where
     (a,bytes) = runState (runBuildRegion buildRegions) 0
@@ -104,8 +102,8 @@ writeWhole :: (MonadIO m,Storable a) => Region a -> [a] -> m ()
 writeWhole (Region p (RegionSize nb)) values =
   liftIO . pokeArray p $ take (fromIntegral nb) values
 
-clearWith :: (MonadIO m,Storable a) => Region a -> a -> m ()
-clearWith (Region p (RegionSize nb)) a =
+clear :: (MonadIO m,Storable a) => Region a -> a -> m ()
+clear (Region p (RegionSize nb)) a =
   liftIO . pokeArray p $ replicate (fromIntegral nb) a
 
 (!?) :: (MonadIO m,Storable a) => Region a -> Word32 -> m (Maybe a)
