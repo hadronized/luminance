@@ -19,9 +19,7 @@ library
   exposed-modules:     Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
                      , Graphics.Luminance.Framebuffer
-                     , Graphics.Luminance.GLResource
                      , Graphics.Luminance.Index
-                     , Graphics.Luminance.Memory
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.Primitive
                      , Graphics.Luminance.Shader.Program
@@ -40,8 +38,8 @@ library
 
   build-depends:       base           >= 4.8 && < 4.9
                      , gl             >= 0.7 && < 0.8
-                     , kan-extensions >= 4.2 && < 4.3
                      , mtl            >= 2.2 && < 2.3
+                     , resourcet      >= 1.1 && < 1.2
                      , transformers   >= 0.4 && < 0.5
 
   hs-source-dirs:      src
