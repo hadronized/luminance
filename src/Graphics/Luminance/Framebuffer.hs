@@ -11,10 +11,12 @@
 module Graphics.Luminance.Framebuffer where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
+import Control.Monad.Trans.Resource ( MonadResource, register )
+import Foreign.Marshal.Alloc ( malloc )
+import Foreign.Storable ( peek )
 import Graphics.GL
-import Graphics.Luminance.Memory
 
-newtype Framebuffer c d = Framebuffer { framebufferID :: GC GLint }
+newtype Framebuffer c d = Framebuffer { framebufferID :: GLint }
 
 type ColorFramebuffer t f = Framebuffer (Color t f) Complete
 type DepthFramebuffer t f = Framebuffer Complete (Depth t f)
@@ -27,29 +29,28 @@ data Depth t f
 
 data Complete
 
-defaultFramebuffer :: (MonadIO m) => m CompleteFramebuffer
-defaultFramebuffer = Framebuffer <$> embedGC (-1) (pure ())
+defaultFramebuffer :: CompleteFramebuffer
+defaultFramebuffer = Framebuffer (-1)
 
-mkFramebuffer :: (MonadIO m) => m (Framebuffer c d)
-mkFramebuffer = liftIO $ do
-  p <- malloc
-  glGenFramebuffers 1 p
-  peek p >>= \fid ->
-    Framebuffer <$> embedGC (fromIntegral fid) (glDeleteFramebuffers 1 p)
+mkFramebuffer :: (MonadIO m,MonadResource m) => m (Framebuffer c d)
+mkFramebuffer = do
+  (fid,p) <- liftIO $ do
+    p <- malloc
+    glGenFramebuffers 1 p
+    fid <- peek p
+    pure (fid,p)
+  _ <- register $ glDeleteFramebuffers 1 p
+  pure . Framebuffer $ fromIntegral fid
 
-colorFramebuffer :: (MonadIO m) => t -> f -> m (ColorFramebuffer t f)
-colorFramebuffer _ _ = mkFramebuffer
+colorFramebuffer :: (MonadIO m,MonadResource m) => m (ColorFramebuffer t f)
+colorFramebuffer = mkFramebuffer
 
-depthFramebuffer :: (MonadIO m) => t -> f -> m (DepthFramebuffer t f)
-depthFramebuffer _ _ = mkFramebuffer
+depthFramebuffer :: (MonadIO m,MonadResource m) => m (DepthFramebuffer t f)
+depthFramebuffer = mkFramebuffer
 
-colorDepthFramebuffer :: (MonadIO m)
-                      => ct
-                      -> cf
-                      -> dt
-                      -> df
-                      -> m (ColorDepthFramebuffer ct cf dt df)
-colorDepthFramebuffer _ _ _ _ = mkFramebuffer
+colorDepthFramebuffer :: (MonadIO m,MonadResource m)
+                      => m (ColorDepthFramebuffer ct cf dt df)
+colorDepthFramebuffer = mkFramebuffer
 
 {-
 attachColorTexture :: (MonadIO m)

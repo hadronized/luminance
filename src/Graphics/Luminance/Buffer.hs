@@ -11,16 +11,17 @@
 module Graphics.Luminance.Buffer where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
+import Control.Monad.Trans.Resource ( MonadResource, register )
 import Control.Monad.State ( State, get, put, runState )
 import Data.Bits ( (.|.) )
 import Data.Word ( Word32 )
+import Foreign.Marshal.Alloc ( malloc )
 import Foreign.Marshal.Array ( peekArray, pokeArray )
-import Foreign.Ptr ( plusPtr )
+import Foreign.Ptr ( Ptr, nullPtr, plusPtr )
 import Foreign.Storable ( Storable(..) )
 import Graphics.GL
-import Graphics.Luminance.Memory
 
-newtype Buffer rw = Buffer { bufferID :: GC GLuint }
+newtype Buffer rw = Buffer { bufferID :: GLuint }
 
 type ReadBuffer = Buffer ReadOnly
 type WriteBuffer = Buffer WriteOnly
@@ -29,30 +30,33 @@ data ReadOnly = ReadOnly deriving (Eq,Ord,Show)
 
 data WriteOnly = WriteOnly deriving (Eq,Ord,Show)
 
-readBuffer :: (MonadIO m)
+readBuffer :: (MonadIO m,MonadResource m)
            => BuildRegion ReadOnly a
            -> m (ReadBuffer,a)
 readBuffer = mkBufferWithRegions $
   GL_MAP_READ_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
 
-writeBuffer :: (MonadIO m)
+writeBuffer :: (MonadIO m,MonadResource m)
             => BuildRegion WriteOnly a
             -> m (WriteBuffer,a)
 writeBuffer = mkBufferWithRegions $
   GL_MAP_WRITE_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
 
-mkBuffer :: (MonadIO m)
+mkBuffer :: (MonadIO m,MonadResource m)
          => GLbitfield
          -> Word32
          -> m (Buffer rw)
-mkBuffer flags size = liftIO $ do
-  p <- malloc
-  glGenBuffers 1 p
-  peek p >>= \bid -> do
+mkBuffer flags size = do
+  (bid,p) <- liftIO $ do
+    p <- malloc
+    glGenBuffers 1 p
+    bid <- peek p
     createStorage bid flags size
-    Buffer <$> embedGC bid (glDeleteBuffers 1 p)
+    pure (bid,p)
+  _ <- register $ glDeleteBuffers 1 p
+  pure $ Buffer bid
 
-mkBufferWithRegions :: (MonadIO m)
+mkBufferWithRegions :: (MonadIO m,MonadResource m)
                     => GLbitfield
                     -> BuildRegion rw a
                     -> m (Buffer rw,a)
