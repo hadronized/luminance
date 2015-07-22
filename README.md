@@ -14,9 +14,9 @@ The first version of `luminance` will be released of [hackage](https://hackage.h
 
 # What’s included?
 
-`luminance` is a rendering framework, not a 3D engine. As so, it doesn’t include stuff like lights, materials, assement
-management nor scene description. It only provides a rendering framework you can plug in whatever other libraries you want.
-The single restriction – yet – is that you must have an operating system whith **OpenGL** installed.
+`luminance` is a rendering framework, not a 3D engine. As so, it doesn’t include stuff like lights, materials, asset
+management nor scene description. It only provides a rendering framework you can plug in whatever libraries you want to.
+The single restriction – yet – is that you must have an operating system with **OpenGL** installed.
 
 ## Features set
 
