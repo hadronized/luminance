@@ -12,4 +12,4 @@ module Graphics.Luminance.Index where
 
 import Data.Word ( Word32 )
 
-newtype Index a = Index { unIndex :: Word32 } deriving (Eq,Ord,Show)
+newtype Index = Index { unIndex :: Word32 } deriving (Eq,Ord,Show)

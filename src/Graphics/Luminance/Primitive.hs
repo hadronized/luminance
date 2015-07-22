@@ -12,15 +12,15 @@ module Graphics.Luminance.Primitive where
 
 import Graphics.Luminance.Index ( Index )
 
-newtype Point a = Point { pointIndex :: Index a } deriving (Eq,Ord,Show)
+newtype Point = Point { pointIndex :: Index } deriving (Eq,Ord,Show)
 
-data Line a = Line {
-    lineIndexA :: Index a
-  , lineIndexB :: Index a
+data Line = Line {
+    lineIndexA :: Index
+  , lineIndexB :: Index
   } deriving (Eq,Ord,Show)
 
-data Triangle a = Triangle {
-    triangleIndexA :: Index a
-  , triangleIndexB :: Index a
-  , triangleIndexC :: Index a
+data Triangle = Triangle {
+    triangleIndexA :: Index
+  , triangleIndexB :: Index
+  , triangleIndexC :: Index
   } deriving (Eq,Ord,Show)
