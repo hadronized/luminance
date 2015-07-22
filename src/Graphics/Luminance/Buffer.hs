@@ -30,13 +30,13 @@ data ReadOnly = ReadOnly deriving (Eq,Ord,Show)
 data WriteOnly = WriteOnly deriving (Eq,Ord,Show)
 
 readBuffer :: (MonadIO m)
-           => BuildRegion a
+           => BuildRegion ReadOnly a
            -> m (ReadBuffer,a)
 readBuffer = mkBufferWithRegions $
   GL_MAP_READ_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
 
 writeBuffer :: (MonadIO m)
-            => BuildRegion a
+            => BuildRegion WriteOnly a
             -> m (WriteBuffer,a)
 writeBuffer = mkBufferWithRegions $
   GL_MAP_WRITE_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
@@ -54,7 +54,7 @@ mkBuffer flags size = liftIO $ do
 
 mkBufferWithRegions :: (MonadIO m)
                     => GLbitfield
-                    -> BuildRegion a
+                    -> BuildRegion rw a
                     -> m (Buffer rw,a)
 mkBufferWithRegions flags buildRegions =
     (,)
@@ -72,20 +72,20 @@ createStorage bid flags size = do
 universalTarget :: GLenum
 universalTarget = GL_COPY_WRITE_BUFFER
 
-data Region a = Region {
+data Region rw a = Region {
     regionPtr :: Ptr a
   , regionSize :: RegionSize a
   } deriving (Eq,Show)
 
-newtype RegionSize a = RegionSize Word32 deriving (Eq,Show)
+newtype RegionSize a = RegionSize Word32 deriving (Eq,Num,Show)
 
 sizeOfR :: forall a. (Storable a) => RegionSize a -> Word32
 sizeOfR (RegionSize size) = fromIntegral (sizeOf (undefined :: a)) * size
 
-newtype BuildRegion a = BuildRegion { runBuildRegion :: State Word32 a }
+newtype BuildRegion rw a = BuildRegion { runBuildRegion :: State Word32 a }
   deriving (Applicative,Functor,Monad)
 
-newRegion :: forall a. (Storable a) => Word32 -> BuildRegion (Region a)
+newRegion :: forall rw a. (Storable a) => Word32 -> BuildRegion rw (Region rw a)
 newRegion size = BuildRegion $ do
     offset <- get
     put $ offset + sizeOfR regionS
@@ -94,30 +94,30 @@ newRegion size = BuildRegion $ do
     regionS :: RegionSize a
     regionS = RegionSize size
 
-readWhole :: (MonadIO m,Storable a) => Region a -> m [a]
+readWhole :: (MonadIO m,Storable a) => Region ReadOnly a -> m [a]
 readWhole (Region p (RegionSize nb)) = liftIO $
   peekArray (fromIntegral nb) p
 
-writeWhole :: (MonadIO m,Storable a) => Region a -> [a] -> m ()
+writeWhole :: (MonadIO m,Storable a) => Region WriteOnly a -> [a] -> m ()
 writeWhole (Region p (RegionSize nb)) values =
   liftIO . pokeArray p $ take (fromIntegral nb) values
 
-clear :: (MonadIO m,Storable a) => Region a -> a -> m ()
+clear :: (MonadIO m,Storable a) => Region WriteOnly a -> a -> m ()
 clear (Region p (RegionSize nb)) a =
   liftIO . pokeArray p $ replicate (fromIntegral nb) a
 
-(!?) :: (MonadIO m,Storable a) => Region a -> Word32 -> m (Maybe a)
+(!?) :: (MonadIO m,Storable a) => Region rw a -> Word32 -> m (Maybe a)
 Region p (RegionSize nb) !? i
   | i >= nb = pure Nothing
   | otherwise = liftIO $ Just <$> peekElemOff p (fromIntegral i)
 
-(!) :: (MonadIO m,Storable a) => Region a -> Word32 -> m (Maybe a)
+(!) :: (MonadIO m,Storable a) => Region rw a -> Word32 -> m (Maybe a)
 Region p _ ! i = liftIO $ Just <$> peekElemOff p (fromIntegral i)
 
-writeAt :: (MonadIO m,Storable a) => Region a -> Word32 -> a -> m ()
+writeAt :: (MonadIO m,Storable a) => Region WriteOnly a -> Word32 -> a -> m ()
 writeAt (Region p (RegionSize nb)) i a
   | i >= nb = pure ()
   | otherwise = liftIO $ pokeElemOff p (fromIntegral i) a
 
-writeAt' :: (MonadIO m,Storable a) => Region a -> Word32 -> a -> m ()
+writeAt' :: (MonadIO m,Storable a) => Region WriteOnly a -> Word32 -> a -> m ()
 writeAt' (Region p _) i a = liftIO $ pokeElemOff p (fromIntegral i) a
