@@ -20,11 +20,9 @@ import Foreign.Marshal.Array ( peekArray, pokeArray )
 import Foreign.Ptr ( Ptr, castPtr, nullPtr, plusPtr )
 import Foreign.Storable ( Storable(..) )
 import Graphics.GL
+import Graphics.Luminance.RW
 
 newtype Buffer = Buffer { bufferID :: GLuint }
-
-data ReadOnly = ReadOnly deriving (Eq,Ord,Show)
-data WriteOnly = WriteOnly deriving (Eq,Ord,Show)
 
 mkBuffer :: (MonadIO m,MonadResource m)
          => GLbitfield
@@ -61,17 +59,23 @@ mkBufferWithRegions flags buildRegions = do
     built = runBuildRegion buildRegions
     (bytes,_) = execRWS built nullPtr 0
 
-readBuffer :: (MonadIO m,MonadResource m)
-           => BuildRegion ReadOnly a
+readBuffer :: (MonadIO m,MonadResource m,Readable r)
+           => BuildRegion r a
            -> m a
 readBuffer = mkBufferWithRegions $
   GL_MAP_READ_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
 
-writeBuffer :: (MonadIO m,MonadResource m)
-            => BuildRegion WriteOnly a
+writeBuffer :: (MonadIO m,MonadResource m,Writable w)
+            => BuildRegion w a
             -> m a
 writeBuffer = mkBufferWithRegions $
   GL_MAP_WRITE_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
+
+readWriteBuffer :: (MonadIO m,MonadResource m)
+                => BuildRegion RW a
+                -> m a
+readWriteBuffer = mkBufferWithRegions $
+  GL_MAP_READ_BIT .|. GL_MAP_WRITE_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
 
 data Region rw a = Region {
     regionPtr :: Ptr a
@@ -97,32 +101,32 @@ newRegion size = BuildRegion $ do
     regionS :: RegionSize a
     regionS = RegionSize size
 
-readWhole :: (MonadIO m,Storable a) => Region ReadOnly a -> m [a]
+readWhole :: (MonadIO m,Readable r,Storable a) => Region r a -> m [a]
 readWhole (Region p (RegionSize nb)) = liftIO $
   peekArray (fromIntegral nb) p
 
-writeWhole :: (MonadIO m,Storable a) => Region WriteOnly a -> [a] -> m ()
+writeWhole :: (MonadIO m,Storable a,Writable w) => Region w a -> [a] -> m ()
 writeWhole (Region p (RegionSize nb)) values =
   liftIO . pokeArray p $ take (fromIntegral nb) values
 
-clear :: (MonadIO m,Storable a) => Region WriteOnly a -> a -> m ()
+clear :: (MonadIO m,Storable a,Writable w) => Region w a -> a -> m ()
 clear (Region p (RegionSize nb)) a =
   liftIO . pokeArray p $ replicate (fromIntegral nb) a
 
-(!?) :: (MonadIO m,Storable a) => Region rw a -> Word32 -> m (Maybe a)
-Region p (RegionSize nb) !? i
+(@?) :: (MonadIO m,Storable a,Readable r) => Region r a -> Word32 -> m (Maybe a)
+Region p (RegionSize nb) @? i
   | i >= nb = pure Nothing
   | otherwise = liftIO $ Just <$> peekElemOff p (fromIntegral i)
 
-(!) :: (MonadIO m,Storable a) => Region rw a -> Word32 -> m (Maybe a)
-Region p _ ! i = liftIO $ Just <$> peekElemOff p (fromIntegral i)
+(@!) :: (MonadIO m,Storable a,Readable r) => Region r a -> Word32 -> m a
+Region p _ @! i = liftIO $ peekElemOff p (fromIntegral i)
 
-writeAt :: (MonadIO m,Storable a) => Region WriteOnly a -> Word32 -> a -> m ()
+writeAt :: (MonadIO m,Storable a,Writable w) => Region w a -> Word32 -> a -> m ()
 writeAt (Region p (RegionSize nb)) i a
   | i >= nb = pure ()
   | otherwise = liftIO $ pokeElemOff p (fromIntegral i) a
 
-writeAt' :: (MonadIO m,Storable a) => Region WriteOnly a -> Word32 -> a -> m ()
+writeAt' :: (MonadIO m,Storable a,Writable w) => Region w a -> Word32 -> a -> m ()
 writeAt' (Region p _) i a = liftIO $ pokeElemOff p (fromIntegral i) a
 
 universalTarget :: GLenum
