@@ -37,6 +37,7 @@ library
                      , RankNTypes
                      , ScopedTypeVariables
                      , StandaloneDeriving
+                     , TypeOperators
 
   build-depends:       base           >= 4.8 && < 4.9
                      , gl             >= 0.7 && < 0.8

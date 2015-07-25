@@ -15,8 +15,9 @@ import Control.Monad.RWS ( RWS, ask, get, evalRWS, execRWS, put )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Data.Bits ( (.|.) )
 import Data.Word ( Word32 )
-import Foreign.Marshal.Alloc ( malloc )
+import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( peekArray, pokeArray )
+import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( Ptr, castPtr, nullPtr, plusPtr )
 import Foreign.Storable ( Storable(..) )
 import Graphics.GL
@@ -29,13 +30,12 @@ mkBuffer :: (MonadIO m,MonadResource m)
          -> Word32
          -> m (Buffer,Ptr ())
 mkBuffer flags size = do
-  (bid,p,mapped) <- liftIO $ do
-    p <- malloc
+  (bid,mapped) <- liftIO . alloca $ \p -> do
     glGenBuffers 1 p
     bid <- peek p
     mapped <- createStorage bid flags size
-    pure (bid,p,mapped)
-  _ <- register $ glDeleteBuffers 1 p
+    pure (bid,mapped)
+  _ <- register . with bid $ glDeleteBuffers 1
   pure (Buffer bid,mapped)
 
 createStorage :: GLuint -> GLbitfield -> Word32 -> IO (Ptr ())
