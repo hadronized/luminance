@@ -12,51 +12,27 @@ module Graphics.Luminance.Framebuffer where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
-import Foreign.Marshal.Alloc ( malloc )
+import Foreign.Marshal.Alloc ( alloca )
+import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( peek )
 import Graphics.GL
+import Graphics.Luminance.RW
 
-newtype Framebuffer c d = Framebuffer { framebufferID :: GLint }
+newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLint }
 
-type ColorFramebuffer t f = Framebuffer (Color t f) Complete
-type DepthFramebuffer t f = Framebuffer Complete (Depth t f)
-type ColorDepthFramebuffer ct cf dt df = Framebuffer (Color ct cf) (Depth dt df)
-type CompleteFramebuffer = Framebuffer Complete Complete -- not really totally complete
+type ColorFramebuffer rw c = Framebuffer rw c ()
+type DepthFramebuffer rw d = Framebuffer rw () d
 
-data Color t f
+-- |A chain of types, right-associated.
+data a :. b = a :. b deriving (Eq,Functor,Ord,Show)
 
-data Depth t f
+infixr 6 :.
 
-data Complete
-
-defaultFramebuffer :: CompleteFramebuffer
-defaultFramebuffer = Framebuffer (-1)
-
-mkFramebuffer :: (MonadIO m,MonadResource m) => m (Framebuffer c d)
-mkFramebuffer = do
-  (fid,p) <- liftIO $ do
-    p <- malloc
+createFramebuffer :: (MonadIO m,MonadResource m)
+                  => m (Framebuffer rw c d)
+createFramebuffer = do
+  fid <- liftIO . alloca $ \p -> do
     glGenFramebuffers 1 p
-    fid <- peek p
-    pure (fid,p)
-  _ <- register $ glDeleteFramebuffers 1 p
-  pure . Framebuffer $ fromIntegral fid
-
-colorFramebuffer :: (MonadIO m,MonadResource m) => m (ColorFramebuffer t f)
-colorFramebuffer = mkFramebuffer
-
-depthFramebuffer :: (MonadIO m,MonadResource m) => m (DepthFramebuffer t f)
-depthFramebuffer = mkFramebuffer
-
-colorDepthFramebuffer :: (MonadIO m,MonadResource m)
-                      => m (ColorDepthFramebuffer ct cf dt df)
-colorDepthFramebuffer = mkFramebuffer
-
-{-
-attachColorTexture :: (MonadIO m)
-                   => Framebuffer (Color t f) d
-                   -> Texture t f
-                   -> m (Either String (Framebuffer Complete d))
-attachColorTexture fb tex = liftIO $ do
-  -- ?!
--}
+    peek p
+  _ <- register . with fid $ glDeleteFramebuffers 1
+  pure $ Framebuffer (fromIntegral fid)
