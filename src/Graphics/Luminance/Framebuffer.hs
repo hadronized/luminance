@@ -18,7 +18,7 @@ import Foreign.Storable ( peek )
 import Graphics.GL
 import Graphics.Luminance.RW
 
-newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLint }
+newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLint } deriving (Eq,Show)
 
 type ColorFramebuffer rw c = Framebuffer rw c ()
 type DepthFramebuffer rw d = Framebuffer rw () d
@@ -36,3 +36,18 @@ createFramebuffer = do
     peek p
   _ <- register . with fid $ glDeleteFramebuffers 1
   pure $ Framebuffer (fromIntegral fid)
+
+{-
+class FramebufferAttachment c d where
+  createFramebufferTextures :: (MonadIO m) => Framebuffer rw c d -> m ()
+
+instance FramebufferAttachment () d where
+  createFramebufferTextures = createFramebufferDepthTextures
+-}
+
+{-
+createFramebufferDepthTextures :: (ChannelSize s,ChannelType t,MonadIO m)
+                               => Framebuffer rw () (Format t (CDepth s))
+                               -> m ()
+createFramebufferDepthTextures framebuffer = do
+-}
