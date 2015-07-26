@@ -165,10 +165,10 @@ uploadWhole :: (MonadIO m,PixelBase p ~ a,Storable a)
             -> Bool
             -> [a]
             -> m ()
-uploadWhole (Texture2D _ w h fmt typ) autolvl dat =
+uploadWhole (Texture2D tid w h fmt typ) autolvl dat =
   liftIO $ do
-    withArray dat $ glTexSubImage2D GL_TEXTURE_2D 0 0 0 w h fmt typ . castPtr
-    when autolvl $ glGenerateMipmap GL_TEXTURE_2D
+    withArray dat $ glTextureSubImage2D tid 0 0 0 w h fmt typ . castPtr
+    when autolvl $ glGenerateTextureMipmap tid
 
 uploadSub :: (MonadIO m,PixelBase p ~ a,Storable a)
           => Texture2D p
@@ -179,21 +179,21 @@ uploadSub :: (MonadIO m,PixelBase p ~ a,Storable a)
           -> Bool
           -> [a]
           -> m ()
-uploadSub (Texture2D _ _ _ fmt typ) x y w h autolvl dat =
+uploadSub (Texture2D tid _ _ fmt typ) x y w h autolvl dat =
   liftIO $ do
-    withArray dat $ glTexSubImage2D GL_TEXTURE_2D 0 (fromIntegral x)
+    withArray dat $ glTextureSubImage2D tid 0 (fromIntegral x)
       (fromIntegral y) (fromIntegral w) (fromIntegral h) fmt typ . castPtr
-    when autolvl $ glGenerateMipmap GL_TEXTURE_2D
+    when autolvl $ glGenerateTextureMipmap tid
 
 fillWhole :: (MonadIO m,PixelBase p ~ a,Storable a)
           => Texture2D p
           -> Bool
           -> a
           -> m ()
-fillWhole (Texture2D _ _ _ fmt typ) autolvl filling =
+fillWhole (Texture2D tid _ _ fmt typ) autolvl filling =
   liftIO $ do
-    with filling $ glClearTexImage GL_TEXTURE_2D 0 fmt typ . castPtr
-    when autolvl $ glGenerateMipmap GL_TEXTURE_2D
+    with filling $ glClearTexImage tid 0 fmt typ . castPtr
+    when autolvl $ glGenerateTextureMipmap tid
 
 fillSub :: (MonadIO m,PixelBase p ~ a,Storable a)
         => Texture2D p
@@ -204,8 +204,8 @@ fillSub :: (MonadIO m,PixelBase p ~ a,Storable a)
         -> Bool
         -> a
         -> m ()
-fillSub (Texture2D _ _ _ fmt typ) x y w h autolvl filling =
+fillSub (Texture2D tid _ _ fmt typ) x y w h autolvl filling =
   liftIO $ do
-    with filling $ glClearTexSubImage GL_TEXTURE_2D 0 (fromIntegral x)
+    with filling $ glClearTexSubImage tid 0 (fromIntegral x)
       (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 0 fmt typ . castPtr
-    when autolvl $ glGenerateMipmap GL_TEXTURE_2D
+    when autolvl $ glGenerateTextureMipmap tid
