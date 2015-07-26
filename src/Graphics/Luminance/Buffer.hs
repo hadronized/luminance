@@ -23,7 +23,7 @@ import Foreign.Storable ( Storable(..) )
 import Graphics.GL
 import Graphics.Luminance.RW
 
-newtype Buffer = Buffer { bufferID :: GLuint }
+newtype Buffer = Buffer { bufferID :: GLuint } deriving (Eq,Show)
 
 mkBuffer :: (MonadIO m,MonadResource m)
          => GLbitfield

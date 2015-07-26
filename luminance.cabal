@@ -26,6 +26,7 @@ library
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
                      , Graphics.Luminance.Shader.Uniform
+                     , Graphics.Luminance.Texture
                      , Graphics.Luminance.Vertex
 
   default-extensions:  DeriveFoldable
