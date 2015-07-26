@@ -13,9 +13,12 @@ module Graphics.Luminance.Texture where
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Foreign.Marshal.Alloc ( alloca )
+import Foreign.Marshal.Array ( withArray )
 import Foreign.Marshal.Utils ( with )
-import Foreign.Storable ( peek )
+import Foreign.Ptr ( castPtr )
+import Foreign.Storable ( Storable(peek) )
 import Graphics.GL
+import Graphics.Luminance.Pixel ( Pixel(..) )
 import Numeric.Natural ( Natural )
 
 data Wrap
@@ -68,15 +71,37 @@ fromUnit :: (Eq a,Num a) => Unit -> a
 fromUnit (Unit i) = GL_TEXTURE0 + fromIntegral i
 
 -- |2D Texture.
-newtype Texture f = Texture2D { textureID :: GLuint } deriving (Eq,Show)
+data Texture2D f = Texture2D {
+    textureID     :: GLuint
+  , textureW      :: GLsizei
+  , textureH      :: GLsizei
+  , textureFormat :: GLenum
+  , textureType   :: GLenum
+  } deriving (Eq,Show)
 
-{-
-createTexture :: (MonadIO m,MonadResource m)
-              => Word32
-              -> Word32
-              -> m (Texture f)
-createTexture w h = do
--}
+createTexture :: forall p m. (Pixel p,MonadIO m,MonadResource m)
+              => Natural
+              -> Natural
+              -> Natural
+              -> m (Texture2D p)
+createTexture w h mipmaps = do
+    tid <- liftIO . alloca $ \p -> do
+      glGenTextures 1 p
+      tid <- peek p
+      glBindTexture GL_TEXTURE_2D tid
+      glTexStorage2D GL_TEXTURE_2D (fromIntegral mipmaps) ift w' h'
+      glTexParameteri GL_TEXTURE_2D GL_TEXTURE_BASE_LEVEL 0
+      glTexParameteri GL_TEXTURE_2D GL_TEXTURE_MAX_LEVEL (fromIntegral mipmaps - 1)
+      glBindTexture GL_TEXTURE_2D 0
+      pure tid
+    _ <- register . with tid $ glDeleteTextures 1
+    pure $ Texture2D tid w' h' ft typ
+  where
+    ft  = pixelFormat (undefined :: p)
+    ift = pixelIFormat (undefined :: p)
+    typ = pixelType (undefined :: p)
+    w'  = fromIntegral w
+    h'  = fromIntegral h
 
 newtype Sampler = Sampler { samplerID :: GLuint } deriving (Eq,Show)
 
@@ -133,3 +158,24 @@ setTextureSampling = setSampling glTexParameteri
 
 setSamplerSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
 setSamplerSampling = setSampling glSamplerParameteri
+
+uploadWhole :: (MonadIO m,PixelBase p ~ a,Storable a)
+            => Texture2D p
+            -> [a]
+            -> m ()
+uploadWhole (Texture2D _ w h fmt typ) dat =
+  liftIO . withArray dat $
+    glTexSubImage2D GL_TEXTURE_2D 0 0 0 w h fmt typ . castPtr
+
+uploadSub :: (MonadIO m,PixelBase p ~ a,Storable a)
+          => Texture2D p
+          -> Int
+          -> Int
+          -> Natural
+          -> Natural
+          -> [a]
+          -> m ()
+uploadSub (Texture2D _ _ _ fmt typ) x y w h dat =
+  liftIO . withArray dat $
+    glTexSubImage2D GL_TEXTURE_2D 0 (fromIntegral x) (fromIntegral y)
+      (fromIntegral w) (fromIntegral h) fmt typ . castPtr

@@ -76,32 +76,30 @@ data Format t c = Format deriving (Eq,Ord,Show)
 instance (ChannelType t) => ChannelType (Format t c) where
   channelType _ = channelType (undefined :: t)
 
-type RGB8F    = Format CFloats (CRGB C8  C8  C8)
-type RGB16F   = Format CFloats (CRGB C16 C16 C16)
 type RGB32F   = Format CFloats (CRGB C32 C32 C32)
+type RGBA32F  = Format CFloats (CRGBA C32 C32 C32 C32)
 type Depth32F = Format CFloats (CDepth C32)
 
-class GLFormats f where
-  glFormat  :: f -> GLenum
-  glIFormat :: f -> GLenum
-  glType    :: f -> GLenum
+class Pixel f where
+  type PixelBase f :: *
+  pixelFormat  :: f -> GLenum
+  pixelIFormat :: f -> GLenum
+  pixelType    :: f -> GLenum
 
-instance GLFormats RGB8F where
-  glFormat  _ = GL_RGB
-  glIFormat _ = GL_RGB32F
-  glType    _ = GL_FLOAT
+instance Pixel RGB32F where
+  type PixelBase RGB32F = Float
+  pixelFormat  _ = GL_RGB
+  pixelIFormat _ = GL_RGB32F
+  pixelType    _ = GL_FLOAT
 
-instance GLFormats RGB16F where
-  glFormat  _ = GL_RGB
-  glIFormat _ = GL_RGB16F
-  glType    _ = GL_FLOAT
+instance Pixel RGBA32F where
+  type PixelBase RGBA32F = Float
+  pixelFormat  _ = GL_RGBA
+  pixelIFormat _ = GL_RGBA32F
+  pixelType    _ = GL_FLOAT
 
-instance GLFormats RGB32F where
-  glFormat  _ = GL_RGB
-  glIFormat _ = GL_RGB32F
-  glType    _ = GL_FLOAT
-
-instance GLFormats Depth32F where
-  glFormat  _ = GL_DEPTH_COMPONENT
-  glIFormat _ = GL_DEPTH_COMPONENT32F
-  glType    _ = GL_FLOAT
+instance Pixel Depth32F where
+  type PixelBase Depth32F = Float
+  pixelFormat  _ = GL_DEPTH_COMPONENT
+  pixelIFormat _ = GL_DEPTH_COMPONENT32F
+  pixelType    _ = GL_FLOAT
