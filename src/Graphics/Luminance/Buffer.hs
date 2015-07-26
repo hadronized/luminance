@@ -59,23 +59,23 @@ mkBufferWithRegions flags buildRegions = do
     built = runBuildRegion buildRegions
     (bytes,_) = execRWS built nullPtr 0
 
-readBuffer :: (MonadIO m,MonadResource m,Readable r)
-           => BuildRegion r a
-           -> m a
-readBuffer = mkBufferWithRegions $
-  GL_MAP_READ_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
+class BufferFlagsRW rw where
+  bufferFlagsFromRW :: rw -> GLenum
 
-writeBuffer :: (MonadIO m,MonadResource m,Writable w)
-            => BuildRegion w a
-            -> m a
-writeBuffer = mkBufferWithRegions $
-  GL_MAP_WRITE_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
+instance BufferFlagsRW R where
+  bufferFlagsFromRW _ = GL_MAP_READ_BIT
 
-readWriteBuffer :: (MonadIO m,MonadResource m)
-                => BuildRegion RW a
-                -> m a
-readWriteBuffer = mkBufferWithRegions $
-  GL_MAP_READ_BIT .|. GL_MAP_WRITE_BIT .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
+instance BufferFlagsRW RW where
+  bufferFlagsFromRW _ = GL_MAP_READ_BIT .|. GL_MAP_WRITE_BIT
+
+instance BufferFlagsRW W where
+  bufferFlagsFromRW _ = GL_MAP_WRITE_BIT
+
+createBuffer :: forall a m rw. (BufferFlagsRW rw,MonadIO m,MonadResource m)
+             => BuildRegion rw a
+             -> m a
+createBuffer = mkBufferWithRegions $
+  bufferFlagsFromRW (undefined :: rw) .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
 
 data Region rw a = Region {
     regionPtr :: Ptr a
