@@ -184,3 +184,28 @@ uploadSub (Texture2D _ _ _ fmt typ) x y w h autolvl dat =
     withArray dat $ glTexSubImage2D GL_TEXTURE_2D 0 (fromIntegral x)
       (fromIntegral y) (fromIntegral w) (fromIntegral h) fmt typ . castPtr
     when autolvl $ glGenerateMipmap GL_TEXTURE_2D
+
+fillWhole :: (MonadIO m,PixelBase p ~ a,Storable a)
+          => Texture2D p
+          -> Bool
+          -> a
+          -> m ()
+fillWhole (Texture2D _ _ _ fmt typ) autolvl filling =
+  liftIO $ do
+    with filling $ glClearTexImage GL_TEXTURE_2D 0 fmt typ . castPtr
+    when autolvl $ glGenerateMipmap GL_TEXTURE_2D
+
+fillSub :: (MonadIO m,PixelBase p ~ a,Storable a)
+        => Texture2D p
+        -> Int
+        -> Int
+        -> Natural
+        -> Natural
+        -> Bool
+        -> a
+        -> m ()
+fillSub (Texture2D _ _ _ fmt typ) x y w h autolvl filling =
+  liftIO $ do
+    with filling $ glClearTexSubImage GL_TEXTURE_2D 0 (fromIntegral x)
+      (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 0 fmt typ . castPtr
+    when autolvl $ glGenerateMipmap GL_TEXTURE_2D
