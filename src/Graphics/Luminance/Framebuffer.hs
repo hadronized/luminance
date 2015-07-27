@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   : (C) 2015 Dimitri Sabadie
@@ -16,9 +18,16 @@ import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( peek )
 import Graphics.GL
-import Graphics.Luminance.RW
+import Graphics.Luminance.Pixel ( Format(..), Pixel )
+import Graphics.Luminance.Texture ( Texture2D(textureID), createTexture )
+import Numeric.Natural ( Natural )
 
-newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLint } deriving (Eq,Show)
+data Framebuffer rw c d = Framebuffer {
+    framebufferID :: GLint
+  , framebufferW  :: Natural
+  , framebufferH  :: Natural
+  , framebufferMM :: Natural
+  } deriving (Eq,Show)
 
 type ColorFramebuffer rw c = Framebuffer rw c ()
 type DepthFramebuffer rw d = Framebuffer rw () d
@@ -28,26 +37,46 @@ data a :. b = a :. b deriving (Eq,Functor,Ord,Show)
 
 infixr 6 :.
 
-createFramebuffer :: (MonadIO m,MonadResource m)
-                  => m (Framebuffer rw c d)
-createFramebuffer = do
+newtype ColorAttachment = ColorAttachment
+  { colorAttachment :: Natural } deriving (Eq,Ord,Show)
+
+fromColorAttachment :: (Eq a,Num a) => ColorAttachment -> a
+fromColorAttachment (ColorAttachment i) = GL_TEXTURE0 + fromIntegral i
+
+createFramebuffer :: (MonadIO m,MonadResource m,FramebufferColorAttachment c)
+                  => Natural
+                  -> Natural
+                  -> Natural
+                  -> m (Framebuffer rw c d)
+createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
     glGenFramebuffers 1 p
-    peek p
+    fid <- peek p
+    --createColorTexture
+    pure fid
   _ <- register . with fid $ glDeleteFramebuffers 1
-  pure $ Framebuffer (fromIntegral fid)
+  pure $ Framebuffer (fromIntegral fid) w h mipmaps
 
-{-
-class FramebufferAttachment c d where
-  createFramebufferTextures :: (MonadIO m) => Framebuffer rw c d -> m ()
+class FramebufferColorAttachment a where
+  createColorTexture :: (MonadIO m,MonadResource m)
+                     => ColorAttachment
+                     -> a
+                     -> GLuint
+                     -> Natural
+                     -> Natural
+                     -> Natural
+                     -> m ()
 
-instance FramebufferAttachment () d where
-  createFramebufferTextures = createFramebufferDepthTextures
--}
+instance FramebufferColorAttachment () where
+  createColorTexture _ _ _ _ _ _ = pure ()
 
-{-
-createFramebufferDepthTextures :: (ChannelSize s,ChannelType t,MonadIO m)
-                               => Framebuffer rw () (Format t (CDepth s))
-                               -> m ()
-createFramebufferDepthTextures framebuffer = do
--}
+instance (Pixel (Format t c)) => FramebufferColorAttachment (Format t c) where
+  createColorTexture ca _ fid w h mipmaps = do
+    tex :: Texture2D (Format t c) <- createTexture w h mipmaps
+    liftIO $ glNamedFramebufferTexture fid (fromColorAttachment ca)
+      (textureID tex) 0
+
+instance (FramebufferColorAttachment a,FramebufferColorAttachment b) => FramebufferColorAttachment (a :. b) where
+  createColorTexture ca@(ColorAttachment i) _ fid w h mipmaps = do
+    createColorTexture ca (undefined :: a) fid w h mipmaps
+    createColorTexture (ColorAttachment $ succ i) (undefined :: b) fid w h mipmaps
