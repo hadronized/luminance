@@ -33,3 +33,5 @@ data D a
     deriving (Eq,Functor,Foldable,Ord,Show)
 
 newtype Vertex = Vertex { unVertex :: [Component D] } deriving (Show)
+
+type Vertices = [Vertex]
