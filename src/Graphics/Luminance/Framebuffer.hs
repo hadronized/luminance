@@ -43,7 +43,7 @@ newtype ColorAttachment = ColorAttachment
 fromColorAttachment :: (Eq a,Num a) => ColorAttachment -> a
 fromColorAttachment (ColorAttachment i) = GL_TEXTURE0 + fromIntegral i
 
-createFramebuffer :: (MonadIO m,MonadResource m,FramebufferColorAttachment c)
+createFramebuffer :: forall c d m rw. (MonadIO m,MonadResource m,FramebufferColorAttachment c)
                   => Natural
                   -> Natural
                   -> Natural
@@ -51,9 +51,8 @@ createFramebuffer :: (MonadIO m,MonadResource m,FramebufferColorAttachment c)
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
     glGenFramebuffers 1 p
-    fid <- peek p
-    --createColorTexture
-    pure fid
+    peek p
+  createColorTexture (ColorAttachment 0) (undefined :: c) fid w h mipmaps
   _ <- register . with fid $ glDeleteFramebuffers 1
   pure $ Framebuffer (fromIntegral fid) w h mipmaps
 
