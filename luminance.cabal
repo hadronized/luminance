@@ -27,15 +27,20 @@ library
                      , Graphics.Luminance.Shader.Stage
                      , Graphics.Luminance.Shader.Uniform
                      , Graphics.Luminance.Texture
+                     , Graphics.Luminance.Tuple
                      , Graphics.Luminance.Vertex
+                     , Graphics.Luminance.VertexArray
 
-  default-extensions:  DeriveFoldable
+  default-extensions:  DataKinds
+                     , DeriveFoldable
                      , DeriveFunctor
                      , FlexibleContexts
                      , FlexibleInstances
+                     , GADTs
                      , GeneralizedNewtypeDeriving
                      , MultiParamTypeClasses
                      , MultiWayIf
+                     , PolyKinds
                      , RankNTypes
                      , ScopedTypeVariables
                      , StandaloneDeriving
@@ -44,11 +49,12 @@ library
 
   other-extensions:    UndecidableInstances
 
-  build-depends:       base           >= 4.8 && < 4.9
-                     , gl             >= 0.7 && < 0.8
-                     , mtl            >= 2.2 && < 2.3
-                     , resourcet      >= 1.1 && < 1.2
-                     , transformers   >= 0.4 && < 0.5
+  build-depends:       base           >= 4.8  && < 4.9
+                     , gl             >= 0.7  && < 0.8
+                     , linear         >= 1.19 && < 1.20
+                     , mtl            >= 2.2  && < 2.3
+                     , resourcet      >= 1.1  && < 1.2
+                     , transformers   >= 0.4  && < 0.5
 
   hs-source-dirs:      src
 
