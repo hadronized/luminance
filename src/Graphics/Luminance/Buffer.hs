@@ -14,6 +14,7 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.RWS ( RWS, ask, get, evalRWS, execRWS, put )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Data.Bits ( (.|.) )
+import Data.Foldable ( toList )
 import Data.Word ( Word32 )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( peekArray, pokeArray )
@@ -102,12 +103,14 @@ newRegion size = BuildRegion $ do
     regionS = RegionSize size
 
 readWhole :: (MonadIO m,Readable r,Storable a) => Region r a -> m [a]
-readWhole (Region p (RegionSize nb)) = liftIO $
-  peekArray (fromIntegral nb) p
+readWhole (Region p (RegionSize nb)) = liftIO $ peekArray (fromIntegral nb) p
 
-writeWhole :: (MonadIO m,Storable a,Writable w) => Region w a -> [a] -> m ()
+writeWhole :: (Foldable f,MonadIO m,Storable a,Writable w)
+           => Region w a
+           -> f a
+           -> m ()
 writeWhole (Region p (RegionSize nb)) values =
-  liftIO . pokeArray p $ take (fromIntegral nb) values
+  liftIO . pokeArray p . take (fromIntegral nb) $ toList values
 
 clear :: (MonadIO m,Storable a,Writable w) => Region w a -> a -> m ()
 clear (Region p (RegionSize nb)) a =
