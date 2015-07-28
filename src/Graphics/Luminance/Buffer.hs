@@ -32,7 +32,7 @@ mkBuffer :: (MonadIO m,MonadResource m)
          -> m (Buffer,Ptr ())
 mkBuffer flags size = do
   (bid,mapped) <- liftIO . alloca $ \p -> do
-    glGenBuffers 1 p
+    glCreateBuffers 1 p
     bid <- peek p
     mapped <- createStorage bid flags size
     pure (bid,mapped)
