@@ -54,7 +54,7 @@ createFramebuffer :: forall c d m rw. (MonadIO m,MonadResource m,FramebufferAtta
                   -> m (Framebuffer rw c d)
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
-    glGenFramebuffers 1 p
+    glCreateFramebuffers 1 p
     peek p
   hasColor <- createFramebufferTexture (ColorAttachment 0) (undefined :: c) fid w h mipmaps
   hasDepth <- createFramebufferTexture DepthAttachment (undefined :: d) fid w h mipmaps
