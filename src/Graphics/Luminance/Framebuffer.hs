@@ -20,6 +20,7 @@ import Foreign.Storable ( peek )
 import Graphics.GL
 import Graphics.Luminance.Pixel ( Format(..), Pixel )
 import Graphics.Luminance.Texture ( Texture2D(textureID), createTexture )
+import Graphics.Luminance.Tuple ( (:.) )
 import Numeric.Natural ( Natural )
 
 data Framebuffer rw c d = Framebuffer {
@@ -31,11 +32,6 @@ data Framebuffer rw c d = Framebuffer {
 
 type ColorFramebuffer rw c = Framebuffer rw c ()
 type DepthFramebuffer rw d = Framebuffer rw () d
-
--- |A chain of types, right-associated.
-data a :. b = a :. b deriving (Eq,Functor,Ord,Show)
-
-infixr 6 :.
 
 data Attachment
   = ColorAttachment Natural
