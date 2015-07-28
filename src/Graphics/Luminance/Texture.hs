@@ -87,7 +87,7 @@ createTexture :: forall p m. (Pixel p,MonadIO m,MonadResource m)
               -> m (Texture2D p)
 createTexture w h mipmaps = do
     tid <- liftIO . alloca $ \p -> do
-      glGenTextures 1 p
+      glCreateTextures GL_TEXTURE_2D 1 p
       tid <- peek p
       glBindTexture GL_TEXTURE_2D tid
       glTexStorage2D GL_TEXTURE_2D (fromIntegral mipmaps) ift w' h'
@@ -130,7 +130,7 @@ createSampler :: (MonadIO m,MonadResource m)
               -> m Sampler
 createSampler s = do
   sid <- liftIO . alloca $ \p -> do
-    glGenSamplers 1 p
+    glCreateSamplers 1 p
     sid <- peek p
     setTextureSampling sid s
     pure sid
