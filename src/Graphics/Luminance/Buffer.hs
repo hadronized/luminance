@@ -52,10 +52,10 @@ createStorage bid flags size = do
 mkBufferWithRegions :: (MonadIO m,MonadResource m)
                     => GLbitfield
                     -> BuildRegion rw a
-                    -> m a
+                    -> m (a,Buffer)
 mkBufferWithRegions flags buildRegions = do
-    (_,mapped) <- mkBuffer flags bytes
-    pure . fst $ evalRWS built mapped 0
+    (buffer,mapped) <- mkBuffer flags bytes
+    pure (fst $ evalRWS built mapped 0,buffer)
   where
     built = runBuildRegion buildRegions
     (bytes,_) = execRWS built nullPtr 0
@@ -75,7 +75,12 @@ instance BufferFlagsRW W where
 createBuffer :: forall a m rw. (BufferFlagsRW rw,MonadIO m,MonadResource m)
              => BuildRegion rw a
              -> m a
-createBuffer = mkBufferWithRegions $
+createBuffer = fmap fst . mkBufferWithRegions (bufferFlagsFromRW (undefined :: rw) .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT)
+
+createBuffer_ :: forall a m rw. (BufferFlagsRW rw,MonadIO m,MonadResource m)
+              => BuildRegion rw a
+              -> m (a,Buffer)
+createBuffer_ = mkBufferWithRegions $
   bufferFlagsFromRW (undefined :: rw) .|. GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
 
 data Region rw a = Region {
