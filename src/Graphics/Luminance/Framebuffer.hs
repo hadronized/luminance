@@ -15,7 +15,7 @@ module Graphics.Luminance.Framebuffer where
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Foreign.Marshal.Alloc ( alloca )
-import Foreign.Marshal.Utils ( with )
+import Foreign.Marshal.Utils ( toBool, with )
 import Foreign.Storable ( peek )
 import Graphics.GL
 import Graphics.Luminance.Pixel ( Format(..), Pixel )
@@ -54,6 +54,7 @@ createFramebuffer w h mipmaps = do
     peek p
   hasColor <- createFramebufferTexture (ColorAttachment 0) (undefined :: c) fid w h mipmaps
   hasDepth <- createFramebufferTexture DepthAttachment (undefined :: d) fid w h mipmaps
+  --configureFramebufferBuffers fid (toBool hasColor) (toBool hasDepth)
   _ <- register . with fid $ glDeleteFramebuffers 1
   pure $ Framebuffer (fromIntegral fid) w h mipmaps
 
@@ -83,3 +84,8 @@ instance (FramebufferAttachment a,FramebufferAttachment b) => FramebufferAttachm
       _ <- createFramebufferTexture ca (undefined :: a) fid w h mipmaps
       createFramebufferTexture (ColorAttachment $ succ i) (undefined :: b) fid w h mipmaps
     _ -> pure False
+
+{-
+configureFramebufferBuffers :: (MonadIO m) => GLint -> Bool -> Bool -> m ()
+configureFramebufferBuffers fid hasColor hasDepth
+-}
