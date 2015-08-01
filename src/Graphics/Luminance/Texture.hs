@@ -13,6 +13,7 @@ module Graphics.Luminance.Texture where
 import Control.Monad ( when )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
+import Data.Foldable ( toList )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( withArray )
 import Foreign.Marshal.Utils ( with )
@@ -160,28 +161,28 @@ setTextureSampling = setSampling glTexParameteri
 setSamplerSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
 setSamplerSampling = setSampling glSamplerParameteri
 
-uploadWhole :: (MonadIO m,PixelBase p ~ a,Storable a)
+uploadWhole :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
             => Texture2D p
             -> Bool
-            -> [a]
+            -> f a
             -> m ()
 uploadWhole (Texture2D tid w h fmt typ) autolvl dat =
   liftIO $ do
-    withArray dat $ glTextureSubImage2D tid 0 0 0 w h fmt typ . castPtr
+    withArray (toList dat) $ glTextureSubImage2D tid 0 0 0 w h fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
 
-uploadSub :: (MonadIO m,PixelBase p ~ a,Storable a)
+uploadSub :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
           => Texture2D p
           -> Int
           -> Int
           -> Natural
           -> Natural
           -> Bool
-          -> [a]
+          -> f a
           -> m ()
 uploadSub (Texture2D tid _ _ fmt typ) x y w h autolvl dat =
   liftIO $ do
-    withArray dat $ glTextureSubImage2D tid 0 (fromIntegral x)
+    withArray (toList dat) $ glTextureSubImage2D tid 0 (fromIntegral x)
       (fromIntegral y) (fromIntegral w) (fromIntegral h) fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
 

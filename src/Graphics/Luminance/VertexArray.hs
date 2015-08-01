@@ -50,16 +50,16 @@ createVertexArray vertices indices = do
     indNb  = length indices
 -}
 
-class Vertex v where
-  writeV  :: (MonadIO m) => v -> Ptr () -> m (Ptr ())
-  enableAttrib :: (MonadIO m) => GLuint -> Natural -> v -> m ()
-
 data V :: Nat -> * -> * where
   V1 :: !a -> V 1 a
   V2 :: !a -> !a -> V 2 a
   V3 :: !a -> !a -> !a -> V 3 a
   V4 :: !a -> !a -> !a -> !a -> V 4 a
 
+class Vertex v where
+  writeV  :: (MonadIO m) => v -> Ptr () -> m (Ptr ())
+  enableAttrib :: (MonadIO m) => GLuint -> Natural -> v -> m ()
+  
 instance (Storable a) => Vertex (V 1 a) where
   writeV (V1 x) p = liftIO $ do
     poke (castPtr p) x
