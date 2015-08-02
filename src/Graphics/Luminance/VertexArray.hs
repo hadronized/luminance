@@ -13,16 +13,18 @@ module Graphics.Luminance.VertexArray where
 import Control.Monad ( (>=>) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
+import Data.Int ( Int32 )
+import Data.Proxy ( Proxy )
 import Data.Word ( Word32 )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( pokeArray )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( Ptr, castPtr, plusPtr )
 import Foreign.Storable ( Storable(..) )
-import GHC.TypeLits ( Nat )
+import GHC.TypeLits ( Nat, natVal )
 import Graphics.GL
 import Graphics.Luminance.Buffer
-import Graphics.Luminance.RW ( W )
+import Graphics.Luminance.GPU
 import Graphics.Luminance.Tuple
 import Numeric.Natural ( Natural )
 
@@ -57,30 +59,47 @@ data V :: Nat -> * -> * where
   V4 :: !a -> !a -> !a -> !a -> V 4 a
 
 class Vertex v where
-  writeV  :: (MonadIO m) => v -> Ptr () -> m (Ptr ())
-  enableAttrib :: (MonadIO m) => GLuint -> Natural -> v -> m ()
+  writeV :: (MonadIO m) => v -> Ptr () -> m (Ptr ())
+  setFormatV :: (MonadIO m) => GLuint -> GLuint -> v -> m ()
 
-instance (Storable a) => Vertex (V 1 a) where
+-- TODO: relative offset?
+instance (GPU a,Storable a) => Vertex (V 1 a) where
   writeV (V1 x) p = liftIO $ do
     poke (castPtr p) x
     pure $ p `plusPtr` sizeOf x
-  --enableAttrib vao bindPoint
+  setFormatV vao index _ = do
+    glVertexArrayAttribFormat vao index 1 (glType (undefined :: a)) GL_FALSE 0
+    glVertexArrayAttribBinding vao index 0
+    glEnableVertexArrayAttrib vao index
 
-instance (Storable a) => Vertex (V 2 a) where
+instance (GPU a,Storable a) => Vertex (V 2 a) where
   writeV (V2 x y) p = liftIO $ do
     pokeArray (castPtr p) [x,y]
     pure $ p `plusPtr` (sizeOf x * 2)
+  setFormatV vao index _ = do
+    glVertexArrayAttribFormat vao index 2 (glType (undefined :: a)) GL_FALSE 0
+    glVertexArrayAttribBinding vao index 0
+    glEnableVertexArrayAttrib vao index
 
-instance (Storable a) => Vertex (V 3 a) where
+instance (GPU a,Storable a) => Vertex (V 3 a) where
   writeV (V3 x y z) p = liftIO $ do
     pokeArray (castPtr p) [x,y,z]
     pure $ p `plusPtr` (sizeOf x * 3)
+  setFormatV vao index _ = do
+    glVertexArrayAttribFormat vao index 3 (glType (undefined :: a)) GL_FALSE 0
+    glVertexArrayAttribBinding vao index 0
+    glEnableVertexArrayAttrib vao index
 
-instance (Storable a) => Vertex (V 4 a) where
+instance (GPU a,Storable a) => Vertex (V 4 a) where
   writeV (V4 x y z w) p = liftIO $ do
     pokeArray (castPtr p) [x,y,z,w]
     pure $ p `plusPtr` (sizeOf x * 4)
+  setFormatV vao index _ = do
+    glVertexArrayAttribFormat vao index 4 (glType (undefined :: a)) GL_FALSE 0
+    glVertexArrayAttribBinding vao index 0
+    glEnableVertexArrayAttrib vao index
 
+{-
 instance (Vertex a,Vertex b) => Vertex (a :. b) where
   writeV (a :. b) = writeV a >=> writeV b
 
@@ -101,3 +120,24 @@ instance (Vertex a,Vertex b,Vertex c,Vertex d,Vertex e,Vertex f) => Vertex (a,b,
 
 instance (Vertex a,Vertex b,Vertex c,Vertex d,Vertex e,Vertex f,Vertex g) => Vertex (a,b,c,d,e,f,g) where
   writeV (a,b,c,d,e,f,g) = writeV a >=> writeV b >=> writeV c >=> writeV d >=> writeV e >=> writeV f >=> writeV g
+
+writeV1 :: (MonadIO m,Storable a) => V 1 a -> Ptr () -> m (Ptr ())
+writeV1 (V1 x) p = liftIO $ do
+  poke (castPtr p) x
+  pure $ p `plusPtr` sizeOf x
+
+writeV2 :: (MonadIO m,Storable a) => V 2 a -> Ptr () -> m (Ptr ())
+writeV2 (V2 x y) p = liftIO $ do
+  pokeArray (castPtr p) [x,y]
+  pure $ p `plusPtr` (sizeOf x * 2)
+
+writeV3 :: (MonadIO m,Storable a) => V 3 a -> Ptr () -> m (Ptr ())
+writeV3 (V3 x y z) p = liftIO $ do
+  pokeArray (castPtr p) [x,y,z]
+  pure $ p `plusPtr` (sizeOf x * 3)
+
+writeV4 :: (MonadIO m,Storable a) => V 4 a -> Ptr () -> m (Ptr ())
+writeV4 (V4 x y z w) p = liftIO $ do
+  pokeArray (castPtr p) [x,y,z,w]
+  pure $ p `plusPtr` (sizeOf x * 4)
+-}

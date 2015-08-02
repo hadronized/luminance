@@ -19,6 +19,7 @@ library
   exposed-modules:     Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
                      , Graphics.Luminance.Framebuffer
+                     , Graphics.Luminance.GPU
                      , Graphics.Luminance.Index
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.Primitive
