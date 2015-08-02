@@ -59,7 +59,7 @@ data V :: Nat -> * -> * where
 class Vertex v where
   writeV  :: (MonadIO m) => v -> Ptr () -> m (Ptr ())
   enableAttrib :: (MonadIO m) => GLuint -> Natural -> v -> m ()
-  
+
 instance (Storable a) => Vertex (V 1 a) where
   writeV (V1 x) p = liftIO $ do
     poke (castPtr p) x
@@ -83,3 +83,21 @@ instance (Storable a) => Vertex (V 4 a) where
 
 instance (Vertex a,Vertex b) => Vertex (a :. b) where
   writeV (a :. b) = writeV a >=> writeV b
+
+instance (Vertex a,Vertex b) => Vertex (a,b) where
+  writeV (a,b) = writeV a >=> writeV b
+
+instance (Vertex a,Vertex b,Vertex c) => Vertex (a,b,c) where
+  writeV (a,b,c) = writeV a >=> writeV b >=> writeV c
+
+instance (Vertex a,Vertex b,Vertex c,Vertex d) => Vertex (a,b,c,d) where
+  writeV (a,b,c,d) = writeV a >=> writeV b >=> writeV c >=> writeV d
+
+instance (Vertex a,Vertex b,Vertex c,Vertex d,Vertex e) => Vertex (a,b,c,d,e) where
+  writeV (a,b,c,d,e) = writeV a >=> writeV b >=> writeV c >=> writeV d >=> writeV e
+
+instance (Vertex a,Vertex b,Vertex c,Vertex d,Vertex e,Vertex f) => Vertex (a,b,c,d,e,f) where
+  writeV (a,b,c,d,e,f) = writeV a >=> writeV b >=> writeV c >=> writeV d >=> writeV e >=> writeV f
+
+instance (Vertex a,Vertex b,Vertex c,Vertex d,Vertex e,Vertex f,Vertex g) => Vertex (a,b,c,d,e,f,g) where
+  writeV (a,b,c,d,e,f,g) = writeV a >=> writeV b >=> writeV c >=> writeV d >=> writeV e >=> writeV f >=> writeV g
