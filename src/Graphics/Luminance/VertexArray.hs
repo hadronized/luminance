@@ -21,7 +21,7 @@ import Foreign.Marshal.Array ( pokeArray )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( Ptr, castPtr, plusPtr )
 import Foreign.Storable ( Storable(..) )
-import GHC.TypeLits ( Nat, natVal )
+import GHC.TypeLits ( KnownNat, Nat, natVal )
 import Graphics.GL
 import Graphics.Luminance.Buffer
 import Graphics.Luminance.GPU
@@ -31,7 +31,7 @@ import Numeric.Natural ( Natural )
 newtype VertexArray = VertexArray { vertexArrayID :: GLuint } deriving (Eq,Show)
 
 {-
-createVertexArray :: (Traversable t,Foldable f,MonadIO m,MonadResource m)
+createVertexArray :: (Foldable f,MonadIO m,MonadResource m,Traversable t)
                   => t v
                   -> f Word32
                   -> m ()
@@ -59,85 +59,34 @@ data V :: Nat -> * -> * where
   V4 :: !a -> !a -> !a -> !a -> V 4 a
 
 class Vertex v where
-  writeV :: (MonadIO m) => v -> Ptr () -> m (Ptr ())
   setFormatV :: (MonadIO m) => GLuint -> GLuint -> v -> m ()
 
 -- TODO: relative offset?
-instance (GPU a,Storable a) => Vertex (V 1 a) where
-  writeV (V1 x) p = liftIO $ do
-    poke (castPtr p) x
-    pure $ p `plusPtr` sizeOf x
+instance (GPU a,KnownNat n,Storable a) => Vertex (V n a) where
   setFormatV vao index _ = do
-    glVertexArrayAttribFormat vao index 1 (glType (undefined :: a)) GL_FALSE 0
+    glVertexArrayAttribFormat vao index (fromIntegral $ natVal (undefined :: Proxy n)) (glType (undefined :: a)) GL_FALSE 0
     glVertexArrayAttribBinding vao index 0
     glEnableVertexArrayAttrib vao index
 
-instance (GPU a,Storable a) => Vertex (V 2 a) where
-  writeV (V2 x y) p = liftIO $ do
-    pokeArray (castPtr p) [x,y]
-    pure $ p `plusPtr` (sizeOf x * 2)
-  setFormatV vao index _ = do
-    glVertexArrayAttribFormat vao index 2 (glType (undefined :: a)) GL_FALSE 0
-    glVertexArrayAttribBinding vao index 0
-    glEnableVertexArrayAttrib vao index
-
-instance (GPU a,Storable a) => Vertex (V 3 a) where
-  writeV (V3 x y z) p = liftIO $ do
-    pokeArray (castPtr p) [x,y,z]
-    pure $ p `plusPtr` (sizeOf x * 3)
-  setFormatV vao index _ = do
-    glVertexArrayAttribFormat vao index 3 (glType (undefined :: a)) GL_FALSE 0
-    glVertexArrayAttribBinding vao index 0
-    glEnableVertexArrayAttrib vao index
-
-instance (GPU a,Storable a) => Vertex (V 4 a) where
-  writeV (V4 x y z w) p = liftIO $ do
-    pokeArray (castPtr p) [x,y,z,w]
-    pure $ p `plusPtr` (sizeOf x * 4)
-  setFormatV vao index _ = do
-    glVertexArrayAttribFormat vao index 4 (glType (undefined :: a)) GL_FALSE 0
-    glVertexArrayAttribBinding vao index 0
-    glEnableVertexArrayAttrib vao index
-
-{-
 instance (Vertex a,Vertex b) => Vertex (a :. b) where
-  writeV (a :. b) = writeV a >=> writeV b
+  setFormatV vao index (a :. b) = do
+    setFormatV vao index a
+    setFormatV vao index b
 
 instance (Vertex a,Vertex b) => Vertex (a,b) where
-  writeV (a,b) = writeV a >=> writeV b
+  setFormatV vao index (a,b) = setFormatV vao index $ a :. b
 
 instance (Vertex a,Vertex b,Vertex c) => Vertex (a,b,c) where
-  writeV (a,b,c) = writeV a >=> writeV b >=> writeV c
+  setFormatV vao index (a,b,c) = setFormatV vao index $ a :. b :. c
 
 instance (Vertex a,Vertex b,Vertex c,Vertex d) => Vertex (a,b,c,d) where
-  writeV (a,b,c,d) = writeV a >=> writeV b >=> writeV c >=> writeV d
+  setFormatV vao index (a,b,c,d) = setFormatV vao index $ a :. b :. c :. d
 
 instance (Vertex a,Vertex b,Vertex c,Vertex d,Vertex e) => Vertex (a,b,c,d,e) where
-  writeV (a,b,c,d,e) = writeV a >=> writeV b >=> writeV c >=> writeV d >=> writeV e
+  setFormatV vao index (a,b,c,d,e) = setFormatV vao index $ a :. b :. c :. d :. e
 
 instance (Vertex a,Vertex b,Vertex c,Vertex d,Vertex e,Vertex f) => Vertex (a,b,c,d,e,f) where
-  writeV (a,b,c,d,e,f) = writeV a >=> writeV b >=> writeV c >=> writeV d >=> writeV e >=> writeV f
+  setFormatV vao index (a,b,c,d,e,f) = setFormatV vao index $ a :. b :. c :. d :. e :. f
 
 instance (Vertex a,Vertex b,Vertex c,Vertex d,Vertex e,Vertex f,Vertex g) => Vertex (a,b,c,d,e,f,g) where
-  writeV (a,b,c,d,e,f,g) = writeV a >=> writeV b >=> writeV c >=> writeV d >=> writeV e >=> writeV f >=> writeV g
-
-writeV1 :: (MonadIO m,Storable a) => V 1 a -> Ptr () -> m (Ptr ())
-writeV1 (V1 x) p = liftIO $ do
-  poke (castPtr p) x
-  pure $ p `plusPtr` sizeOf x
-
-writeV2 :: (MonadIO m,Storable a) => V 2 a -> Ptr () -> m (Ptr ())
-writeV2 (V2 x y) p = liftIO $ do
-  pokeArray (castPtr p) [x,y]
-  pure $ p `plusPtr` (sizeOf x * 2)
-
-writeV3 :: (MonadIO m,Storable a) => V 3 a -> Ptr () -> m (Ptr ())
-writeV3 (V3 x y z) p = liftIO $ do
-  pokeArray (castPtr p) [x,y,z]
-  pure $ p `plusPtr` (sizeOf x * 3)
-
-writeV4 :: (MonadIO m,Storable a) => V 4 a -> Ptr () -> m (Ptr ())
-writeV4 (V4 x y z w) p = liftIO $ do
-  pokeArray (castPtr p) [x,y,z,w]
-  pure $ p `plusPtr` (sizeOf x * 4)
--}
+  setFormatV vao index (a,b,c,d,e,f,g) = setFormatV vao index $ a :. b :. c :. d :. e :. f :. g
