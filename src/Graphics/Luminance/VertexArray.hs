@@ -10,28 +10,26 @@
 
 module Graphics.Luminance.VertexArray where
 
-import Control.Monad ( (>=>) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
-import Data.Int ( Int32 )
 import Data.Proxy ( Proxy )
 import Data.Word ( Word32 )
 import Foreign.Marshal.Alloc ( alloca )
-import Foreign.Marshal.Array ( pokeArray )
 import Foreign.Marshal.Utils ( with )
-import Foreign.Ptr ( Ptr, castPtr, plusPtr )
 import Foreign.Storable ( Storable(..) )
 import GHC.TypeLits ( KnownNat, Nat, natVal )
 import Graphics.GL
 import Graphics.Luminance.Buffer
 import Graphics.Luminance.GPU
+import Graphics.Luminance.RW ( W )
 import Graphics.Luminance.Tuple
-import Numeric.Natural ( Natural )
+
+vertexBindingIndex :: GLuint
+vertexBindingIndex = 0
 
 newtype VertexArray = VertexArray { vertexArrayID :: GLuint } deriving (Eq,Show)
 
-{-
-createVertexArray :: (Foldable f,MonadIO m,MonadResource m,Traversable t)
+createVertexArray :: forall f m t v. (Foldable f,MonadIO m,MonadResource m,Storable v,Traversable t,Vertex v)
                   => t v
                   -> f Word32
                   -> m ()
@@ -40,17 +38,21 @@ createVertexArray vertices indices = do
     vid <- liftIO . alloca $ \p -> do
       glCreateVertexArrays 1 p
       peek p
-    register . with vid $ glDeleteVertexArrays 1
+    _ <- register . with vid $ glDeleteVertexArrays 1
     -- vertex buffer
-    (vreg,vbo :: Region W _,vbo) <- createBuffer_ $ newRegion vertNb
+    (vreg :: Region W v,vbo) <- createBuffer_ $ newRegion (fromIntegral vertNb)
+    writeWhole vreg vertices
     -- element buffer
-    (ireg :: Region W Word32,ibo) <- createBuffer_ $ newRegion (fromIntegral vertNb)
+    (ireg :: Region W Word32,ibo) <- createBuffer_ $ newRegion (fromIntegral indNb)
     writeWhole ireg indices
-    liftIO $ glVertexArrayElementBuffer vid (bufferID ibo)
+    -- connect the buffers to the VAO
+    liftIO $ do
+      glVertexArrayVertexBuffer vid vertexBindingIndex (bufferID vbo) 0 (fromIntegral $ sizeOf (undefined :: v))
+      glVertexArrayElementBuffer vid (bufferID ibo)
+      setFormatV vid 0 (undefined :: v)
   where
     vertNb = length vertices
     indNb  = length indices
--}
 
 data V :: Nat -> * -> * where
   V1 :: !a -> V 1 a
@@ -62,12 +64,13 @@ class Vertex v where
   setFormatV :: (MonadIO m) => GLuint -> GLuint -> v -> m ()
 
 instance (GPU a,KnownNat n,Storable a) => Vertex (V n a) where
-  setFormatV vao index _ = do
-    glVertexArrayAttribFormat vao index (fromIntegral $ natVal (undefined :: Proxy n)) (glType (undefined :: a)) GL_FALSE 0
-    glVertexArrayAttribBinding vao index 0
-    glEnableVertexArrayAttrib vao index
+  setFormatV vid index _ = do
+    glVertexArrayAttribFormat vid index (fromIntegral $ natVal (undefined :: Proxy n)) (glType (undefined :: a)) GL_FALSE 0
+    glVertexArrayAttribBinding vid index vertexBindingIndex
+    glEnableVertexArrayAttrib vid index
 
 instance (Vertex a,Vertex b) => Vertex (a :. b) where
-  setFormatV vao index (a :. b) = do
-    setFormatV vao index a
-    setFormatV vao index b
+  setFormatV vid index (a :. b) = do
+    setFormatV vid index a
+    setFormatV vid index b
+
