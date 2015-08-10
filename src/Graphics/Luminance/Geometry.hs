@@ -8,7 +8,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.VertexArray where
+module Graphics.Luminance.Geometry where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
@@ -27,13 +27,13 @@ import Graphics.Luminance.Tuple
 vertexBindingIndex :: GLuint
 vertexBindingIndex = 0
 
-newtype VertexArray = VertexArray { vertexArrayID :: GLuint } deriving (Eq,Show)
+newtype Geometry = Geometry { vertexArrayID :: GLuint } deriving (Eq,Show)
 
-createVertexArray :: forall f m t v. (Foldable f,MonadIO m,MonadResource m,Storable v,Traversable t,Vertex v)
-                  => t v
-                  -> f Word32
-                  -> m VertexArray
-createVertexArray vertices indices = do
+createGeometry :: forall f m t v. (Foldable f,MonadIO m,MonadResource m,Storable v,Traversable t,Vertex v)
+               => t v
+               -> f Word32
+               -> m Geometry
+createGeometry vertices indices = do
     -- create the vertex array object (OpenGL-side)
     vid <- liftIO . alloca $ \p -> do
       glCreateVertexArrays 1 p
@@ -50,7 +50,7 @@ createVertexArray vertices indices = do
       glVertexArrayVertexBuffer vid vertexBindingIndex (bufferID vbo) 0 (fromIntegral $ sizeOf (undefined :: v))
       glVertexArrayElementBuffer vid (bufferID ibo)
       setFormatV vid 0 (undefined :: v)
-    pure $ VertexArray vid
+    pure $ Geometry vid
   where
     vertNb = length vertices
     indNb  = length indices
