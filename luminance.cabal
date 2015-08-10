@@ -19,6 +19,7 @@ library
   exposed-modules:     Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
                      , Graphics.Luminance.Framebuffer
+                     , Graphics.Luminance.Geometry
                      , Graphics.Luminance.GPU
                      , Graphics.Luminance.Index
                      , Graphics.Luminance.Pixel
@@ -29,7 +30,6 @@ library
                      , Graphics.Luminance.Shader.Uniform
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Tuple
-                     , Graphics.Luminance.VertexArray
 
   default-extensions:  DataKinds
                      , DeriveFoldable
