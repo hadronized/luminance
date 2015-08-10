@@ -1,5 +1,7 @@
 # What is this?
 
+![Hackage](https://img.shields.io/badge/hackage-none-orange.svg?style=flat) ![License](https://img.shields.io/badge/license-BSD3-blue.svg?style=flat)
+
 `luminance` is an effort to make graphics rendering simple and elegant in **Haskell**. It’s forked from a larger project
 which was closed because way too complex and bloated. The aims of `luminance` are:
 
