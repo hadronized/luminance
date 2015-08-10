@@ -32,7 +32,7 @@ newtype VertexArray = VertexArray { vertexArrayID :: GLuint } deriving (Eq,Show)
 createVertexArray :: forall f m t v. (Foldable f,MonadIO m,MonadResource m,Storable v,Traversable t,Vertex v)
                   => t v
                   -> f Word32
-                  -> m ()
+                  -> m VertexArray
 createVertexArray vertices indices = do
     -- create the vertex array object (OpenGL-side)
     vid <- liftIO . alloca $ \p -> do
@@ -50,6 +50,7 @@ createVertexArray vertices indices = do
       glVertexArrayVertexBuffer vid vertexBindingIndex (bufferID vbo) 0 (fromIntegral $ sizeOf (undefined :: v))
       glVertexArrayElementBuffer vid (bufferID ibo)
       setFormatV vid 0 (undefined :: v)
+    pure $ VertexArray vid
   where
     vertNb = length vertices
     indNb  = length indices
