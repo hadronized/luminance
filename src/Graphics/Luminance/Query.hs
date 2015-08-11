@@ -31,5 +31,5 @@ getGLVersion = getString GL_VERSION
 getGLSLVersion :: (MonadIO m) => m String
 getGLSLVersion = getString GL_SHADING_LANGUAGE_VERSION
 
-getGLExtensions :: (MonadIO m) => m [String]
-getGLExtensions = fmap (splitOn ",") $ getString GL_EXTENSIONS
+--getGLExtensions :: (MonadIO m) => m [String]
+--getGLExtensions = fmap (splitOn ",") $ getString GL_EXTENSIONS
