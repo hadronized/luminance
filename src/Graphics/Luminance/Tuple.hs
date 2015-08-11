@@ -22,7 +22,7 @@ infixr 6 :.
 
 instance (Storable a,Storable b) => Storable (a :. b) where
   sizeOf (a :. b) = sizeOf a + sizeOf b
-  alignment _ = 1 -- packed data
+  alignment _ = 4 -- packed data
   peek p = do
     a <- peek $ castPtr p
     b <- peek . castPtr $ p `plusPtr` sizeOf (undefined :: a)
