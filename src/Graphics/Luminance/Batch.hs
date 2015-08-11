@@ -16,9 +16,10 @@ import Foreign.Ptr ( nullPtr )
 import Graphics.GL
 import Graphics.Luminance.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Geometry ( Geometry(..), VertexArray(..) )
+import Graphics.Luminance.Shader.Program ( Program(..) )
 
 data FBBatch = FBBatch {
-    fbBatchFramebuffer :: forall c d rw. (Writeable rw) => Framebuffer rw c d
+    fbBatchFramebuffer :: forall c d rw. Framebuffer rw c d
   , fbBatchSPBatch     :: [SPBatch]
   }
 
@@ -43,5 +44,5 @@ treatSPBatch (SPBatch prog geometries) = do
 
 treatFBBatch :: (MonadIO m) => FBBatch -> m ()
 treatFBBatch (FBBatch fb spbs) = do
-  liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (framebufferID fb)
+  liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
   traverse_ treatSPBatch spbs

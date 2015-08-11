@@ -33,8 +33,8 @@ data VertexArray = VertexArray {
   , vertexArrayCount :: GLsizei
   } deriving (Eq,Show)
   
-newtype Geometry
-  | DirectGeometry VertexArray
+data Geometry
+  = DirectGeometry VertexArray
   | IndexedGeometry VertexArray
     deriving (Eq,Show)
 
@@ -68,15 +68,16 @@ createGeometry vertices indices mode = do
     setFormatV vid 0 (Proxy :: Proxy v)
     -- element buffer, if required
     case indices of
-      Just indices' -> 
+      Just indices' -> do
         (ireg :: Region W Word32,ibo) <- createBuffer_ $ newRegion (fromIntegral ixNb)
         writeWhole ireg indices'
         glVertexArrayElementBuffer vid (bufferID ibo)
-        pure . IndexedGeometry $ VertexArray vid mode' ixNb
-      Nothing -> pure . DirectGeometry $ VertexArray vid mode' vertNb
+        pure . IndexedGeometry $ VertexArray vid mode' (fromIntegral ixNb)
+      Nothing -> pure . DirectGeometry $ VertexArray vid mode' (fromIntegral vertNb)
   where
     vertNb = length vertices
-    ixNb  = length indices
+    ixNb   = length indices
+    mode'  = fromGeometryMode mode
 
 -- TODO: we should move that into Graphics.Luminance.Vertex, I guess.
 data V :: Nat -> * -> * where
@@ -95,6 +96,6 @@ instance (GPU a,KnownNat n,Storable a) => Vertex (V n a) where
     glEnableVertexArrayAttrib vid index
 
 instance (Vertex a,Vertex b) => Vertex (a :. b) where
-  setFormatV vid index (a :. b) = do
-    setFormatV vid index a
-    setFormatV vid index b
+  setFormatV vid index _ = do
+    setFormatV vid index (Proxy :: Proxy a)
+    setFormatV vid index (Proxy :: Proxy b)
