@@ -65,7 +65,7 @@ createGeometry vertices indices mode = do
     (vreg :: Region W v,vbo) <- createBuffer_ $ newRegion (fromIntegral vertNb)
     writeWhole vreg vertices
     liftIO $ glVertexArrayVertexBuffer vid vertexBindingIndex (bufferID vbo) 0 (fromIntegral $ sizeOf (undefined :: v))
-    setFormatV vid 0 (undefined :: v)
+    setFormatV vid 0 (Proxy :: Proxy v)
     -- element buffer, if required
     case indices of
       Just indices' -> 
@@ -85,7 +85,7 @@ data V :: Nat -> * -> * where
   V4 :: !a -> !a -> !a -> !a -> V 4 a
 
 class Vertex v where
-  setFormatV :: (MonadIO m) => GLuint -> GLuint -> v -> m ()
+  setFormatV :: (MonadIO m) => GLuint -> GLuint -> Proxy v -> m ()
 
 instance (GPU a,KnownNat n,Storable a) => Vertex (V n a) where
   setFormatV vid index _ = do
@@ -97,4 +97,3 @@ instance (Vertex a,Vertex b) => Vertex (a :. b) where
   setFormatV vid index (a :. b) = do
     setFormatV vid index a
     setFormatV vid index b
-
