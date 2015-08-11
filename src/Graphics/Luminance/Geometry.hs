@@ -51,10 +51,10 @@ fromGeometryMode m = case m of
   Triangle -> GL_TRIANGLES
   
 createGeometry :: forall f m t v. (Foldable f,MonadIO m,MonadResource m,Storable v,Traversable t,Vertex v)
-                      => t v
-                      -> Maybe (f Word32)
-                      -> GeometryMode
-                      -> m Geometry
+               => t v
+               -> Maybe (f Word32)
+               -> GeometryMode
+               -> m Geometry
 createGeometry vertices indices mode = do
     -- create the vertex array object (OpenGL-side)
     vid <- liftIO . alloca $ \p -> do
