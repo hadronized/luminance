@@ -16,7 +16,8 @@ cabal-version:       >= 1.10
 library
   ghc-options:         -W -Wall
 
-  exposed-modules:     Graphics.Luminance.Blending
+  exposed-modules:     Graphics.Luminance.Batch
+                     , Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
