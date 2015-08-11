@@ -12,7 +12,7 @@ module Graphics.Luminance.Geometry where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
-import Data.Proxy ( Proxy )
+import Data.Proxy ( Proxy(..) )
 import Data.Word ( Word32 )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Utils ( with )
@@ -89,7 +89,7 @@ class Vertex v where
 
 instance (GPU a,KnownNat n,Storable a) => Vertex (V n a) where
   setFormatV vid index _ = do
-    glVertexArrayAttribFormat vid index (fromIntegral $ natVal (undefined :: Proxy n)) (glType (undefined :: a)) GL_FALSE 0
+    glVertexArrayAttribFormat vid index (fromIntegral $ natVal (Proxy :: Proxy n)) (glType (Proxy :: Proxy a)) GL_FALSE 0
     glVertexArrayAttribBinding vid index vertexBindingIndex
     glEnableVertexArrayAttrib vid index
 
