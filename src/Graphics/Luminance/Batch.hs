@@ -46,3 +46,5 @@ treatFBBatch :: (MonadIO m) => FBBatch -> m ()
 treatFBBatch (FBBatch fb spbs) = do
   liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
   traverse_ treatSPBatch spbs
+
+
