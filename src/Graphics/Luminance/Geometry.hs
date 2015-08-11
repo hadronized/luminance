@@ -78,6 +78,7 @@ createGeometry vertices indices mode = do
     vertNb = length vertices
     ixNb  = length indices
 
+-- TODO: we should move that into Graphics.Luminance.Vertex, I guess.
 data V :: Nat -> * -> * where
   V1 :: !a -> V 1 a
   V2 :: !a -> !a -> V 2 a
