@@ -10,9 +10,22 @@
 
 module Graphics.Luminance.Batch where
 
-import Control.Monad.IO.Class ( MonadIO )
+import Control.Monad.IO.Class ( MonadIO(..) )
+import Data.Foldable ( traverse_ )
+import Foreign.Ptr ( nullPtr )
 import Graphics.GL
+import Graphics.Luminance.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Geometry ( Geometry(..), VertexArray(..) )
+
+data FBBatch = FBBatch {
+    fbBatchFramebuffer :: forall c d rw. (Writeable rw) => Framebuffer rw c d
+  , fbBatchSPBatch     :: [SPBatch]
+  }
+
+data SPBatch = SPBatch {
+    spBatchShaderProgram :: Program
+  , spBatchGeometries    :: [Geometry]
+  }
 
 drawGeometry :: (MonadIO m) => Geometry -> m ()
 drawGeometry g = case g of
@@ -22,3 +35,13 @@ drawGeometry g = case g of
   IndexedGeometry (VertexArray vid mode ixNb) -> do
     glBindVertexArray vid
     glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
+
+treatSPBatch :: (MonadIO m) => SPBatch -> m ()
+treatSPBatch (SPBatch prog geometries) = do
+  liftIO $ glUseProgram (programID prog)
+  traverse_ drawGeometry geometries
+
+treatFBBatch :: (MonadIO m) => FBBatch -> m ()
+treatFBBatch (FBBatch fb spbs) = do
+  liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (framebufferID fb)
+  traverse_ treatSPBatch spbs
