@@ -34,7 +34,6 @@ getGLVersion = getString GL_VERSION
 getGLSLVersion :: (MonadIO m) => m String
 getGLSLVersion = getString GL_SHADING_LANGUAGE_VERSION
 
--- TODO: implement that with glGetStringi
 getGLExtensions :: (MonadIO m) => m [String]
 getGLExtensions = liftIO $ do
   num <- alloca $ \num -> glGetIntegerv GL_NUM_EXTENSIONS num >> peek num
