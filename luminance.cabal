@@ -55,7 +55,6 @@ library
                      , gl             >= 0.7  && < 0.8
                      , mtl            >= 2.2  && < 2.3
                      , resourcet      >= 1.1  && < 1.2
-                     , split          >= 0.2  && < 0.3
                      , transformers   >= 0.4  && < 0.5
 
   hs-source-dirs:      src
