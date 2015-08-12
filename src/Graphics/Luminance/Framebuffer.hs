@@ -14,8 +14,9 @@ module Graphics.Luminance.Framebuffer where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
+import Data.Proxy ( Proxy(..) )
 import Foreign.Marshal.Alloc ( alloca )
-import Foreign.Marshal.Utils ( toBool, with )
+import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( peek )
 import Graphics.GL
 import Graphics.Luminance.Pixel ( Format(..), Pixel )
