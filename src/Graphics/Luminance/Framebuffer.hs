@@ -53,38 +53,37 @@ createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
     glCreateFramebuffers 1 p
     peek p
-  hasColor <- createFramebufferTexture (ColorAttachment 0) (undefined :: c) fid w h mipmaps
-  hasDepth <- createFramebufferTexture DepthAttachment (undefined :: d) fid w h mipmaps
   --configureFramebufferBuffers fid (toBool hasColor) (toBool hasDepth)
+  createFramebufferTexture (ColorAttachment 0) (Proxy :: Proxy c) fid w h mipmaps
+  createFramebufferTexture DepthAttachment (Proxy :: Proxy d) fid w h mipmaps
   _ <- register . with fid $ glDeleteFramebuffers 1
   pure $ Framebuffer fid w h mipmaps
 
 class FramebufferAttachment a where
   createFramebufferTexture :: (MonadIO m,MonadResource m)
                            => Attachment
-                           -> a
+                           -> Proxy a
                            -> GLuint
                            -> Natural
                            -> Natural
                            -> Natural
-                           -> m Bool
+                           -> m ()
 
 instance FramebufferAttachment () where
-  createFramebufferTexture _ _ _ _ _ _ = pure False
+  createFramebufferTexture _ _ _ _ _ _ = pure ()
 
 instance (Pixel (Format t c)) => FramebufferAttachment (Format t c) where
   createFramebufferTexture ca _ fid w h mipmaps = do
     tex :: Texture2D (Format t c) <- createTexture w h mipmaps
     liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
       (textureID tex) 0
-    pure True
 
 instance (FramebufferAttachment a,FramebufferAttachment b) => FramebufferAttachment (a :. b) where
   createFramebufferTexture ca _ fid w h mipmaps = case ca of
     ColorAttachment i -> do
-      _ <- createFramebufferTexture ca (undefined :: a) fid w h mipmaps
-      createFramebufferTexture (ColorAttachment $ succ i) (undefined :: b) fid w h mipmaps
-    _ -> pure False
+      _ <- createFramebufferTexture ca (Proxy :: Proxy a) fid w h mipmaps
+      createFramebufferTexture (ColorAttachment $ succ i) (Proxy :: Proxy b) fid w h mipmaps
+    _ -> pure ()
 
 {-
 configureFramebufferBuffers :: (MonadIO m) => GLint -> Bool -> Bool -> m ()
