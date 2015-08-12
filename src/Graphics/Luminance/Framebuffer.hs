@@ -24,7 +24,7 @@ import Graphics.Luminance.Tuple ( (:.) )
 import Numeric.Natural ( Natural )
 
 data Framebuffer rw c d = Framebuffer {
-    framebufferID :: GLint
+    framebufferID :: GLuint
   , framebufferW  :: Natural
   , framebufferH  :: Natural
   , framebufferMM :: Natural
@@ -56,7 +56,7 @@ createFramebuffer w h mipmaps = do
   hasDepth <- createFramebufferTexture DepthAttachment (undefined :: d) fid w h mipmaps
   --configureFramebufferBuffers fid (toBool hasColor) (toBool hasDepth)
   _ <- register . with fid $ glDeleteFramebuffers 1
-  pure $ Framebuffer (fromIntegral fid) w h mipmaps
+  pure $ Framebuffer fid w h mipmaps
 
 class FramebufferAttachment a where
   createFramebufferTexture :: (MonadIO m,MonadResource m)
