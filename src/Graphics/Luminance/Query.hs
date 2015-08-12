@@ -10,8 +10,11 @@
 
 module Graphics.Luminance.Query where
 
+import Control.Monad ( (>=>) )
 import Control.Monad.IO.Class ( MonadIO(..) )
-import Data.List.Split ( splitOn )
+import Data.Traversable ( for )
+import Foreign.Marshal.Alloc ( alloca )
+import Foreign.Storable ( peek )
 import Foreign.C.String ( peekCString )
 import Foreign.Ptr ( castPtr )
 import Graphics.GL
@@ -32,5 +35,7 @@ getGLSLVersion :: (MonadIO m) => m String
 getGLSLVersion = getString GL_SHADING_LANGUAGE_VERSION
 
 -- TODO: implement that with glGetStringi
---getGLExtensions :: (MonadIO m) => m [String]
---getGLExtensions = fmap (splitOn ",") $ getString GL_EXTENSIONS
+getGLExtensions :: (MonadIO m) => m [String]
+getGLExtensions = liftIO $ do
+  num <- alloca $ \num -> glGetIntegerv GL_NUM_EXTENSIONS num >> peek num
+  for [0..fromIntegral num - 1] $ glGetStringi GL_EXTENSIONS  >=> peekCString . castPtr
