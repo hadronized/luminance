@@ -33,6 +33,8 @@ library
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Tuple
 
+  other-modules:       Graphics.Luminance.Renderbuffer
+
   default-extensions:  DataKinds
                      , DeriveFoldable
                      , DeriveFunctor
