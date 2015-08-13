@@ -99,14 +99,13 @@ configureFramebufferBuffers :: (MonadIO m,MonadResource m)
                             -> Natural
                             -> Proxy d
                             -> m ()
-configureFramebufferBuffers fid colorOutputs hasDepth w h depthProxy
-  | colorOutputs == 0 && hasDepth = do
-      -- we have to mute the color outputs
-      glNamedFramebufferDrawBuffer fid GL_NONE
-      glNamedFramebufferReadBuffer fid GL_NONE
-  | colorOutputs > 0 && not hasDepth = do
-      -- we have to attach a renderbuffer to the framebuffer
-      renderbuffer <- createRenderbuffer w h depthProxy
-      glNamedFramebufferRenderbuffer fid (fromAttachment DepthAttachment) GL_RENDERBUFFER
-        (renderbufferID renderbuffer)
-  | otherwise = pure ()
+configureFramebufferBuffers fid colorOutputs hasDepth w h depthProxy = do
+  when (colorOutputs == 0) $ do
+    -- we have to mute the color outputs
+    glNamedFramebufferDrawBuffer fid GL_NONE
+    glNamedFramebufferReadBuffer fid GL_NONE
+  when (not hasDepth) $ do
+    -- we have to attach a renderbuffer to the framebuffer
+    renderbuffer <- createRenderbuffer w h depthProxy
+    glNamedFramebufferRenderbuffer fid (fromAttachment DepthAttachment) GL_RENDERBUFFER
+      (renderbufferID renderbuffer)
