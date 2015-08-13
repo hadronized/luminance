@@ -19,9 +19,11 @@ import Graphics.GL
 newtype Renderbuffer = Renderbuffer { renderbufferID :: GLuint } deriving (Eq,Show)
 
 createRenderbuffer :: (MonadIO m,MonadResource m,Pixel f) => Natural -> Natural -> Proxy f -> m Renderbuffer
-createRenderbuffer w h _ = do
+createRenderbuffer w h depthProxy = do
   rid <- liftIO . alloca $ \p -> do
     glCreateRenderbuffers 1 p
-    peek p
+    rid <- peek
+    glNamedRenderbufferStorage rid (pixelIFormat depthProxy) (fromIntegral w) (fromIntegral h)
+    pure rid
   _ <- register . with rid $ glDeleteRenderbuffers 1
   pure $ Renderbuffer rid
