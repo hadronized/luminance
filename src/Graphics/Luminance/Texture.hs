@@ -14,13 +14,14 @@ import Control.Monad ( when )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Data.Foldable ( toList )
+import Data.Proxy ( Proxy(..) )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( withArray )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( castPtr )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.GL
-import Graphics.Luminance.Pixel ( Pixel(..) )
+import Graphics.Luminance.Pixel
 import Numeric.Natural ( Natural )
 
 data Wrap
@@ -99,9 +100,9 @@ createTexture w h mipmaps = do
     _ <- register . with tid $ glDeleteTextures 1
     pure $ Texture2D tid w' h' ft typ
   where
-    ft  = pixelFormat (undefined :: p)
-    ift = pixelIFormat (undefined :: p)
-    typ = pixelType (undefined :: p)
+    ft  = pixelFormat (Proxy :: Proxy p)
+    ift = pixelIFormat (undefined :: Proxy p)
+    typ = pixelType (Proxy :: Proxy p)
     w'  = fromIntegral w
     h'  = fromIntegral h
 

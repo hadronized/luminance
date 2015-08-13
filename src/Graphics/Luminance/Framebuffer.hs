@@ -12,6 +12,7 @@
 
 module Graphics.Luminance.Framebuffer where
 
+import Control.Monad ( when )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Data.Proxy ( Proxy(..) )
@@ -20,6 +21,7 @@ import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( peek )
 import Graphics.GL
 import Graphics.Luminance.Pixel ( Format(..), Pixel )
+import Graphics.Luminance.Renderbuffer ( createRenderbuffer, renderbufferID )
 import Graphics.Luminance.Texture ( Texture2D(textureID), createTexture )
 import Graphics.Luminance.Tuple ( (:.) )
 import Numeric.Natural ( Natural )
@@ -44,6 +46,7 @@ fromAttachment a = case a of
   ColorAttachment i -> GL_TEXTURE0 + fromIntegral i
   DepthAttachment   -> GL_DEPTH_ATTACHMENT
 
+{-
 createFramebuffer :: forall c d m rw. (MonadIO m,MonadResource m,FramebufferAttachment c,FramebufferAttachment d)
                   => Natural
                   -> Natural
@@ -57,7 +60,6 @@ createFramebuffer w h mipmaps = do
   createFramebufferTexture DepthAttachment (Proxy :: Proxy d) fid w h mipmaps
   let colorOutputsLength = attachmentLength (Proxy :: Proxy c)
       hasDepth = attachmentLength (Proxy :: Proxy d) == 1
-  configureFramebufferBuffers fid colorOutputsLength hasDepth
   _ <- register . with fid $ glDeleteFramebuffers 1
   pure $ Framebuffer fid w h mipmaps
 
@@ -86,7 +88,7 @@ instance (Pixel (Format t c)) => FramebufferAttachment (Format t c) where
 instance (FramebufferAttachment a,FramebufferAttachment b) => FramebufferAttachment (a :. b) where
   createFramebufferTexture ca _ fid w h mipmaps = case ca of
     ColorAttachment i -> do
-      _ <- createFramebufferTexture ca (Proxy :: Proxy a) fid w h mipmaps
+      createFramebufferTexture ca (Proxy :: Proxy a) fid w h mipmaps
       createFramebufferTexture (ColorAttachment $ succ i) (Proxy :: Proxy b) fid w h mipmaps
     _ -> pure ()
   attachmentLength _ = attachmentLength (Proxy :: Proxy a) + attachmentLength (Proxy :: Proxy b)
@@ -109,3 +111,4 @@ configureFramebufferBuffers fid colorOutputs hasDepth w h depthProxy = do
     renderbuffer <- createRenderbuffer w h depthProxy
     glNamedFramebufferRenderbuffer fid (fromAttachment DepthAttachment) GL_RENDERBUFFER
       (renderbufferID renderbuffer)
+-}
