@@ -50,8 +50,8 @@ fromGeometryMode m = case m of
   Line     -> GL_LINES
   Triangle -> GL_TRIANGLES
   
-createGeometry :: forall f m t v. (Foldable f,Foldable t,MonadIO m,MonadResource m,Storable v,Vertex v)
-               => t v
+createGeometry :: forall f m v. (Foldable f,MonadIO m,MonadResource m,Storable v,Vertex v)
+               => f v
                -> Maybe (f Word32)
                -> GeometryMode
                -> m Geometry
