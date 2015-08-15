@@ -31,12 +31,7 @@ import Numeric.Natural ( Natural )
 ----------------------------------------------------------------------------------------------------
 -- Framebuffer -------------------------------------------------------------------------------------
 
-data Framebuffer rw c d = Framebuffer {
-    framebufferID :: GLuint
-  , framebufferW  :: Natural
-  , framebufferH  :: Natural
-  , framebufferMM :: Natural
-  } deriving (Eq,Show)
+newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLuint } deriving (Eq,Show)
 
 type ColorFramebuffer rw c = Framebuffer rw c ()
 type DepthFramebuffer rw d = Framebuffer rw () d
@@ -57,7 +52,7 @@ createFramebuffer w h mipmaps = do
   _ <- register . with fid $ glDeleteFramebuffers 1
   status <- glCheckNamedFramebufferStatus fid $ framebufferTarget (Proxy :: Proxy rw)
   if 
-    | status == GL_FRAMEBUFFER_COMPLETE -> pure . Right $ Framebuffer fid w h mipmaps
+    | status == GL_FRAMEBUFFER_COMPLETE -> pure . Right $ Framebuffer fid 
     | otherwise -> pure . Left $ translateFramebufferStatus status
 
 translateFramebufferStatus :: GLenum -> String
@@ -178,6 +173,7 @@ instance FramebufferTarget W where
 
 --------------------------------------------------------------------------------
 -- Framebuffer outputs ---------------------------------------------------------
+
 addOutput :: forall m p. (MonadIO m,MonadResource m,Pixel p)
           => GLuint
           -> Attachment
@@ -190,3 +186,9 @@ addOutput fid ca w h mipmaps _ = do
   tex :: Texture2D p <- createTexture w h mipmaps
   liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
     (textureID tex) 0
+
+--------------------------------------------------------------------------------
+-- Special framebuffers --------------------------------------------------------
+
+defaultFramebuffer :: Framebuffer rw c d
+defaultFramebuffer = Framebuffer 0
