@@ -1,3 +1,5 @@
+{-# LANGUAGE UndecidableInstances #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   : (C) 2015 Dimitri Sabadie
@@ -120,3 +122,12 @@ instance Pixel Depth32F where
   pixelIFormat _ = GL_DEPTH_COMPONENT32F
   pixelType    _ = GL_FLOAT
 
+--------------------------------------------------------------------------------
+-- Pixel kind ------------------------------------------------------------------
+
+class (Pixel p) => ColorPixel p
+
+instance (Pixel (Format t (CR r))) => ColorPixel (Format t (CR r))
+instance (Pixel (Format t (CRG r g))) => ColorPixel (Format t (CRG r g))
+instance (Pixel (Format t (CRGB r g b))) => ColorPixel (Format t (CRGB r g b))
+instance (Pixel (Format t (CRGBA r g b a))) => ColorPixel (Format t (CRGBA r g b a))
