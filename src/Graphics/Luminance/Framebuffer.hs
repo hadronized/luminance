@@ -48,11 +48,11 @@ fromAttachment a = case a of
   ColorAttachment i -> GL_TEXTURE0 + fromIntegral i
   DepthAttachment   -> GL_DEPTH_ATTACHMENT
 
-createFramebuffer :: forall c d m rw. (MonadIO m,MonadResource m,FramebufferColorAttachment c,FramebufferColorRW rw,FramebufferDepthAttachment d)
+createFramebuffer :: forall c d m rw. (MonadIO m,MonadResource m,FramebufferColorAttachment c,FramebufferColorRW rw,FramebufferDepthAttachment d,FramebufferTarget rw)
                   => Natural
                   -> Natural
                   -> Natural
-                  -> m (Framebuffer rw c d)
+                  -> m (Either String (Framebuffer rw c d))
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
     glCreateFramebuffers 1 p
@@ -62,7 +62,22 @@ createFramebuffer w h mipmaps = do
   setColorBuffers fid colorOutputNb (Proxy :: Proxy rw)
   when hasDepthOutput $ setDepthRenderbuffer fid w h
   _ <- register . with fid $ glDeleteFramebuffers 1
-  pure $ Framebuffer fid w h mipmaps
+  status <- glCheckNamedFramebufferStatus fid $ framebufferTarget (Proxy :: Proxy rw)
+  if 
+    | status == GL_FRAMEBUFFER_COMPLETE -> pure . Right $ Framebuffer fid w h mipmaps
+    | otherwise -> pure . Left $ translateFramebufferStatus status
+
+translateFramebufferStatus :: GLenum -> String
+translateFramebufferStatus status = case status of
+  GL_FRAMEBUFFER_UNDEFINED                     -> "undefined default read or write framebuffer"
+  GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT         -> "incomplete attachment"
+  GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> "missing image attachment"
+  GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER        -> "incomplete draw buffer"
+  GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER        -> "incomplete read buffer"
+  GL_FRAMEBUFFER_UNSUPPORTED                   -> "unsupported (internal) format(s)"
+  GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE        -> "incomplete multisample configuration"
+  GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS      -> "layered attachment mismatch"
+  _                                            -> "unknown error"
 
 --------------------------------------------------------------------------------
 -- Framebuffer attachments -----------------------------------------------------
@@ -113,6 +128,12 @@ instance FramebufferColorRW W where
   setFramebufferColorRW fid nb _ = liftIO $ do
     withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
       glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
+
+class FramebufferTarget rw where
+  framebufferTarget :: Proxy rw -> GLenum
+
+instance FramebufferTarget W where
+  framebufferTarget _ = GL_DRAW_FRAMEBUFFER
 
 colorAttachmentsFromMax :: Natural -> [GLenum]
 colorAttachmentsFromMax m = [fromAttachment (ColorAttachment a) | a <- [0..m-1]]
