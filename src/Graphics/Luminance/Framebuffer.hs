@@ -12,7 +12,7 @@
 
 module Graphics.Luminance.Framebuffer where
 
-import Control.Monad ( when )
+import Control.Monad ( unless )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Data.Proxy ( Proxy(..) )
@@ -48,7 +48,7 @@ createFramebuffer w h mipmaps = do
   colorOutputNb <- addColorOutput fid 0 w h mipmaps (Proxy :: Proxy c)
   hasDepthOutput <- addDepthOutput fid w h mipmaps (Proxy :: Proxy d)
   setColorBuffers fid colorOutputNb (Proxy :: Proxy rw)
-  when hasDepthOutput $ setDepthRenderbuffer fid w h
+  unless hasDepthOutput $ setDepthRenderbuffer fid w h
   _ <- register . with fid $ glDeleteFramebuffers 1
   status <- glCheckNamedFramebufferStatus fid $ framebufferTarget (Proxy :: Proxy rw)
   if 
