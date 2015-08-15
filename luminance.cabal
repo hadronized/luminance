@@ -16,19 +16,24 @@ cabal-version:       >= 1.10
 library
   ghc-options:         -W -Wall
 
-  exposed-modules:     Graphics.Luminance.Blending
+  exposed-modules:     Graphics.Luminance.Batch
+                     , Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
                      , Graphics.Luminance.Framebuffer
+                     , Graphics.Luminance.Geometry
+                     , Graphics.Luminance.GPU
                      , Graphics.Luminance.Index
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.Primitive
+                     , Graphics.Luminance.Query
                      , Graphics.Luminance.RW
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
                      , Graphics.Luminance.Shader.Uniform
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Tuple
-                     , Graphics.Luminance.VertexArray
+
+  other-modules:       Graphics.Luminance.Renderbuffer
 
   default-extensions:  DataKinds
                      , DeriveFoldable
