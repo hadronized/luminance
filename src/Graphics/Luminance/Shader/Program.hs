@@ -11,6 +11,7 @@
 module Graphics.Luminance.Shader.Program where
 
 import Control.Applicative ( liftA2 )
+import Control.Monad.Except ( MonadError(throwError) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Data.Foldable ( traverse_ )
@@ -22,13 +23,16 @@ import Foreign.Storable ( peek )
 import Graphics.Luminance.Shader.Stage ( Stage(..) )
 import Graphics.Luminance.Shader.Uniform ( Uniform(..) )
 import Graphics.GL
+import Numeric.Natural ( Natural )
 
 newtype Program = Program { programID :: GLuint }
 
-shaderProgram :: (MonadIO m,MonadResource m)
+newtype ProgramError = LinkFailed String deriving (Eq,Show)
+
+shaderProgram :: (MonadError ProgramError m,MonadIO m,MonadResource m)
               => [Stage]
-              -> ((forall a. (Uniform a) => Either String Int -> m (Maybe (a -> m ()))) -> m i)
-              -> m (Either String (Program,i))
+              -> ((forall a. (Uniform a) => Either String Natural -> m (Maybe (a -> m ()))) -> m i)
+              -> m (Program,i)
 shaderProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
     pid <- glCreateProgram
@@ -43,8 +47,8 @@ shaderProgram stages buildIface = do
         _ <- register $ glDeleteProgram pid
         let prog = Program pid
         iface <- buildIface $ ifaceWith prog
-        pure $ Right (prog,iface)
-    | otherwise -> pure $ Left cl
+        pure (prog,iface)
+    | otherwise -> throwError (LinkFailed cl)
 
 isLinked :: GLuint -> IO Bool
 isLinked pid = do
@@ -64,7 +68,7 @@ clog l pid =
 
 ifaceWith :: (MonadIO m,Uniform a)
           => Program
-          -> Either String Int
+          -> Either String Natural
           -> m (Maybe (a -> m ()))
 ifaceWith prog access = case access of
     Left name -> do
