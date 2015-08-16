@@ -11,6 +11,7 @@
 module Graphics.Luminance.Shader.Stage where
 
 import Control.Applicative ( liftA2 )
+import Control.Monad.Except ( MonadError(throwError) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Graphics.GL
@@ -23,25 +24,30 @@ import Foreign.Storable ( peek )
 
 newtype Stage = Stage { stageID :: GLuint }
 
-tcsShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
+newtype ShaderError = CompilationFailed String deriving (Eq,Show)
+
+tcsShader :: (MonadError ShaderError m,MonadIO m,MonadResource m) => String -> m Stage
 tcsShader = mkShader GL_TESS_CONTROL_SHADER
 
-tesShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
+tesShader :: (MonadError ShaderError m,MonadIO m,MonadResource m) => String -> m Stage
 tesShader = mkShader GL_TESS_EVALUATION_SHADER
 
-vertexShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
+vertexShader :: (MonadError ShaderError m,MonadIO m,MonadResource m) => String -> m Stage
 vertexShader = mkShader GL_VERTEX_SHADER
 
-geometryShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
+geometryShader :: (MonadError ShaderError m,MonadIO m,MonadResource m) => String -> m Stage
 geometryShader = mkShader GL_GEOMETRY_SHADER
 
-fragmentShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
+fragmentShader :: (MonadError ShaderError m,MonadIO m,MonadResource m) => String -> m Stage
 fragmentShader = mkShader GL_FRAGMENT_SHADER
 
-computeShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
+computeShader :: (MonadError ShaderError m,MonadIO m,MonadResource m) => String -> m Stage
 computeShader = mkShader GL_COMPUTE_SHADER
 
-mkShader :: (MonadIO m,MonadResource m) => GLenum -> String -> m (Either String Stage)
+mkShader :: (MonadError ShaderError m,MonadIO m,MonadResource m)
+         => GLenum
+         -> String
+         -> m Stage
 mkShader target src = do
   (sid,compiled,cl) <- liftIO $ do
     sid <- glCreateShader target
@@ -55,8 +61,8 @@ mkShader target src = do
   if
     | compiled  -> do
         _ <- register $ glDeleteShader sid
-        pure . Right $ Stage sid
-    | otherwise -> pure $ Left cl
+        pure $ Stage sid
+    | otherwise -> throwError (CompilationFailed cl)
 
 isCompiled :: GLuint -> IO Bool
 isCompiled sid = do
