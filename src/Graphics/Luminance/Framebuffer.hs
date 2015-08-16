@@ -38,6 +38,7 @@ type ColorFramebuffer rw c = Framebuffer rw c ()
 type DepthFramebuffer rw d = Framebuffer rw () d
 
 newtype FramebufferError = IncompleteFramebuffer String
+
 createFramebuffer :: forall c d m rw. (MonadError FramebufferError m,MonadIO m,MonadResource m,FramebufferColorAttachment c,FramebufferColorRW rw,FramebufferDepthAttachment d,FramebufferTarget rw)
                   => Natural
                   -> Natural
