@@ -53,6 +53,11 @@ createProgram stages buildIface = do
         pure (prog,iface)
     | otherwise -> throwError . fromProgramError $ LinkFailed cl
 
+createProgram_ :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
+                => [Stage]
+                -> m Program
+createProgram_ stages = fmap fst $ createProgram stages (\_ -> pure ())
+
 isLinked :: GLuint -> IO Bool
 isLinked pid = do
   ok <- alloca $ liftA2 (*>) (glGetProgramiv pid GL_LINK_STATUS) peek
