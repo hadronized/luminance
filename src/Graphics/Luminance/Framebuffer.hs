@@ -29,8 +29,8 @@ import Graphics.Luminance.Texture ( Texture2D(textureID), createTexture )
 import Graphics.Luminance.Tuple ( (:.) )
 import Numeric.Natural ( Natural )
 
-----------------------------------------------------------------------------------------------------
--- Framebuffer -------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+-- Framebuffer ------------------------------------------------------------------
 
 newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLuint } deriving (Eq,Show)
 
