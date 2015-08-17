@@ -18,8 +18,8 @@ import Graphics.Luminance.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Shader.Program ( Program(..) )
 
-data FBBatch = FBBatch {
-    fbBatchFramebuffer :: forall c d rw. Framebuffer rw c d
+data FBBatch rw c d = FBBatch {
+    fbBatchFramebuffer :: Framebuffer rw c d
   , fbBatchSPBatch     :: [SPBatch]
   }
 
@@ -42,7 +42,7 @@ treatSPBatch (SPBatch prog geometries) = do
   liftIO $ glUseProgram (programID prog)
   traverse_ drawGeometry geometries
 
-treatFBBatch :: (MonadIO m) => FBBatch -> m ()
+treatFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
 treatFBBatch (FBBatch fb spbs) = do
   liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
   traverse_ treatSPBatch spbs
