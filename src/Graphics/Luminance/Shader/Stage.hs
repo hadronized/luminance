@@ -29,23 +29,23 @@ newtype StageError = CompilationFailed String deriving (Eq,Show)
 class HasStageError a where
   fromStageError :: StageError -> a
 
-tcsShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
-tcsShader = mkShader GL_TESS_CONTROL_SHADER
+createTcsShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createTcsShader = mkShader GL_TESS_CONTROL_SHADER
 
-tesShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
-tesShader = mkShader GL_TESS_EVALUATION_SHADER
+createTesShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createTesShader = mkShader GL_TESS_EVALUATION_SHADER
 
-vertexShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
-vertexShader = mkShader GL_VERTEX_SHADER
+createVertexShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createVertexShader = mkShader GL_VERTEX_SHADER
 
-geometryShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
-geometryShader = mkShader GL_GEOMETRY_SHADER
+createGeometryShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createGeometryShader = mkShader GL_GEOMETRY_SHADER
 
-fragmentShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
-fragmentShader = mkShader GL_FRAGMENT_SHADER
+createFragmentShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createFragmentShader = mkShader GL_FRAGMENT_SHADER
 
-computeShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
-computeShader = mkShader GL_COMPUTE_SHADER
+createComputeShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createComputeShader = mkShader GL_COMPUTE_SHADER
 
 mkShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m)
          => GLenum
