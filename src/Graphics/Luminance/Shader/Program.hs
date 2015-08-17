@@ -32,11 +32,11 @@ newtype ProgramError = LinkFailed String deriving (Eq,Show)
 class HasProgramError a where
   fromProgramError :: ProgramError -> a
 
-shaderProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
+createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               => [Stage]
               -> ((forall a. (Uniform a) => Either String Natural -> m (Maybe (a -> m ()))) -> m i)
               -> m (Program,i)
-shaderProgram stages buildIface = do
+createProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
     pid <- glCreateProgram
     traverse_ (glAttachShader pid . stageID) stages
