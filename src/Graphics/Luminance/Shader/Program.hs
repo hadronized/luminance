@@ -29,7 +29,10 @@ newtype Program = Program { programID :: GLuint }
 
 newtype ProgramError = LinkFailed String deriving (Eq,Show)
 
-shaderProgram :: (MonadError ProgramError m,MonadIO m,MonadResource m)
+class HasProgramError a where
+  fromProgramError :: ProgramError -> a
+
+shaderProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               => [Stage]
               -> ((forall a. (Uniform a) => Either String Natural -> m (Maybe (a -> m ()))) -> m i)
               -> m (Program,i)
@@ -48,7 +51,7 @@ shaderProgram stages buildIface = do
         let prog = Program pid
         iface <- buildIface $ ifaceWith prog
         pure (prog,iface)
-    | otherwise -> throwError (LinkFailed cl)
+    | otherwise -> throwError . fromProgramError $ LinkFailed cl
 
 isLinked :: GLuint -> IO Bool
 isLinked pid = do
