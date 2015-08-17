@@ -39,7 +39,10 @@ type DepthFramebuffer rw d = Framebuffer rw () d
 
 newtype FramebufferError = IncompleteFramebuffer String
 
-createFramebuffer :: forall c d m rw. (MonadError FramebufferError m,MonadIO m,MonadResource m,FramebufferColorAttachment c,FramebufferColorRW rw,FramebufferDepthAttachment d,FramebufferTarget rw)
+class HasFramebufferError a where
+  fromFramebufferError :: FramebufferError -> a
+
+createFramebuffer :: forall c d e m rw. (HasFramebufferError e,MonadError e m,MonadIO m,MonadResource m,FramebufferColorAttachment c,FramebufferColorRW rw,FramebufferDepthAttachment d,FramebufferTarget rw)
                   => Natural
                   -> Natural
                   -> Natural
@@ -56,7 +59,7 @@ createFramebuffer w h mipmaps = do
   status <- glCheckNamedFramebufferStatus fid $ framebufferTarget (Proxy :: Proxy rw)
   if 
     | status == GL_FRAMEBUFFER_COMPLETE -> pure (Framebuffer fid)
-    | otherwise -> throwError (IncompleteFramebuffer $ translateFramebufferStatus status)
+    | otherwise -> throwError . fromFramebufferError . IncompleteFramebuffer $ translateFramebufferStatus status
 
 translateFramebufferStatus :: GLenum -> String
 translateFramebufferStatus status = case status of
