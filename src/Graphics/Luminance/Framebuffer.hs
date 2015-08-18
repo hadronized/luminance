@@ -13,6 +13,7 @@
 module Graphics.Luminance.Framebuffer where
 
 import Control.Monad ( unless )
+import Control.Monad.Except ( MonadError(..) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Data.Proxy ( Proxy(..) )
@@ -28,19 +29,24 @@ import Graphics.Luminance.Texture ( Texture2D(textureID), createTexture )
 import Graphics.Luminance.Tuple ( (:.) )
 import Numeric.Natural ( Natural )
 
-----------------------------------------------------------------------------------------------------
--- Framebuffer -------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+-- Framebuffer ------------------------------------------------------------------
 
 newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLuint } deriving (Eq,Show)
 
 type ColorFramebuffer rw c = Framebuffer rw c ()
 type DepthFramebuffer rw d = Framebuffer rw () d
 
-createFramebuffer :: forall c d m rw. (MonadIO m,MonadResource m,FramebufferColorAttachment c,FramebufferColorRW rw,FramebufferDepthAttachment d,FramebufferTarget rw)
+newtype FramebufferError = IncompleteFramebuffer String
+
+class HasFramebufferError a where
+  fromFramebufferError :: FramebufferError -> a
+
+createFramebuffer :: forall c d e m rw. (HasFramebufferError e,MonadError e m,MonadIO m,MonadResource m,FramebufferColorAttachment c,FramebufferColorRW rw,FramebufferDepthAttachment d,FramebufferTarget rw)
                   => Natural
                   -> Natural
                   -> Natural
-                  -> m (Either String (Framebuffer rw c d))
+                  -> m (Framebuffer rw c d)
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
     glCreateFramebuffers 1 p
@@ -52,8 +58,8 @@ createFramebuffer w h mipmaps = do
   _ <- register . with fid $ glDeleteFramebuffers 1
   status <- glCheckNamedFramebufferStatus fid $ framebufferTarget (Proxy :: Proxy rw)
   if 
-    | status == GL_FRAMEBUFFER_COMPLETE -> pure . Right $ Framebuffer fid 
-    | otherwise -> pure . Left $ translateFramebufferStatus status
+    | status == GL_FRAMEBUFFER_COMPLETE -> pure (Framebuffer fid)
+    | otherwise -> throwError . fromFramebufferError . IncompleteFramebuffer $ translateFramebufferStatus status
 
 translateFramebufferStatus :: GLenum -> String
 translateFramebufferStatus status = case status of

@@ -11,6 +11,7 @@
 module Graphics.Luminance.Shader.Stage where
 
 import Control.Applicative ( liftA2 )
+import Control.Monad.Except ( MonadError(throwError) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Graphics.GL
@@ -23,25 +24,33 @@ import Foreign.Storable ( peek )
 
 newtype Stage = Stage { stageID :: GLuint }
 
-tcsShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
-tcsShader = mkShader GL_TESS_CONTROL_SHADER
+newtype StageError = CompilationFailed String deriving (Eq,Show)
 
-tesShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
-tesShader = mkShader GL_TESS_EVALUATION_SHADER
+class HasStageError a where
+  fromStageError :: StageError -> a
 
-vertexShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
-vertexShader = mkShader GL_VERTEX_SHADER
+createTcsShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createTcsShader = mkShader GL_TESS_CONTROL_SHADER
 
-geometryShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
-geometryShader = mkShader GL_GEOMETRY_SHADER
+createTesShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createTesShader = mkShader GL_TESS_EVALUATION_SHADER
 
-fragmentShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
-fragmentShader = mkShader GL_FRAGMENT_SHADER
+createVertexShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createVertexShader = mkShader GL_VERTEX_SHADER
 
-computeShader :: (MonadIO m,MonadResource m) => String -> m (Either String Stage)
-computeShader = mkShader GL_COMPUTE_SHADER
+createGeometryShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createGeometryShader = mkShader GL_GEOMETRY_SHADER
 
-mkShader :: (MonadIO m,MonadResource m) => GLenum -> String -> m (Either String Stage)
+createFragmentShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createFragmentShader = mkShader GL_FRAGMENT_SHADER
+
+createComputeShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
+createComputeShader = mkShader GL_COMPUTE_SHADER
+
+mkShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m)
+         => GLenum
+         -> String
+         -> m Stage
 mkShader target src = do
   (sid,compiled,cl) <- liftIO $ do
     sid <- glCreateShader target
@@ -55,8 +64,8 @@ mkShader target src = do
   if
     | compiled  -> do
         _ <- register $ glDeleteShader sid
-        pure . Right $ Stage sid
-    | otherwise -> pure $ Left cl
+        pure $ Stage sid
+    | otherwise -> throwError . fromStageError $ CompilationFailed cl
 
 isCompiled :: GLuint -> IO Bool
 isCompiled sid = do
