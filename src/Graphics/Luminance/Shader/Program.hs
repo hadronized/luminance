@@ -21,7 +21,7 @@ import Foreign.Marshal.Array ( allocaArray )
 import Foreign.Ptr ( castPtr, nullPtr )
 import Foreign.Storable ( peek )
 import Graphics.Luminance.Shader.Stage ( Stage(..) )
-import Graphics.Luminance.Shader.Uniform ( Uniform(..) )
+import Graphics.Luminance.Shader.Uniform ( U, Uniform(..) )
 import Graphics.GL
 import Numeric.Natural ( Natural )
 
@@ -34,7 +34,7 @@ class HasProgramError a where
 
 createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               => [Stage]
-              -> ((forall a. (Uniform a) => Either String Natural -> m (Maybe (a -> m ()))) -> m i)
+              -> ((forall a. (Uniform a) => Either String Natural -> m (Maybe (U a))) -> m i)
               -> m (Program,i)
 createProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
@@ -77,15 +77,15 @@ clog l pid =
 ifaceWith :: (MonadIO m,Uniform a)
           => Program
           -> Either String Natural
-          -> m (Maybe (a -> m ()))
+          -> m (Maybe (U a))
 ifaceWith prog access = case access of
     Left name -> do
       location <- liftIO . withCString name $ glGetUniformLocation pid
       if
-        | isActive location -> pure . Just $ uploadUniform pid location
+        | isActive location -> pure . Just $ toU pid location
         | otherwise         -> pure Nothing
     Right sem
-      | isActive sem -> pure . Just $ uploadUniform pid (fromIntegral sem)
+      | isActive sem -> pure . Just $ toU pid (fromIntegral sem)
       | otherwise    -> pure Nothing
   where
     pid = programID prog
