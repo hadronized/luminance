@@ -20,7 +20,7 @@ import Graphics.Luminance.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Shader.Program ( Program(..) )
 import Graphics.Luminance.Shader.Uniform ( Uniformed(..) )
 
--- TEST ONLY
+-- FIXME: TEST ONLY
 import Data.Bits
 
 data FBBatch rw c d = FBBatch {
@@ -36,7 +36,7 @@ data SPBatch = SPBatch {
 
 drawGeometry :: (MonadIO m) => Uniformed Geometry -> m ()
 drawGeometry g = do
-  geometry <- liftIO (updateUniforms g)
+  geometry <- liftIO (runUniformed g)
   case geometry of
     DirectGeometry (VertexArray vid mode vbNb) -> do
       glBindVertexArray vid
@@ -49,12 +49,14 @@ treatSPBatch :: (MonadIO m) => SPBatch -> m ()
 treatSPBatch (SPBatch prog uniformed geometries) = do
   liftIO $ do
     glUseProgram (programID prog)
-    void $ updateUniforms uniformed
+    void $ runUniformed uniformed
   traverse_ drawGeometry geometries
 
 treatFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
 treatFBBatch (FBBatch fb spbs) = do
   liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
-  -- TEST ONLY
-  liftIO . glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
+  -- FIXME: TEST ONLY
+  liftIO $ do
+    glEnable GL_DEPTH_TEST
+    glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
   traverse_ treatSPBatch spbs
