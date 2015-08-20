@@ -143,7 +143,7 @@ instance Uniform [(Float,Float,Float,Float)] where
 --------------------------------------------------------------------------------
 -- Uniform monadic interface ---------------------------------------------------
 
-newtype Uniformed a = Uniformed { updateUniforms :: IO a } deriving (Applicative,Functor,Monad)
+newtype Uniformed a = Uniformed { runUniformed :: IO a } deriving (Applicative,Functor,Monad)
 
 (@=) :: U a -> a -> Uniformed ()
 U f @= a = Uniformed $ f a
