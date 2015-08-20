@@ -12,8 +12,8 @@ module Graphics.Luminance.Blending where
 
 data BlendingMode
   = Additive
-  | Substract
-  | ReverseSubstract
+  | Subtract
+  | ReverseSubtract
   | Min
   | Max
     deriving (Eq,Show)
