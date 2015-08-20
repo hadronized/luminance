@@ -31,17 +31,19 @@ data FBBatch rw c d = FBBatch {
 data SPBatch = SPBatch {
     spBatchShaderProgram :: Program
   , spBatchUniformed     :: Uniformed ()
-  , spBatchGeometries    :: [Geometry]
+  , spBatchGeometries    :: [Uniformed Geometry]
   }
 
-drawGeometry :: (MonadIO m) => Geometry -> m ()
-drawGeometry g = case g of
-  DirectGeometry (VertexArray vid mode vbNb) -> do
-    glBindVertexArray vid
-    glDrawArrays mode 0 vbNb
-  IndexedGeometry (VertexArray vid mode ixNb) -> do
-    glBindVertexArray vid
-    glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
+drawGeometry :: (MonadIO m) => Uniformed Geometry -> m ()
+drawGeometry g = do
+  geometry <- liftIO (updateUniforms g)
+  case geometry of
+    DirectGeometry (VertexArray vid mode vbNb) -> do
+      glBindVertexArray vid
+      glDrawArrays mode 0 vbNb
+    IndexedGeometry (VertexArray vid mode ixNb) -> do
+      glBindVertexArray vid
+      glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
 
 treatSPBatch :: (MonadIO m) => SPBatch -> m ()
 treatSPBatch (SPBatch prog uniformed geometries) = do
