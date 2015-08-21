@@ -11,6 +11,6 @@
 module Graphics.Luminance.RenderCmd where
 
 import Graphics.Luminance.Blending
-import Graphics.Luminance.Shader.Uniform ( Uniformed )
+import Graphics.Luminance.Shader.Uniform ( Uniformed(..) )
 
-data RenderCmd rw c d a = RenderCmd BlendingMode BlendingFactor Bool (Uniformed a)
+data RenderCmd rw c d a = RenderCmd (Maybe (BlendingMode,BlendingFactor)) Bool (Uniformed a)
