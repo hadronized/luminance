@@ -10,6 +10,7 @@
 
 module Graphics.Luminance.Blending where
 
+import Control.Monad.IO.Class ( MonadIO(..) )
 import Graphics.GL
 
 data BlendingMode
@@ -39,10 +40,10 @@ data BlendingFactor
   | NegativeSrcAlpha
   | DstAlpha
   | NegativeDstAlpha
-  | ConstantColor
-  | NegativeConstantColor
-  | ConstantAlpha
-  | NegativeConstantAlpha
+  -- | ConstantColor
+  -- | NegativeConstantColor
+  -- | ConstantAlpha
+  -- | NegativeConstantAlpha
   | SrcAlphaSaturate
     deriving (Eq,Show)
 
@@ -58,9 +59,13 @@ fromBlendingFactor f = case f of
   NegativeSrcAlpha      -> GL_ONE_MINUS_SRC_ALPHA
   DstAlpha              -> GL_DST_ALPHA
   NegativeDstAlpha      -> GL_ONE_MINUS_DST_ALPHA
-  ConstantColor         -> GL_CONSTANT_COLOR
-  NegativeConstantColor -> GL_ONE_MINUS_CONSTANT_COLOR
-  ConstantAlpha         -> GL_CONSTANT_ALPHA
-  NegativeConstantAlpha -> GL_ONE_MINUS_CONSTANT_ALPHA
+  -- ConstantColor         -> GL_CONSTANT_COLOR
+  -- NegativeConstantColor -> GL_ONE_MINUS_CONSTANT_COLOR
+  -- ConstantAlpha         -> GL_CONSTANT_ALPHA
+  -- NegativeConstantAlpha -> GL_ONE_MINUS_CONSTANT_ALPHA
   SrcAlphaSaturate      -> GL_SRC_ALPHA_SATURATE
 
+setBlending :: (MonadIO m) => BlendingMode -> BlendingFactor -> BlendingFactor -> m ()
+setBlending mode src dst = liftIO $ do
+  glBlendEquation (fromBlendingMode mode)
+  glBlendFunc (fromBlendingFactor src) (fromBlendingFactor dst)

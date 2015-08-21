@@ -15,6 +15,7 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 import Data.Foldable ( traverse_ )
 import Foreign.Ptr ( nullPtr )
 import Graphics.GL
+import Graphics.Luminance.Blending ( setBlending )
 import Graphics.Luminance.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Shader.Program ( Program(..) )
@@ -37,6 +38,7 @@ data SPBatch rw c d = SPBatch {
 
 drawGeometry :: (MonadIO m) => RenderCmd rw c d Geometry -> m ()
 drawGeometry (RenderCmd blending depthTest g) = do
+  traverse_ (\(mode,src,dst) -> setBlending mode src dst) blending
   (if depthTest then glEnable else glDisable) GL_DEPTH_TEST
   geometry <- liftIO (runUniformed g)
   case geometry of
