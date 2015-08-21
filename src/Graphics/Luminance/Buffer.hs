@@ -41,10 +41,8 @@ mkBuffer flags size = do
 
 createStorage :: GLuint -> GLbitfield -> Word32 -> IO (Ptr ())
 createStorage bid flags size = do
-    glBindBuffer universalTarget bid
-    glBufferStorage universalTarget bytes nullPtr flags
-    ptr <- glMapBufferRange universalTarget 0 bytes flags
-    glBindBuffer universalTarget 0
+    glNamedBufferStorage bid bytes nullPtr flags
+    ptr <- glMapNamedBufferRange bid 0 bytes flags
     pure ptr
   where
     bytes = fromIntegral size
