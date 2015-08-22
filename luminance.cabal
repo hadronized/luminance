@@ -30,6 +30,7 @@ library
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.Primitive
                      , Graphics.Luminance.Query
+                     , Graphics.Luminance.RenderCmd
                      , Graphics.Luminance.RW
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
