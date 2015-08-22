@@ -15,9 +15,11 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 import Data.Foldable ( traverse_ )
 import Foreign.Ptr ( nullPtr )
 import Graphics.GL
+import Graphics.Luminance.Blending ( setBlending )
 import Graphics.Luminance.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Shader.Program ( Program(..) )
+import Graphics.Luminance.RenderCmd ( RenderCmd(..) )
 import Graphics.Luminance.Shader.Uniform ( Uniformed(..) )
 
 -- FIXME: TEST ONLY
@@ -25,17 +27,19 @@ import Data.Bits
 
 data FBBatch rw c d = FBBatch {
     fbBatchFramebuffer :: Framebuffer rw c d
-  , fbBatchSPBatch     :: [SPBatch]
+  , fbBatchSPBatch     :: [SPBatch rw c d]
   }
 
-data SPBatch = SPBatch {
+data SPBatch rw c d = SPBatch {
     spBatchShaderProgram :: Program
   , spBatchUniformed     :: Uniformed ()
-  , spBatchGeometries    :: [Uniformed Geometry]
+  , spBatchGeometries    :: [RenderCmd rw c d Geometry]
   }
 
-drawGeometry :: (MonadIO m) => Uniformed Geometry -> m ()
-drawGeometry g = do
+drawGeometry :: (MonadIO m) => RenderCmd rw c d Geometry -> m ()
+drawGeometry (RenderCmd blending depthTest g) = do
+  setBlending blending
+  (if depthTest then glEnable else glDisable) GL_DEPTH_TEST
   geometry <- liftIO (runUniformed g)
   case geometry of
     DirectGeometry (VertexArray vid mode vbNb) -> do
@@ -45,7 +49,7 @@ drawGeometry g = do
       glBindVertexArray vid
       glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
 
-treatSPBatch :: (MonadIO m) => SPBatch -> m ()
+treatSPBatch :: (MonadIO m) => SPBatch rw c d -> m ()
 treatSPBatch (SPBatch prog uniformed geometries) = do
   liftIO $ do
     glUseProgram (programID prog)

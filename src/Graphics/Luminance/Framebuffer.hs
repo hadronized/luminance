@@ -37,7 +37,7 @@ newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLuint } deriving (E
 type ColorFramebuffer rw c = Framebuffer rw c ()
 type DepthFramebuffer rw d = Framebuffer rw () d
 
-newtype FramebufferError = IncompleteFramebuffer String
+newtype FramebufferError = IncompleteFramebuffer String deriving (Eq,Show)
 
 class HasFramebufferError a where
   fromFramebufferError :: FramebufferError -> a
