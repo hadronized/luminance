@@ -65,7 +65,10 @@ fromBlendingFactor f = case f of
   -- NegativeConstantAlpha -> GL_ONE_MINUS_CONSTANT_ALPHA
   SrcAlphaSaturate      -> GL_SRC_ALPHA_SATURATE
 
-setBlending :: (MonadIO m) => BlendingMode -> BlendingFactor -> BlendingFactor -> m ()
-setBlending mode src dst = liftIO $ do
-  glBlendEquation (fromBlendingMode mode)
-  glBlendFunc (fromBlendingFactor src) (fromBlendingFactor dst)
+setBlending :: (MonadIO m) => Maybe (BlendingMode,BlendingFactor,BlendingFactor) -> m ()
+setBlending blending = liftIO $ case blending of
+  Just (mode,src,dst) -> do
+    glEnable GL_BLEND
+    glBlendEquation (fromBlendingMode mode)
+    glBlendFunc (fromBlendingFactor src) (fromBlendingFactor dst)
+  Nothing -> glDisable GL_BLEND
