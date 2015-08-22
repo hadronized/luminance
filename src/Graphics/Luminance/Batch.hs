@@ -38,7 +38,7 @@ data SPBatch rw c d = SPBatch {
 
 drawGeometry :: (MonadIO m) => RenderCmd rw c d Geometry -> m ()
 drawGeometry (RenderCmd blending depthTest g) = do
-  traverse_ (\(mode,src,dst) -> setBlending mode src dst) blending
+  setBlending blending
   (if depthTest then glEnable else glDisable) GL_DEPTH_TEST
   geometry <- liftIO (runUniformed g)
   case geometry of
