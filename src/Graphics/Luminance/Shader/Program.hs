@@ -27,14 +27,17 @@ import Numeric.Natural ( Natural )
 
 newtype Program = Program { programID :: GLuint }
 
-newtype ProgramError = LinkFailed String deriving (Eq,Show)
+data ProgramError
+  = LinkFailed String
+  | InactiveUniform String
+    deriving (Eq,Show)
 
 class HasProgramError a where
   fromProgramError :: ProgramError -> a
 
 createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               => [Stage]
-              -> ((forall a. (Uniform a) => Either String Natural -> m (Maybe (U a))) -> m i)
+              -> ((forall a. (Uniform a) => Either String Natural -> m (U a)) -> m i)
               -> m (Program,i)
 createProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
@@ -74,19 +77,19 @@ clog l pid =
     liftA2 (*>) (glGetProgramInfoLog pid (fromIntegral l) nullPtr)
       (peekCString . castPtr)
 
-ifaceWith :: (MonadIO m,Uniform a)
+ifaceWith :: (HasProgramError e,MonadError e m,MonadIO m,Uniform a)
           => Program
           -> Either String Natural
-          -> m (Maybe (U a))
+          -> m (U a)
 ifaceWith prog access = case access of
     Left name -> do
       location <- liftIO . withCString name $ glGetUniformLocation pid
       if
-        | isActive location -> pure . Just $ toU pid location
-        | otherwise         -> pure Nothing
+        | isActive location -> pure $ toU pid location
+        | otherwise         -> throwError . fromProgramError $ InactiveUniform name
     Right sem
-      | isActive sem -> pure . Just $ toU pid (fromIntegral sem)
-      | otherwise    -> pure Nothing
+      | isActive sem -> pure $ toU pid (fromIntegral sem)
+      | otherwise    -> throwError . fromProgramError $ InactiveUniform (show sem)
   where
     pid = programID prog
     isActive :: (Ord a,Num a) => a -> Bool
