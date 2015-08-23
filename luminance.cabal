@@ -63,6 +63,7 @@ library
                      , gl             >= 0.7  && < 0.8
                      , mtl            >= 2.2  && < 2.3
                      , resourcet      >= 1.1  && < 1.2
+                     , semigroups     >= 0.16 && < 0.17
                      , transformers   >= 0.4  && < 0.5
                      , void           >= 0.7  && < 0.8
 

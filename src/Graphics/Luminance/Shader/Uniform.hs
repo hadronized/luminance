@@ -13,6 +13,7 @@ module Graphics.Luminance.Shader.Uniform where
 import Data.Functor.Contravariant ( Contravariant(..) )
 import Data.Functor.Contravariant.Divisible ( Decidable(..), Divisible(..) )
 import Data.Int ( Int32 )
+import Data.Semigroup ( Semigroup(..) )
 import Data.Void ( absurd )
 import Data.Word ( Word32 )
 import Foreign.Marshal.Array ( withArrayLen )
@@ -38,16 +39,20 @@ instance Divisible U where
     let (b,c) = f a
     runU p b
     runU q c
-  conquer = U . const $ pure ()
+  conquer = mempty
+
+instance Monoid (U a) where
+  mempty = U . const $ pure ()
+  mappend = (<>)
+
+instance Semigroup (U a) where
+  u <> v = U $ \a -> runU u a >> runU v a
 
 --------------------------------------------------------------------------------
 -- Unit instance ---------------------------------------------------------------
 
 instance Uniform () where
-  toU _ _ = unitUniform
-
-unitUniform :: U ()
-unitUniform = U . const $ pure ()
+  toU _ _ = mempty
 
 --------------------------------------------------------------------------------
 -- Int32 instances -------------------------------------------------------------
