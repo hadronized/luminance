@@ -11,13 +11,9 @@
 module Graphics.Luminance.RenderCmd where
 
 import Graphics.Luminance.Blending
-import Graphics.Luminance.Shader.Uniform ( Uniformed(..) )
+import Graphics.Luminance.Shader.Uniform ( U(..) )
 
-data RenderCmd rw c d a = RenderCmd (Maybe (BlendingMode,BlendingFactor,BlendingFactor)) Bool (Uniformed a)
+data RenderCmd rw c d u a = RenderCmd (Maybe (BlendingMode,BlendingFactor,BlendingFactor)) Bool (U u) u a
 
-instance Functor (RenderCmd rw c d) where
-  fmap f (RenderCmd blending depthTest a) = RenderCmd blending depthTest (fmap f a)
-
-instance Applicative (RenderCmd rw c d) where
-  pure x = RenderCmd Nothing True (pure x)
-  RenderCmd _ _ f <*> RenderCmd blending depthTest a = RenderCmd blending depthTest (f <*> a)
+instance Functor (RenderCmd rw c d u) where
+  fmap f (RenderCmd blending depthTest uni u a) = RenderCmd blending depthTest uni u (f a)
