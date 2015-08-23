@@ -157,14 +157,6 @@ instance Uniform [(Float,Float,Float,Float)] where
     glProgramUniform4fv prog l . fromIntegral
 
 --------------------------------------------------------------------------------
--- Uniform monadic interface ---------------------------------------------------
-
-newtype Uniformed a = Uniformed { runUniformed :: IO a } deriving (Applicative,Functor,Monad)
-
-(@=) :: U a -> a -> Uniformed ()
-U f @= a = Uniformed $ f a
-
---------------------------------------------------------------------------------
 -- Untuple functions -----------------------------------------------------------
 
 unPair :: (a,a) -> [a]

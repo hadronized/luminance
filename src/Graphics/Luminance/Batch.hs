@@ -10,7 +10,6 @@
 
 module Graphics.Luminance.Batch where
 
-import Control.Monad ( void )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Data.Foldable ( traverse_ )
 import Foreign.Ptr ( nullPtr )
@@ -20,27 +19,30 @@ import Graphics.Luminance.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Shader.Program ( Program(..) )
 import Graphics.Luminance.RenderCmd ( RenderCmd(..) )
-import Graphics.Luminance.Shader.Uniform ( Uniformed(..) )
+import Graphics.Luminance.Shader.Uniform ( U(..) )
 
 -- FIXME: TEST ONLY
 import Data.Bits
 
 data FBBatch rw c d = FBBatch {
     fbBatchFramebuffer :: Framebuffer rw c d
-  , fbBatchSPBatch     :: [SPBatch rw c d]
+  , fbBatchSPBatch     :: [AnySPBatch rw c d]
   }
 
-data SPBatch rw c d = SPBatch {
+data SPBatch rw c d u v = SPBatch {
     spBatchShaderProgram :: Program
-  , spBatchUniformed     :: Uniformed ()
-  , spBatchGeometries    :: [RenderCmd rw c d Geometry]
+  , spBatchUniform       :: U u
+  , spBatchUniformValue  :: u
+  , spBatchGeometries    :: [RenderCmd rw c d v Geometry]
   }
 
-drawGeometry :: (MonadIO m) => RenderCmd rw c d Geometry -> m ()
-drawGeometry (RenderCmd blending depthTest g) = do
+data AnySPBatch rw c d = forall u v. AnySPBatch (SPBatch rw c d u v)
+
+drawGeometry :: (MonadIO m) => RenderCmd rw c d u Geometry -> m ()
+drawGeometry (RenderCmd blending depthTest uni u geometry) = do
   setBlending blending
   (if depthTest then glEnable else glDisable) GL_DEPTH_TEST
-  geometry <- liftIO (runUniformed g)
+  liftIO (runU uni u)
   case geometry of
     DirectGeometry (VertexArray vid mode vbNb) -> do
       glBindVertexArray vid
@@ -49,18 +51,16 @@ drawGeometry (RenderCmd blending depthTest g) = do
       glBindVertexArray vid
       glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
 
-treatSPBatch :: (MonadIO m) => SPBatch rw c d -> m ()
-treatSPBatch (SPBatch prog uniformed geometries) = do
+treatSPBatch :: (MonadIO m) => SPBatch rw c d u v -> m ()
+treatSPBatch (SPBatch prog uni u geometries) = do
   liftIO $ do
     glUseProgram (programID prog)
-    void $ runUniformed uniformed
+    runU uni u
   traverse_ drawGeometry geometries
 
 treatFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
 treatFBBatch (FBBatch fb spbs) = do
   liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
   -- FIXME: TEST ONLY
-  liftIO $ do
-    glEnable GL_DEPTH_TEST
-    glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
-  traverse_ treatSPBatch spbs
+  liftIO $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
+  traverse_ (\(AnySPBatch spb) -> treatSPBatch spb) spbs
