@@ -24,10 +24,26 @@ import Graphics.Luminance.Shader.Uniform ( U(..) )
 -- FIXME: TEST ONLY
 import Data.Bits
 
+--------------------------------------------------------------------------------
+-- Framebuffer batch -----------------------------------------------------------
+
 data FBBatch rw c d = FBBatch {
     fbBatchFramebuffer :: Framebuffer rw c d
   , fbBatchSPBatch     :: [AnySPBatch rw c d]
   }
+
+treatFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
+treatFBBatch (FBBatch fb spbs) = do
+  liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
+  -- FIXME: TEST ONLY
+  liftIO $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
+  traverse_ (\(AnySPBatch spb) -> treatSPBatch spb) spbs
+
+framebufferBatch :: Framebuffer rw c d -> [AnySPBatch rw c d] -> FBBatch rw c d
+framebufferBatch = FBBatch
+
+--------------------------------------------------------------------------------
+-- Shader program batch --------------------------------------------------------
 
 data SPBatch rw c d u v = SPBatch {
     spBatchShaderProgram :: Program
@@ -37,6 +53,22 @@ data SPBatch rw c d u v = SPBatch {
   }
 
 data AnySPBatch rw c d = forall u v. AnySPBatch (SPBatch rw c d u v)
+
+anySPBatch :: SPBatch rw c d u v -> AnySPBatch rw c d
+anySPBatch = AnySPBatch
+
+treatSPBatch :: (MonadIO m) => SPBatch rw c d u v -> m ()
+treatSPBatch (SPBatch prog uni u geometries) = do
+  liftIO $ do
+    glUseProgram (programID prog)
+    runU uni u
+  traverse_ drawGeometry geometries
+
+shaderProgramBatch :: Program -> U u -> u -> [RenderCmd rw c d v Geometry] -> SPBatch rw c d u v
+shaderProgramBatch = SPBatch
+
+--------------------------------------------------------------------------------
+-- Geometry draw function ------------------------------------------------------
 
 drawGeometry :: (MonadIO m) => RenderCmd rw c d u Geometry -> m ()
 drawGeometry (RenderCmd blending depthTest uni u geometry) = do
@@ -50,17 +82,3 @@ drawGeometry (RenderCmd blending depthTest uni u geometry) = do
     IndexedGeometry (VertexArray vid mode ixNb) -> do
       glBindVertexArray vid
       glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
-
-treatSPBatch :: (MonadIO m) => SPBatch rw c d u v -> m ()
-treatSPBatch (SPBatch prog uni u geometries) = do
-  liftIO $ do
-    glUseProgram (programID prog)
-    runU uni u
-  traverse_ drawGeometry geometries
-
-treatFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
-treatFBBatch (FBBatch fb spbs) = do
-  liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
-  -- FIXME: TEST ONLY
-  liftIO $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
-  traverse_ (\(AnySPBatch spb) -> treatSPBatch spb) spbs
