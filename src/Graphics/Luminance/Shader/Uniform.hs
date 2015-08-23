@@ -10,8 +10,11 @@
 
 module Graphics.Luminance.Shader.Uniform where
 
-import Control.Monad.IO.Class ( MonadIO(..) )
+import Data.Functor.Contravariant ( Contravariant(..) )
+import Data.Functor.Contravariant.Divisible ( Decidable(..), Divisible(..) )
 import Data.Int ( Int32 )
+import Data.Semigroup ( Semigroup(..) )
+import Data.Void ( absurd )
 import Data.Word ( Word32 )
 import Foreign.Marshal.Array ( withArrayLen )
 import Graphics.GL
@@ -23,6 +26,33 @@ class Uniform a where
   toU :: GLuint -> GLint -> U a
 
 newtype U a = U { runU :: a -> IO () }
+
+instance Contravariant U where
+  contramap f u = U $ runU u . f
+
+instance Decidable U where
+  lose f = U $ absurd . f
+  choose f p q = U $ either (runU p) (runU q) . f
+
+instance Divisible U where
+  divide f p q = U $ \a -> do
+    let (b,c) = f a
+    runU p b
+    runU q c
+  conquer = mempty
+
+instance Monoid (U a) where
+  mempty = U . const $ pure ()
+  mappend = (<>)
+
+instance Semigroup (U a) where
+  u <> v = U $ \a -> runU u a >> runU v a
+
+--------------------------------------------------------------------------------
+-- Unit instance ---------------------------------------------------------------
+
+instance Uniform () where
+  toU _ _ = mempty
 
 --------------------------------------------------------------------------------
 -- Int32 instances -------------------------------------------------------------
@@ -139,14 +169,6 @@ instance Uniform [(Float,Float,Float)] where
 instance Uniform [(Float,Float,Float,Float)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glProgramUniform4fv prog l . fromIntegral
-
---------------------------------------------------------------------------------
--- Uniform monadic interface ---------------------------------------------------
-
-newtype Uniformed a = Uniformed { runUniformed :: IO a } deriving (Applicative,Functor,Monad)
-
-(@=) :: U a -> a -> Uniformed ()
-U f @= a = Uniformed $ f a
 
 --------------------------------------------------------------------------------
 -- Untuple functions -----------------------------------------------------------

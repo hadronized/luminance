@@ -11,13 +11,21 @@
 module Graphics.Luminance.RenderCmd where
 
 import Graphics.Luminance.Blending
-import Graphics.Luminance.Shader.Uniform ( Uniformed(..) )
+import Graphics.Luminance.Shader.Uniform ( U(..) )
 
-data RenderCmd rw c d a = RenderCmd (Maybe (BlendingMode,BlendingFactor,BlendingFactor)) Bool (Uniformed a)
+-- FIXME: we need to make a tighter link between c and blending and between d and the depth test.
+data RenderCmd rw c d u a = RenderCmd (Maybe (BlendingMode,BlendingFactor,BlendingFactor)) Bool (U u) u a
 
-instance Functor (RenderCmd rw c d) where
-  fmap f (RenderCmd blending depthTest a) = RenderCmd blending depthTest (fmap f a)
+instance Functor (RenderCmd rw c d u) where
+  fmap f (RenderCmd blending depthTest uni u a) = RenderCmd blending depthTest uni u (f a)
 
-instance Applicative (RenderCmd rw c d) where
-  pure x = RenderCmd Nothing True (pure x)
-  RenderCmd _ _ f <*> RenderCmd blending depthTest a = RenderCmd blending depthTest (f <*> a)
+renderCmd :: Maybe (BlendingMode,BlendingFactor,BlendingFactor)
+          -> Bool
+          -> U u
+          -> u 
+          -> a 
+          -> RenderCmd rw c d u a
+renderCmd = RenderCmd
+
+stdRenderCmd :: U u -> u -> a -> RenderCmd rw c d u a
+stdRenderCmd = RenderCmd Nothing True
