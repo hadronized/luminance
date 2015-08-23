@@ -26,3 +26,6 @@ renderCmd :: Maybe (BlendingMode,BlendingFactor,BlendingFactor)
           -> a 
           -> RenderCmd rw c d u a
 renderCmd = RenderCmd
+
+stdRenderCmd :: U u -> u -> a -> RenderCmd rw c d u a
+stdRenderCmd = RenderCmd Nothing True
