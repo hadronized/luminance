@@ -37,6 +37,7 @@ library
                      , Graphics.Luminance.Shader.Uniform
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Tuple
+                     , Graphics.Luminance.Vertex
 
   other-modules:       Graphics.Luminance.Renderbuffer
 
