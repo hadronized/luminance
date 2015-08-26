@@ -96,7 +96,7 @@ class FramebufferColorAttachment c where
                  -> Natural
                  -> Natural
                  -> Natural
-                 -> Proxy c
+                 -> proxy c
                  -> m Natural
 
 instance FramebufferColorAttachment () where
@@ -116,10 +116,10 @@ instance (ColorPixel a,ColorPixel b,FramebufferColorAttachment a,FramebufferColo
 colorAttachmentsFromMax :: Natural -> [GLenum]
 colorAttachmentsFromMax m = [fromAttachment (ColorAttachment a) | a <- [0..m-1]]
 
-setColorBuffers :: forall m rw. (FramebufferColorRW rw,MonadIO m)
+setColorBuffers :: forall m proxy rw. (FramebufferColorRW rw,MonadIO m)
                 => GLuint 
                 -> Natural
-                -> Proxy rw
+                -> proxy rw
                 -> m ()
 setColorBuffers fid colorOutputNb _ = case colorOutputNb of
   0 -> do
@@ -137,7 +137,7 @@ class FramebufferDepthAttachment d where
                  -> Natural
                  -> Natural
                  -> Natural
-                 -> Proxy d
+                 -> proxy d
                  -> m Bool
 
 instance FramebufferDepthAttachment () where
@@ -160,7 +160,7 @@ setDepthRenderbuffer fid w h = do
 -- Framebuffer color read/write configuration ----------------------------------
 
 class FramebufferColorRW rw where
-  setFramebufferColorRW :: (MonadIO m) => GLuint -> Natural -> Proxy rw -> m ()
+  setFramebufferColorRW :: (MonadIO m) => GLuint -> Natural -> proxy rw -> m ()
 
 instance FramebufferColorRW W where
   setFramebufferColorRW fid nb _ = liftIO $ do
@@ -171,7 +171,7 @@ instance FramebufferColorRW W where
 -- Framebuffer read/write target configuration ---------------------------------
 
 class FramebufferTarget rw where
-  framebufferTarget :: Proxy rw -> GLenum
+  framebufferTarget :: proxy rw -> GLenum
 
 instance FramebufferTarget W where
   framebufferTarget _ = GL_DRAW_FRAMEBUFFER
@@ -180,13 +180,13 @@ instance FramebufferTarget W where
 --------------------------------------------------------------------------------
 -- Framebuffer outputs ---------------------------------------------------------
 
-addOutput :: forall m p. (MonadIO m,MonadResource m,Pixel p)
+addOutput :: forall m p proxy. (MonadIO m,MonadResource m,Pixel p)
           => GLuint
           -> Attachment
           -> Natural
           -> Natural
           -> Natural
-          -> Proxy p
+          -> proxy p
           -> m ()
 addOutput fid ca w h mipmaps _ = do
   tex :: Texture2D p <- createTexture w h mipmaps
