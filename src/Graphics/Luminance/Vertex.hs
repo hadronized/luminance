@@ -57,7 +57,7 @@ instance (Storable a) => Storable (V 4 a) where
   poke p (V4 x y z w) = pokeArray (castPtr p) [x,y,z,w]
 
 class Vertex v where
-  setFormatV :: (MonadIO m) => GLuint -> GLuint -> Proxy v -> m ()
+  setFormatV :: (MonadIO m) => GLuint -> GLuint -> proxy v -> m ()
 
 instance (GPU a,KnownNat n,Storable a) => Vertex (V n a) where
   setFormatV vid index _ = do

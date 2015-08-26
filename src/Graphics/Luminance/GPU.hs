@@ -11,12 +11,11 @@
 module Graphics.Luminance.GPU where
 
 import Data.Int ( Int32 )
-import Data.Proxy ( Proxy )
 import Data.Word ( Word32 )
 import Graphics.GL
 
 class GPU a where
-  glType :: Proxy a -> GLenum
+  glType :: proxy a -> GLenum
 
 instance GPU Float where
   glType _ = GL_FLOAT
