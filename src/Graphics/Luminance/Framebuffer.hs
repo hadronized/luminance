@@ -198,9 +198,9 @@ addOutput fid ca w h mipmaps _ = do
 
 -- FIXME: name
 type family TexturizeFormat a :: * where
-  TexturizeFormat ()                = ()
-  TexturizeFormat (Format t c)      = Texture2D (Format t c)
-  TexturizeFormat (a :. b) = TexturizeFormat a :. TexturizeFormat b
+  TexturizeFormat ()           = ()
+  TexturizeFormat (Format t c) = Texture2D (Format t c)
+  TexturizeFormat (a :. b)     = TexturizeFormat a :. TexturizeFormat b
 
 --------------------------------------------------------------------------------
 -- Special framebuffers --------------------------------------------------------
