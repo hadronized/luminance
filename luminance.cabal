@@ -54,6 +54,7 @@ library
                      , RankNTypes
                      , ScopedTypeVariables
                      , StandaloneDeriving
+                     , TupleSections
                      , TypeFamilies
                      , TypeOperators
 
