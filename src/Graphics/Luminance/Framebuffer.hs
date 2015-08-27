@@ -26,7 +26,7 @@ import Graphics.Luminance.Pixel
 import Graphics.Luminance.Renderbuffer ( createRenderbuffer, renderbufferID )
 import Graphics.Luminance.RW
 import Graphics.Luminance.Texture ( Texture2D(textureID), createTexture )
-import Graphics.Luminance.Tuple ( (:.) )
+import Graphics.Luminance.Tuple
 import Numeric.Natural ( Natural )
 
 ---------------------------------------------------------------------------------
@@ -46,19 +46,19 @@ createFramebuffer :: forall c d e m rw. (HasFramebufferError e,MonadError e m,Mo
                   => Natural
                   -> Natural
                   -> Natural
-                  -> m (Framebuffer rw c d)
+                  -> m (Framebuffer rw c d,TexturizeFormat c,TexturizeFormat d)
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
     glCreateFramebuffers 1 p
     peek p
-  colorOutputNb <- addColorOutput fid 0 w h mipmaps (Proxy :: Proxy c)
-  hasDepthOutput <- addDepthOutput fid w h mipmaps (Proxy :: Proxy d)
+  (colorOutputNb,colorTexs) <- addColorOutput fid 0 w h mipmaps (Proxy :: Proxy c)
+  (hasDepthOutput,depthTex) <- addDepthOutput fid w h mipmaps (Proxy :: Proxy d)
   setColorBuffers fid colorOutputNb (Proxy :: Proxy rw)
   unless hasDepthOutput $ setDepthRenderbuffer fid w h
   _ <- register . with fid $ glDeleteFramebuffers 1
   status <- glCheckNamedFramebufferStatus fid $ framebufferTarget (Proxy :: Proxy rw)
   if 
-    | status == GL_FRAMEBUFFER_COMPLETE -> pure (Framebuffer fid)
+    | status == GL_FRAMEBUFFER_COMPLETE -> pure (Framebuffer fid,colorTexs,depthTex)
     | otherwise -> throwError . fromFramebufferError . IncompleteFramebuffer $ translateFramebufferStatus status
 
 translateFramebufferStatus :: GLenum -> String
@@ -97,21 +97,20 @@ class FramebufferColorAttachment c where
                  -> Natural
                  -> Natural
                  -> proxy c
-                 -> m Natural
+                 -> m (Natural,TexturizeFormat c)
 
 instance FramebufferColorAttachment () where
-  addColorOutput _ _ _ _ _ _ = pure 0
+  addColorOutput _ _ _ _ _ _ = pure (0,())
 
 instance (ColorPixel (Format t c)) => FramebufferColorAttachment (Format t c) where
-  addColorOutput fid ca w h mipmaps proxy = do
-    addOutput fid (ColorAttachment ca) w h mipmaps proxy
-    pure 1
+  addColorOutput fid ca w h mipmaps proxy =
+    fmap (1,) $ addOutput fid (ColorAttachment ca) w h mipmaps proxy
 
 instance (ColorPixel a,ColorPixel b,FramebufferColorAttachment a,FramebufferColorAttachment b) => FramebufferColorAttachment (a :. b) where
   addColorOutput fid ca w h mipmaps _ = do
-    d0 <- addColorOutput fid ca w h mipmaps (Proxy :: Proxy a)
-    d1 <- addColorOutput fid (succ ca) w h mipmaps (Proxy :: Proxy b)
-    pure $ d0 + d1
+    (d0,tex0) <- addColorOutput fid ca w h mipmaps (Proxy :: Proxy a)
+    (d1,tex1) <- addColorOutput fid (succ ca) w h mipmaps (Proxy :: Proxy b)
+    pure $ (d0 + d1,tex0 :. tex1)
 
 colorAttachmentsFromMax :: Natural -> [GLenum]
 colorAttachmentsFromMax m = [fromAttachment (ColorAttachment a) | a <- [0..m-1]]
@@ -138,13 +137,13 @@ class FramebufferDepthAttachment d where
                  -> Natural
                  -> Natural
                  -> proxy d
-                 -> m Bool
+                 -> m (Bool,TexturizeFormat d)
 
 instance FramebufferDepthAttachment () where
-  addDepthOutput _ _ _ _ _ = pure False
+  addDepthOutput _ _ _ _ _ = pure (False,())
 
 instance (Pixel (Format t (CDepth d))) => FramebufferDepthAttachment (Format t (CDepth d)) where
-  addDepthOutput fid w h mipmaps proxy = addOutput fid DepthAttachment w h mipmaps proxy >> pure True
+  addDepthOutput fid w h mipmaps proxy = fmap (True,) $ addOutput fid DepthAttachment w h mipmaps proxy
 
 setDepthRenderbuffer :: (MonadIO m,MonadResource m)
                      => GLuint
@@ -187,11 +186,21 @@ addOutput :: forall m p proxy. (MonadIO m,MonadResource m,Pixel p)
           -> Natural
           -> Natural
           -> proxy p
-          -> m ()
+          -> m (Texture2D p)
 addOutput fid ca w h mipmaps _ = do
   tex :: Texture2D p <- createTexture w h mipmaps
   liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
     (textureID tex) 0
+  pure tex
+
+--------------------------------------------------------------------------------
+-- Framebuffer textures accessors ----------------------------------------------
+
+-- FIXME: name
+type family TexturizeFormat a :: * where
+  TexturizeFormat ()                = ()
+  TexturizeFormat (Format t c)      = Texture2D (Format t c)
+  TexturizeFormat (a :. b) = TexturizeFormat a :. TexturizeFormat b
 
 --------------------------------------------------------------------------------
 -- Special framebuffers --------------------------------------------------------
