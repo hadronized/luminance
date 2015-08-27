@@ -91,11 +91,9 @@ createTexture w h mipmaps = do
     tid <- liftIO . alloca $ \p -> do
       glCreateTextures GL_TEXTURE_2D 1 p
       tid <- peek p
-      glBindTexture GL_TEXTURE_2D tid
-      glTexStorage2D GL_TEXTURE_2D (fromIntegral mipmaps) ift w' h'
-      glTexParameteri GL_TEXTURE_2D GL_TEXTURE_BASE_LEVEL 0
-      glTexParameteri GL_TEXTURE_2D GL_TEXTURE_MAX_LEVEL (fromIntegral mipmaps - 1)
-      glBindTexture GL_TEXTURE_2D 0
+      glTextureStorage2D tid (fromIntegral mipmaps) ift w' h'
+      glTextureParameteri tid GL_TEXTURE_BASE_LEVEL 0
+      glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral mipmaps - 1)
       pure tid
     _ <- register . with tid $ glDeleteTextures 1
     pure $ Texture2D tid w' h' ft typ
