@@ -21,6 +21,7 @@ import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( castPtr )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.GL
+import Graphics.GL.Ext.ARB.BindlessTexture
 import Graphics.Luminance.Pixel
 import Numeric.Natural ( Natural )
 
@@ -76,6 +77,7 @@ fromUnit (Unit i) = GL_TEXTURE0 + fromIntegral i
 -- |2D Texture.
 data Texture2D f = Texture2D {
     textureID     :: GLuint
+  , textureHandle :: GLuint64
   , textureW      :: GLsizei
   , textureH      :: GLsizei
   , textureFormat :: GLenum
@@ -88,15 +90,19 @@ createTexture :: forall p m. (Pixel p,MonadIO m,MonadResource m)
               -> Natural
               -> m (Texture2D p)
 createTexture w h mipmaps = do
-    tid <- liftIO . alloca $ \p -> do
+    (tid,texH) <- liftIO . alloca $ \p -> do
       glCreateTextures GL_TEXTURE_2D 1 p
       tid <- peek p
       glTextureStorage2D tid (fromIntegral mipmaps) ift w' h'
       glTextureParameteri tid GL_TEXTURE_BASE_LEVEL 0
       glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral mipmaps - 1)
-      pure tid
-    _ <- register . with tid $ glDeleteTextures 1
-    pure $ Texture2D tid w' h' ft typ
+      texH <- glGetTextureHandleARB tid 
+      glMakeTextureHandleResidentARB texH
+      pure (tid,texH)
+    _ <- register $ do
+      glMakeTextureHandleNonResidentARB texH
+      with tid $ glDeleteTextures 1
+    pure $ Texture2D tid texH w' h' ft typ
   where
     ft  = pixelFormat (Proxy :: Proxy p)
     ift = pixelIFormat (undefined :: Proxy p)
@@ -165,7 +171,7 @@ uploadWhole :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
             -> Bool
             -> f a
             -> m ()
-uploadWhole (Texture2D tid w h fmt typ) autolvl dat =
+uploadWhole (Texture2D tid _ w h fmt typ) autolvl dat =
   liftIO $ do
     withArray (toList dat) $ glTextureSubImage2D tid 0 0 0 w h fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
@@ -179,7 +185,7 @@ uploadSub :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
           -> Bool
           -> f a
           -> m ()
-uploadSub (Texture2D tid _ _ fmt typ) x y w h autolvl dat =
+uploadSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl dat =
   liftIO $ do
     withArray (toList dat) $ glTextureSubImage2D tid 0 (fromIntegral x)
       (fromIntegral y) (fromIntegral w) (fromIntegral h) fmt typ . castPtr
@@ -190,7 +196,7 @@ fillWhole :: (MonadIO m,PixelBase p ~ a,Storable a)
           -> Bool
           -> a
           -> m ()
-fillWhole (Texture2D tid _ _ fmt typ) autolvl filling =
+fillWhole (Texture2D tid _ _ _ fmt typ) autolvl filling =
   liftIO $ do
     with filling $ glClearTexImage tid 0 fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
@@ -204,7 +210,7 @@ fillSub :: (MonadIO m,PixelBase p ~ a,Storable a)
         -> Bool
         -> a
         -> m ()
-fillSub (Texture2D tid _ _ fmt typ) x y w h autolvl filling =
+fillSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl filling =
   liftIO $ do
     with filling $ glClearTexSubImage tid 0 (fromIntegral x)
       (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 0 fmt typ . castPtr
