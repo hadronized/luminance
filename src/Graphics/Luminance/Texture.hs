@@ -69,11 +69,6 @@ fromCompareFunc f = case f of
   NotEqual -> GL_NOTEQUAL
   Always -> GL_ALWAYS
 
-newtype Unit = Unit Natural deriving (Enum,Eq,Integral,Num,Ord,Real,Show)
-
-fromUnit :: (Eq a,Num a) => Unit -> a
-fromUnit (Unit i) = GL_TEXTURE0 + fromIntegral i
-
 -- |2D Texture.
 data Texture2D f = Texture2D {
     textureID     :: GLuint
@@ -88,14 +83,16 @@ createTexture :: forall p m. (Pixel p,MonadIO m,MonadResource m)
               => Natural
               -> Natural
               -> Natural
+              -> Sampling
               -> m (Texture2D p)
-createTexture w h mipmaps = do
+createTexture w h mipmaps sampling = do
     (tid,texH) <- liftIO . alloca $ \p -> do
       glCreateTextures GL_TEXTURE_2D 1 p
       tid <- peek p
       glTextureStorage2D tid (fromIntegral mipmaps) ift w' h'
       glTextureParameteri tid GL_TEXTURE_BASE_LEVEL 0
       glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral mipmaps - 1)
+      setTextureSampling tid sampling
       texH <- glGetTextureHandleARB tid 
       glMakeTextureHandleResidentARB texH
       pure (tid,texH)
@@ -138,30 +135,30 @@ createSampler s = do
   sid <- liftIO . alloca $ \p -> do
     glCreateSamplers 1 p
     sid <- peek p
-    setTextureSampling sid s
+    setSamplerSampling sid s
     pure sid
   _ <- register . with sid $ glDeleteSamplers 1
   pure $ Sampler sid
 
 setSampling :: (Eq a,Eq b,MonadIO m,Num a,Num b) => (GLenum -> a -> b -> IO ()) -> GLenum -> Sampling -> m ()
-setSampling f target s = liftIO $ do
+setSampling f objID s = liftIO $ do
   -- wraps
-  f target GL_TEXTURE_WRAP_S . fromWrap $ samplingWrapS s
-  f target GL_TEXTURE_WRAP_T . fromWrap $ samplingWrapT s
-  f target GL_TEXTURE_WRAP_R . fromWrap $ samplingWrapR s
+  f objID GL_TEXTURE_WRAP_S . fromWrap $ samplingWrapS s
+  f objID GL_TEXTURE_WRAP_T . fromWrap $ samplingWrapT s
+  f objID GL_TEXTURE_WRAP_R . fromWrap $ samplingWrapR s
   -- filters
-  f target GL_TEXTURE_MIN_FILTER . fromFilter $ samplingMinFilter s
-  f target GL_TEXTURE_MAG_FILTER . fromFilter $ samplingMagFilter s
+  f objID GL_TEXTURE_MIN_FILTER . fromFilter $ samplingMinFilter s
+  f objID GL_TEXTURE_MAG_FILTER . fromFilter $ samplingMagFilter s
   -- comparison function
   case samplingCompareFunction s of
     Just cmpf -> do
-      f target GL_TEXTURE_COMPARE_FUNC $ fromCompareFunc cmpf
-      f target GL_TEXTURE_COMPARE_MODE GL_COMPARE_REF_TO_TEXTURE
+      f objID GL_TEXTURE_COMPARE_FUNC $ fromCompareFunc cmpf
+      f objID GL_TEXTURE_COMPARE_MODE GL_COMPARE_REF_TO_TEXTURE
     Nothing ->
-      f target GL_TEXTURE_COMPARE_MODE GL_NONE
+      f objID GL_TEXTURE_COMPARE_MODE GL_NONE
 
 setTextureSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
-setTextureSampling = setSampling glTexParameteri
+setTextureSampling = setSampling glTextureParameteri
 
 setSamplerSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
 setSamplerSampling = setSampling glSamplerParameteri
