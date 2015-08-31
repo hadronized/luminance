@@ -10,7 +10,7 @@
 
 module Graphics.Luminance.Texture where
 
-import Control.Monad ( when )
+import Control.Monad ( unless, when )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Data.Foldable ( toList )
@@ -195,8 +195,11 @@ fillWhole :: (MonadIO m,PixelBase p ~ a,Storable a)
           -> m ()
 fillWhole (Texture2D tid _ _ _ fmt typ) autolvl filling =
   liftIO $ do
+    clearGLError
     with filling $ glClearTexImage tid 0 fmt typ . castPtr
+    e <- glGetError
     when autolvl $ glGenerateTextureMipmap tid
+    print $ "error: " ++ show e
 
 fillSub :: (MonadIO m,PixelBase p ~ a,Storable a)
         => Texture2D p
@@ -212,3 +215,8 @@ fillSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl filling =
     with filling $ glClearTexSubImage tid 0 (fromIntegral x)
       (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 0 fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
+
+clearGLError :: IO ()
+clearGLError = do
+  e <- glGetError
+  unless (e == GL_NO_ERROR) clearGLError
