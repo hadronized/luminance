@@ -125,7 +125,7 @@ defaultSampling = Sampling {
   , samplingWrapR           = ClampToEdge
   , samplingMinFilter       = Linear
   , samplingMagFilter       = Linear
-  , samplingCompareFunction = Just LessOrEqual
+  , samplingCompareFunction = Nothing
   }
 
 createSampler :: (MonadIO m,MonadResource m)
