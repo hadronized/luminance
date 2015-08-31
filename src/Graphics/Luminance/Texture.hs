@@ -207,5 +207,5 @@ fillSub :: (MonadIO m,PixelBase p ~ a,Storable a)
 fillSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl filling =
   liftIO $ do
     with filling $ glClearTexSubImage tid 0 (fromIntegral x)
-      (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 0 fmt typ . castPtr
+      (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 1 fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
