@@ -102,7 +102,7 @@ createTexture w h mipmaps sampling = do
     pure $ Texture2D tid texH w' h' ft typ
   where
     ft  = pixelFormat (Proxy :: Proxy p)
-    ift = pixelIFormat (undefined :: Proxy p)
+    ift = pixelIFormat (Proxy :: Proxy p)
     typ = pixelType (Proxy :: Proxy p)
     w'  = fromIntegral w
     h'  = fromIntegral h
