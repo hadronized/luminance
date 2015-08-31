@@ -93,6 +93,7 @@ instance (ChannelType t) => ChannelType (Format t c) where
   channelType _ = channelType (Proxy :: Proxy t)
 
 type RGB8UI   = Format CUInts  (CRGB C8 C8 C8)
+type RGBA8UI  = Format CUInts  (CRGBA C8 C8 C8 C8)
 type RGB32F   = Format CFloats (CRGB C32 C32 C32)
 type RGBA32F  = Format CFloats (CRGBA C32 C32 C32 C32)
 type Depth32F = Format CFloats (CDepth C32)
@@ -110,6 +111,12 @@ instance Pixel RGB8UI where
   type PixelBase RGB8UI = Word8
   pixelFormat  _ = GL_RGB_INTEGER
   pixelIFormat _ = GL_RGB8UI
+  pixelType    _ = GL_UNSIGNED_INT
+
+instance Pixel RGBA8UI where
+  type PixelBase RGBA8UI = Word8
+  pixelFormat  _ = GL_RGBA_INTEGER
+  pixelIFormat _ = GL_RGBA8UI
   pixelType    _ = GL_UNSIGNED_INT
 
 instance Pixel RGB32F where
