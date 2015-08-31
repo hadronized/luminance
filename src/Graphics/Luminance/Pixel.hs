@@ -14,6 +14,7 @@
 module Graphics.Luminance.Pixel where
 
 import Data.Proxy ( Proxy(..) )
+import Data.Word ( Word8 )
 import Graphics.GL
 
 --------------------------------------------------------------------------------
@@ -91,6 +92,7 @@ data Format t c = Format deriving (Eq,Ord,Show)
 instance (ChannelType t) => ChannelType (Format t c) where
   channelType _ = channelType (Proxy :: Proxy t)
 
+type RGB8UI   = Format CUInts  (CRGB C8 C8 C8)
 type RGB32F   = Format CFloats (CRGB C32 C32 C32)
 type RGBA32F  = Format CFloats (CRGBA C32 C32 C32 C32)
 type Depth32F = Format CFloats (CDepth C32)
@@ -103,6 +105,12 @@ class Pixel f where
   pixelFormat  :: p f -> GLenum
   pixelIFormat :: p f -> GLenum
   pixelType    :: p f -> GLenum
+
+instance Pixel RGB8UI where
+  type PixelBase RGB8UI = Word8
+  pixelFormat  _ = GL_RGB
+  pixelIFormat _ = GL_RGB8UI
+  pixelType    _ = GL_UNSIGNED_INT
 
 instance Pixel RGB32F where
   type PixelBase RGB32F = Float
