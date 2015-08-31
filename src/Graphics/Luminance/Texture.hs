@@ -191,15 +191,9 @@ uploadSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl dat =
 fillWhole :: (MonadIO m,PixelBase p ~ a,Storable a)
           => Texture2D p
           -> Bool
-          -> a
+          -> [a]
           -> m ()
-fillWhole (Texture2D tid _ _ _ fmt typ) autolvl filling =
-  liftIO $ do
-    clearGLError
-    with filling $ glClearTexImage tid 0 fmt typ . castPtr
-    e <- glGetError
-    when autolvl $ glGenerateTextureMipmap tid
-    print $ "error: " ++ show e
+fillWhole tex = fillSub tex 0 0 (fromIntegral $ textureW tex) (fromIntegral $ textureH tex)
 
 fillSub :: (MonadIO m,PixelBase p ~ a,Storable a)
         => Texture2D p
