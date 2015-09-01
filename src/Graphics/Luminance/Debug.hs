@@ -22,6 +22,7 @@ import Graphics.GL
 --------------------------------------------------------------------------------
 -- Clearing errors -------------------------------------------------------------
 
+-- Clear OpenGL errors until we get GL_NO_ERROR.
 clearGLError :: (MonadIO m) => m ()
 clearGLError = do
   e <- liftIO glGetError
@@ -30,6 +31,7 @@ clearGLError = do
 --------------------------------------------------------------------------------
 -- OpenGL errors ---------------------------------------------------------------
 
+-- |OpenGL error type.
 data GLError
   = InvalidEnum
   | InvalidValue
@@ -61,6 +63,12 @@ toGLError e = case e of
   GL_STACK_OVERFLOW                -> Just StackOverflow
   _                                -> Nothing
 
+-- |Given a context 'String' and an action, that function clears the OpenGL errors in order to run
+-- the action in a sane and error-free OpenGL context. If an error has occured, print it on 'stderr'
+-- along with the 'String' context. Otherwise, simply it returns the action’s result.
+--
+-- Keep in mind that you can mute that function’s implementation by disabling the cabal flag
+-- 'debug-gl', which is the default setting.
 debugGL :: (MonadIO m) => String -> m a -> m a
 #if DEBUG_GL
 debugGL ctx gl = do
