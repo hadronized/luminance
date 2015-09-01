@@ -34,7 +34,6 @@ library
                      , Graphics.Luminance.Debug
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
-                     , Graphics.Luminance.GPU
                      , Graphics.Luminance.Index
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.Primitive
