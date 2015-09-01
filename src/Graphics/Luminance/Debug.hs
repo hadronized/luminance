@@ -61,12 +61,12 @@ toGLError e = case e of
   GL_STACK_OVERFLOW                -> Just StackOverflow
   _                                -> Nothing
 
-debugGL :: (MonadIO m) => m a -> m a
+debugGL :: (MonadIO m) => String -> m a -> m a
 #if DEBUG_GL
-debugGL gl = do
+debugGL ctx gl = do
   clearGLError
   a <- gl
-  liftIO $ fmap toGLError glGetError >>= traverse_ print
+  liftIO $ fmap toGLError glGetError >>= traverse_ (\e -> putStrLn ctx >> print e)
   pure a
 #else
 debugGL = id
