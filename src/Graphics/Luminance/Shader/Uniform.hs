@@ -18,6 +18,8 @@ import Data.Void ( absurd )
 import Data.Word ( Word32 )
 import Foreign.Marshal.Array ( withArrayLen )
 import Graphics.GL
+import Graphics.GL.Ext.ARB.BindlessTexture ( glProgramUniformHandleui64ARB )
+import Graphics.Luminance.Texture ( Texture2D(textureHandle) )
 
 --------------------------------------------------------------------------------
 -- Uniform ---------------------------------------------------------------------
@@ -169,6 +171,11 @@ instance Uniform [(Float,Float,Float)] where
 instance Uniform [(Float,Float,Float,Float)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glProgramUniform4fv prog l . fromIntegral
+
+--------------------------------------------------------------------------------
+-- Texture2D -------------------------------------------------------------------
+instance Uniform (Texture2D f) where
+  toU prog l = U $ glProgramUniformHandleui64ARB prog l . textureHandle
 
 --------------------------------------------------------------------------------
 -- Untuple functions -----------------------------------------------------------
