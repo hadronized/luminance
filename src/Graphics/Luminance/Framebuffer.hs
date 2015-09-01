@@ -16,12 +16,14 @@ import Control.Monad ( unless )
 import Control.Monad.Except ( MonadError(..) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
+import Data.Bits ( (.|.) )
 import Data.Proxy ( Proxy(..) )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( withArrayLen )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( peek )
 import Graphics.GL
+import Graphics.Luminance.Debug
 import Graphics.Luminance.Pixel
 import Graphics.Luminance.Renderbuffer ( createRenderbuffer, renderbufferID )
 import Graphics.Luminance.RW
@@ -49,7 +51,7 @@ createFramebuffer :: forall c d e m rw. (HasFramebufferError e,MonadError e m,Mo
                   -> m (Framebuffer rw c d,TexturizeFormat c,TexturizeFormat d)
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
-    glCreateFramebuffers 1 p
+    debugGL "createFramebuffer" $ glCreateFramebuffers 1 p
     peek p
   (colorOutputNb,colorTexs) <- addColorOutput fid 0 w h mipmaps (Proxy :: Proxy c)
   (hasDepthOutput,depthTex) <- addDepthOutput fid w h mipmaps (Proxy :: Proxy d)
@@ -83,7 +85,7 @@ data Attachment
 
 fromAttachment :: (Eq a,Num a) => Attachment -> a
 fromAttachment a = case a of
-  ColorAttachment i -> GL_TEXTURE0 + fromIntegral i
+  ColorAttachment i -> GL_COLOR_ATTACHMENT0 + fromIntegral i
   DepthAttachment   -> GL_DEPTH_ATTACHMENT
 
 --------------------------------------------------------------------------------
@@ -123,8 +125,8 @@ setColorBuffers :: forall m proxy rw. (FramebufferColorRW rw,MonadIO m)
 setColorBuffers fid colorOutputNb _ = case colorOutputNb of
   0 -> do
     -- disable color outputs
-    glNamedFramebufferDrawBuffer fid GL_NONE
-    glNamedFramebufferReadBuffer fid GL_NONE
+    debugGL "setColorBuffers 1" $ glNamedFramebufferDrawBuffer fid GL_NONE
+    debugGL "setColorBuffers 2" $ glNamedFramebufferReadBuffer fid GL_NONE
   _ -> setFramebufferColorRW fid colorOutputNb (Proxy :: Proxy rw)
 
 --------------------------------------------------------------------------------
@@ -152,7 +154,7 @@ setDepthRenderbuffer :: (MonadIO m,MonadResource m)
                      -> m ()
 setDepthRenderbuffer fid w h = do
   renderbuffer <- createRenderbuffer w h (Proxy :: Proxy Depth32F)
-  glNamedFramebufferRenderbuffer fid (fromAttachment DepthAttachment) GL_RENDERBUFFER
+  debugGL "setDepthRenderBuffer" $ glNamedFramebufferRenderbuffer fid (fromAttachment DepthAttachment) GL_RENDERBUFFER
     (renderbufferID renderbuffer)
 
 --------------------------------------------------------------------------------
@@ -164,7 +166,12 @@ class FramebufferColorRW rw where
 instance FramebufferColorRW W where
   setFramebufferColorRW fid nb _ = liftIO $ do
     withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
-      glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
+      debugGL "setFramebufferColorRW[W]" $ glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
+
+instance FramebufferColorRW RW where
+  setFramebufferColorRW fid nb _ = liftIO $ do
+    withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
+      debugGL "setFramebufferColorRW[RW]" $ glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
 
 --------------------------------------------------------------------------------
 -- Framebuffer read/write target configuration ---------------------------------
@@ -172,9 +179,14 @@ instance FramebufferColorRW W where
 class FramebufferTarget rw where
   framebufferTarget :: proxy rw -> GLenum
 
+instance FramebufferTarget R where
+  framebufferTarget _ = GL_READ_FRAMEBUFFER
+
 instance FramebufferTarget W where
   framebufferTarget _ = GL_DRAW_FRAMEBUFFER
 
+instance FramebufferTarget RW where
+  framebufferTarget _ = GL_FRAMEBUFFER
 
 --------------------------------------------------------------------------------
 -- Framebuffer outputs ---------------------------------------------------------
@@ -189,7 +201,7 @@ addOutput :: forall m p proxy. (MonadIO m,MonadResource m,Pixel p)
           -> m (Texture2D p)
 addOutput fid ca w h mipmaps _ = do
   tex :: Texture2D p <- createTexture w h mipmaps defaultSampling
-  liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
+  debugGL "addOutput" . liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
     (textureID tex) 0
   pure tex
 
@@ -203,7 +215,48 @@ type family TexturizeFormat a :: * where
   TexturizeFormat (a :. b)     = TexturizeFormat a :. TexturizeFormat b
 
 --------------------------------------------------------------------------------
+-- Framebuffer blitting --------------------------------------------------------
+data FramebufferBlitMask
+  = BlitColor
+  | BlitDepth
+  | BlitBoth
+    deriving (Eq,Show)
+
+fromFramebufferBlitMask :: FramebufferBlitMask -> GLbitfield
+fromFramebufferBlitMask mask = case mask of
+  BlitColor -> GL_COLOR_BUFFER_BIT
+  BlitDepth -> GL_DEPTH_BUFFER_BIT
+  BlitBoth  -> GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT
+
+blit :: (MonadIO m,Readable r,Writable w)
+     => Framebuffer r c d
+     -> Framebuffer w c d
+     -> Int
+     -> Int
+     -> Natural
+     -> Natural
+     -> Int
+     -> Int
+     -> Natural
+     -> Natural
+     -> FramebufferBlitMask
+     -> Filter
+     -> m ()
+blit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO . debugGL "blit" $
+    glBlitNamedFramebuffer (framebufferID src) (framebufferID dst) srcX0 srcY0 srcX1 srcY1 dstX0
+      dstY0 dstX1 dstY1 (fromFramebufferBlitMask mask) (fromFilter flt)
+  where
+    srcX0 = fromIntegral srcX
+    srcY0 = fromIntegral srcY
+    srcX1 = srcX0 + fromIntegral srcW
+    srcY1 = srcY0 + fromIntegral srcH
+    dstX0 = fromIntegral dstX
+    dstY0 = fromIntegral dstY
+    dstX1 = dstX0 + fromIntegral dstW
+    dstY1 = dstY0 + fromIntegral dstH
+
+--------------------------------------------------------------------------------
 -- Special framebuffers --------------------------------------------------------
 
-defaultFramebuffer :: Framebuffer rw c d
+defaultFramebuffer :: Framebuffer RW c d
 defaultFramebuffer = Framebuffer 0
