@@ -15,7 +15,7 @@ import Foreign.Ptr ( castPtr, plusPtr )
 
 -- |A tuple of types, right-associated.
 --
--- The Storable instance is used for foreign packing.
+-- The 'Storable' instance is used for foreign packing on 32-bit.
 data a :. b = a :. b deriving (Eq,Functor,Ord,Show)
 
 infixr 6 :.
