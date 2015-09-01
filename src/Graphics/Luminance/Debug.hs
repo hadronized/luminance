@@ -69,5 +69,5 @@ debugGL ctx gl = do
   liftIO $ fmap toGLError glGetError >>= traverse_ (\e -> putStrLn ctx >> print e)
   pure a
 #else
-debugGL = id
+debugGL _ = id
 #endif
