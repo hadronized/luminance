@@ -94,6 +94,9 @@ instance (ChannelType t) => ChannelType (Format t c) where
 
 type RGB8UI   = Format CUInts  (CRGB C8 C8 C8)
 type RGBA8UI  = Format CUInts  (CRGBA C8 C8 C8 C8)
+
+type RGBA8F   = Format CFloats (CRGBA C8 C8 C8 C8)
+
 type RGB32F   = Format CFloats (CRGB C32 C32 C32)
 type RGBA32F  = Format CFloats (CRGBA C32 C32 C32 C32)
 type Depth32F = Format CFloats (CDepth C32)
