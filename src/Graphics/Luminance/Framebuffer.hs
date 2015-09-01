@@ -16,6 +16,7 @@ import Control.Monad ( unless )
 import Control.Monad.Except ( MonadError(..) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
+import Data.Bits ( (.|.) )
 import Data.Proxy ( Proxy(..) )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( withArrayLen )
@@ -201,6 +202,47 @@ type family TexturizeFormat a :: * where
   TexturizeFormat ()           = ()
   TexturizeFormat (Format t c) = Texture2D (Format t c)
   TexturizeFormat (a :. b)     = TexturizeFormat a :. TexturizeFormat b
+
+--------------------------------------------------------------------------------
+-- Framebuffer blitting --------------------------------------------------------
+data FramebufferBlitMask
+  = BlitColor
+  | BlitDepth
+  | BlitBoth
+    deriving (Eq,Show)
+
+fromFramebufferBlitMask :: FramebufferBlitMask -> GLbitfield
+fromFramebufferBlitMask mask = case mask of
+  BlitColor -> GL_COLOR_BUFFER_BIT
+  BlitDepth -> GL_DEPTH_BUFFER_BIT
+  BlitBoth  -> GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT
+
+blit :: (MonadIO m,Readable r,Writable w)
+     => Framebuffer r c d
+     -> Framebuffer w c d
+     -> Int
+     -> Int
+     -> Natural
+     -> Natural
+     -> Int
+     -> Int
+     -> Natural
+     -> Natural
+     -> FramebufferBlitMask
+     -> Filter
+     -> m ()
+blit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO $
+    glBlitNamedFramebuffer (framebufferID src) (framebufferID dst) srcX0 srcY0 srcX1 srcY1 dstX0
+      dstY0 dstX1 dstY1 (fromFramebufferBlitMask mask) (fromFilter flt)
+  where
+    srcX0 = fromIntegral srcX
+    srcY0 = fromIntegral srcY
+    srcX1 = srcX0 + fromIntegral srcW
+    srcY1 = srcY0 + fromIntegral srcH
+    dstX0 = fromIntegral dstX
+    dstY0 = fromIntegral dstY
+    dstX1 = dstX0 + fromIntegral dstW
+    dstY1 = dstY0 + fromIntegral dstH
 
 --------------------------------------------------------------------------------
 -- Special framebuffers --------------------------------------------------------
