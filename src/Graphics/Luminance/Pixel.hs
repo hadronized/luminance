@@ -111,13 +111,13 @@ instance Pixel RGB8UI where
   type PixelBase RGB8UI = Word8
   pixelFormat  _ = GL_RGB_INTEGER
   pixelIFormat _ = GL_RGB8UI
-  pixelType    _ = GL_UNSIGNED_INT
+  pixelType    _ = GL_UNSIGNED_BYTE
 
 instance Pixel RGBA8UI where
   type PixelBase RGBA8UI = Word8
   pixelFormat  _ = GL_RGBA_INTEGER
   pixelIFormat _ = GL_RGBA8UI
-  pixelType    _ = GL_UNSIGNED_INT
+  pixelType    _ = GL_UNSIGNED_BYTE
 
 instance Pixel RGB32F where
   type PixelBase RGB32F = Float
