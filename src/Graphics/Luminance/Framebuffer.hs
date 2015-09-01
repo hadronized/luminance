@@ -84,7 +84,7 @@ data Attachment
 
 fromAttachment :: (Eq a,Num a) => Attachment -> a
 fromAttachment a = case a of
-  ColorAttachment i -> GL_TEXTURE0 + fromIntegral i
+  ColorAttachment i -> GL_COLOR_ATTACHMENT0 + fromIntegral i
   DepthAttachment   -> GL_DEPTH_ATTACHMENT
 
 --------------------------------------------------------------------------------
