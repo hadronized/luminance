@@ -25,7 +25,7 @@ import Graphics.GL
 import Graphics.Luminance.Pixel
 import Graphics.Luminance.Renderbuffer ( createRenderbuffer, renderbufferID )
 import Graphics.Luminance.RW
-import Graphics.Luminance.Texture ( Texture2D(textureID), createTexture )
+import Graphics.Luminance.Texture
 import Graphics.Luminance.Tuple
 import Numeric.Natural ( Natural )
 
@@ -188,7 +188,7 @@ addOutput :: forall m p proxy. (MonadIO m,MonadResource m,Pixel p)
           -> proxy p
           -> m (Texture2D p)
 addOutput fid ca w h mipmaps _ = do
-  tex :: Texture2D p <- createTexture w h mipmaps
+  tex :: Texture2D p <- createTexture w h mipmaps defaultSampling
   liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
     (textureID tex) 0
   pure tex
@@ -198,9 +198,9 @@ addOutput fid ca w h mipmaps _ = do
 
 -- FIXME: name
 type family TexturizeFormat a :: * where
-  TexturizeFormat ()                = ()
-  TexturizeFormat (Format t c)      = Texture2D (Format t c)
-  TexturizeFormat (a :. b) = TexturizeFormat a :. TexturizeFormat b
+  TexturizeFormat ()           = ()
+  TexturizeFormat (Format t c) = Texture2D (Format t c)
+  TexturizeFormat (a :. b)     = TexturizeFormat a :. TexturizeFormat b
 
 --------------------------------------------------------------------------------
 -- Special framebuffers --------------------------------------------------------

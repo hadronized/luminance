@@ -21,6 +21,7 @@ import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( castPtr )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.GL
+import Graphics.GL.Ext.ARB.BindlessTexture
 import Graphics.Luminance.Pixel
 import Numeric.Natural ( Natural )
 
@@ -68,14 +69,10 @@ fromCompareFunc f = case f of
   NotEqual -> GL_NOTEQUAL
   Always -> GL_ALWAYS
 
-newtype Unit = Unit Natural deriving (Enum,Eq,Integral,Num,Ord,Real,Show)
-
-fromUnit :: (Eq a,Num a) => Unit -> a
-fromUnit (Unit i) = GL_TEXTURE0 + fromIntegral i
-
 -- |2D Texture.
 data Texture2D f = Texture2D {
     textureID     :: GLuint
+  , textureHandle :: GLuint64
   , textureW      :: GLsizei
   , textureH      :: GLsizei
   , textureFormat :: GLenum
@@ -86,22 +83,26 @@ createTexture :: forall p m. (Pixel p,MonadIO m,MonadResource m)
               => Natural
               -> Natural
               -> Natural
+              -> Sampling
               -> m (Texture2D p)
-createTexture w h mipmaps = do
-    tid <- liftIO . alloca $ \p -> do
+createTexture w h mipmaps sampling = do
+    (tid,texH) <- liftIO . alloca $ \p -> do
       glCreateTextures GL_TEXTURE_2D 1 p
       tid <- peek p
-      glBindTexture GL_TEXTURE_2D tid
-      glTexStorage2D GL_TEXTURE_2D (fromIntegral mipmaps) ift w' h'
-      glTexParameteri GL_TEXTURE_2D GL_TEXTURE_BASE_LEVEL 0
-      glTexParameteri GL_TEXTURE_2D GL_TEXTURE_MAX_LEVEL (fromIntegral mipmaps - 1)
-      glBindTexture GL_TEXTURE_2D 0
-      pure tid
-    _ <- register . with tid $ glDeleteTextures 1
-    pure $ Texture2D tid w' h' ft typ
+      glTextureStorage2D tid (fromIntegral mipmaps) ift w' h'
+      glTextureParameteri tid GL_TEXTURE_BASE_LEVEL 0
+      glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral mipmaps - 1)
+      setTextureSampling tid sampling
+      texH <- glGetTextureHandleARB tid 
+      glMakeTextureHandleResidentARB texH
+      pure (tid,texH)
+    _ <- register $ do
+      glMakeTextureHandleNonResidentARB texH
+      with tid $ glDeleteTextures 1
+    pure $ Texture2D tid texH w' h' ft typ
   where
     ft  = pixelFormat (Proxy :: Proxy p)
-    ift = pixelIFormat (undefined :: Proxy p)
+    ift = pixelIFormat (Proxy :: Proxy p)
     typ = pixelType (Proxy :: Proxy p)
     w'  = fromIntegral w
     h'  = fromIntegral h
@@ -124,7 +125,7 @@ defaultSampling = Sampling {
   , samplingWrapR           = ClampToEdge
   , samplingMinFilter       = Linear
   , samplingMagFilter       = Linear
-  , samplingCompareFunction = Just LessOrEqual
+  , samplingCompareFunction = Nothing
   }
 
 createSampler :: (MonadIO m,MonadResource m)
@@ -134,30 +135,30 @@ createSampler s = do
   sid <- liftIO . alloca $ \p -> do
     glCreateSamplers 1 p
     sid <- peek p
-    setTextureSampling sid s
+    setSamplerSampling sid s
     pure sid
   _ <- register . with sid $ glDeleteSamplers 1
   pure $ Sampler sid
 
 setSampling :: (Eq a,Eq b,MonadIO m,Num a,Num b) => (GLenum -> a -> b -> IO ()) -> GLenum -> Sampling -> m ()
-setSampling f target s = liftIO $ do
+setSampling f objID s = liftIO $ do
   -- wraps
-  f target GL_TEXTURE_WRAP_S . fromWrap $ samplingWrapS s
-  f target GL_TEXTURE_WRAP_T . fromWrap $ samplingWrapT s
-  f target GL_TEXTURE_WRAP_R . fromWrap $ samplingWrapR s
+  f objID GL_TEXTURE_WRAP_S . fromWrap $ samplingWrapS s
+  f objID GL_TEXTURE_WRAP_T . fromWrap $ samplingWrapT s
+  f objID GL_TEXTURE_WRAP_R . fromWrap $ samplingWrapR s
   -- filters
-  f target GL_TEXTURE_MIN_FILTER . fromFilter $ samplingMinFilter s
-  f target GL_TEXTURE_MAG_FILTER . fromFilter $ samplingMagFilter s
+  f objID GL_TEXTURE_MIN_FILTER . fromFilter $ samplingMinFilter s
+  f objID GL_TEXTURE_MAG_FILTER . fromFilter $ samplingMagFilter s
   -- comparison function
   case samplingCompareFunction s of
     Just cmpf -> do
-      f target GL_TEXTURE_COMPARE_FUNC $ fromCompareFunc cmpf
-      f target GL_TEXTURE_COMPARE_MODE GL_COMPARE_REF_TO_TEXTURE
+      f objID GL_TEXTURE_COMPARE_FUNC $ fromCompareFunc cmpf
+      f objID GL_TEXTURE_COMPARE_MODE GL_COMPARE_REF_TO_TEXTURE
     Nothing ->
-      f target GL_TEXTURE_COMPARE_MODE GL_NONE
+      f objID GL_TEXTURE_COMPARE_MODE GL_NONE
 
 setTextureSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
-setTextureSampling = setSampling glTexParameteri
+setTextureSampling = setSampling glTextureParameteri
 
 setSamplerSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
 setSamplerSampling = setSampling glSamplerParameteri
@@ -167,7 +168,7 @@ uploadWhole :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
             -> Bool
             -> f a
             -> m ()
-uploadWhole (Texture2D tid w h fmt typ) autolvl dat =
+uploadWhole (Texture2D tid _ w h fmt typ) autolvl dat =
   liftIO $ do
     withArray (toList dat) $ glTextureSubImage2D tid 0 0 0 w h fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
@@ -181,33 +182,30 @@ uploadSub :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
           -> Bool
           -> f a
           -> m ()
-uploadSub (Texture2D tid _ _ fmt typ) x y w h autolvl dat =
+uploadSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl dat =
   liftIO $ do
     withArray (toList dat) $ glTextureSubImage2D tid 0 (fromIntegral x)
       (fromIntegral y) (fromIntegral w) (fromIntegral h) fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
 
-fillWhole :: (MonadIO m,PixelBase p ~ a,Storable a)
+fillWhole :: (Foldable f, MonadIO m,PixelBase p ~ a,Storable a)
           => Texture2D p
           -> Bool
-          -> a
+          -> f a
           -> m ()
-fillWhole (Texture2D tid _ _ fmt typ) autolvl filling =
-  liftIO $ do
-    with filling $ glClearTexImage tid 0 fmt typ . castPtr
-    when autolvl $ glGenerateTextureMipmap tid
+fillWhole tex = fillSub tex 0 0 (fromIntegral $ textureW tex) (fromIntegral $ textureH tex)
 
-fillSub :: (MonadIO m,PixelBase p ~ a,Storable a)
+fillSub :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
         => Texture2D p
         -> Int
         -> Int
         -> Natural
         -> Natural
         -> Bool
-        -> a
+        -> f a
         -> m ()
-fillSub (Texture2D tid _ _ fmt typ) x y w h autolvl filling =
+fillSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl filling =
   liftIO $ do
-    with filling $ glClearTexSubImage tid 0 (fromIntegral x)
-      (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 0 fmt typ . castPtr
+    withArray (toList filling) $ glClearTexSubImage tid 0 (fromIntegral x)
+      (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 1 fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
