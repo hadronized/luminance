@@ -21,6 +21,7 @@ import GHC.TypeLits ( KnownNat, Nat, natVal )
 import Graphics.GL
 import Graphics.Luminance.Tuple
 
+-- FIXME: use linear’s one?
 data V :: Nat -> * -> * where
   V1 :: !a -> V 1 a
   V2 :: !a -> !a -> V 2 a
@@ -57,6 +58,8 @@ instance (Storable a) => Storable (V 4 a) where
     pure $ V4 x y z w
   poke p (V4 x y z w) = pokeArray (castPtr p) [x,y,z,w]
 
+-- |A vertex might have several attributes. The types of those attributes have to implement the
+-- 'VertexAttribute' typeclass in order to be used as vertex attributes.
 class VertexAttribute a where
   vertexGLType :: proxy a -> GLenum
 
@@ -69,6 +72,9 @@ instance VertexAttribute Int32 where
 instance VertexAttribute Word32 where
   vertexGLType _ = GL_UNSIGNED_INT
 
+-- |A vertex has to implement 'Vertex' in order to be used as-is. That typeclass is closed, so you
+-- you cannot add anymore instances. However, you shouldn’t need to since you can use the already
+-- provided types to build up your vertex type.
 class Vertex v where
   setFormatV :: (MonadIO m) => GLuint -> GLuint -> proxy v -> m ()
 
@@ -83,5 +89,6 @@ instance (Vertex a,Vertex b) => Vertex (a :. b) where
     setFormatV vid index (Proxy :: Proxy a)
     setFormatV vid index (Proxy :: Proxy b)
 
+-- Used to connect vertex attribute to the vertex buffer binding point. Should be 0.
 vertexBindingIndex :: GLuint
 vertexBindingIndex = 0
