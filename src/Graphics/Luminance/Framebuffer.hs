@@ -173,9 +173,14 @@ instance FramebufferColorRW W where
 class FramebufferTarget rw where
   framebufferTarget :: proxy rw -> GLenum
 
+instance FramebufferTarget R where
+  framebufferTarget _ = GL_READ_FRAMEBUFFER
+
 instance FramebufferTarget W where
   framebufferTarget _ = GL_DRAW_FRAMEBUFFER
 
+instance FramebufferTarget RW where
+  framebufferTarget _ = GL_FRAMEBUFFER
 
 --------------------------------------------------------------------------------
 -- Framebuffer outputs ---------------------------------------------------------
