@@ -167,6 +167,11 @@ instance FramebufferColorRW W where
     withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
       glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
 
+instance FramebufferColorRW RW where
+  setFramebufferColorRW fid nb _ = liftIO $ do
+    withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
+      glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
+
 --------------------------------------------------------------------------------
 -- Framebuffer read/write target configuration ---------------------------------
 
