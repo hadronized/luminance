@@ -67,7 +67,6 @@ debugGL gl = do
   clearGLError
   a <- gl
   liftIO $ fmap toGLError glGetError >>= traverse_ print
-  liftIO $ putStrLn "proutlol"
   pure a
 #else
 debugGL = id
