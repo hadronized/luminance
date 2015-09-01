@@ -17,12 +17,21 @@ source-repository head
   type:     git
   location: git://github.com/phaazon/luminance.git
 
+flag debug-gl
+  description:         Enable OpenGL stdout debug (for development only)
+  default:             False
+  manual:              True
+
 library
   ghc-options:         -W -Wall
+
+  if flag(debug-gl)
+    cpp-options:       -DDEBUG_GL
 
   exposed-modules:     Graphics.Luminance.Batch
                      , Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
+                     , Graphics.Luminance.Debug
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
                      , Graphics.Luminance.GPU
@@ -58,7 +67,8 @@ library
                      , TypeFamilies
                      , TypeOperators
 
-  other-extensions:    UndecidableInstances
+  other-extensions:    CPP
+                     , UndecidableInstances
 
   build-depends:       base           >= 4.8  && < 4.9
                      , contravariant  >= 1.3  && < 1.4
