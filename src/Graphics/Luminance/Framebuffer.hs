@@ -257,5 +257,5 @@ blit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO $
 --------------------------------------------------------------------------------
 -- Special framebuffers --------------------------------------------------------
 
-defaultFramebuffer :: Framebuffer rw c d
+defaultFramebuffer :: Framebuffer RW c d
 defaultFramebuffer = Framebuffer 0
