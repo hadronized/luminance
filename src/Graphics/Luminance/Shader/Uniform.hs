@@ -24,9 +24,25 @@ import Graphics.Luminance.Texture ( Texture2D(textureHandle) )
 --------------------------------------------------------------------------------
 -- Uniform ---------------------------------------------------------------------
 
+-- |Class of types that can be sent down to shaders. That class is closed because shaders cannot
+-- handle a lot of uniform types. However, you should have a look at the 'U' documentation for
+-- further information about how to augment the scope of the types you can send down to shaders.
 class Uniform a where
   toU :: GLuint -> GLint -> U a
 
+-- |A shader uniform. @'U' a@ doesn’t hold any value. It’s more like a mapping between the host
+-- code and the shader the uniform was retrieved from.
+--
+-- 'U' is contravariant in its argument. That means that you can use 'contramap' to build more
+-- interesting uniform types. It’s also a divisible contravariant functor, then you can divide
+-- structures to take advantage of divisible contravariant properties and then glue several 'U'
+-- with different types. That can be useful to build a uniform type by gluing its fields.
+--
+-- Another interesting part is the fact that 'U' is also monoidal. You can accumulate several of
+-- them with '(<>)' if they have the same type. That means that you can join them so that when you
+-- pass an actual value, it gets shared inside the resulting value.
+--
+-- The '()' instance doesn’t do anything and doesn’t even use its argument ('()').
 newtype U a = U { runU :: a -> IO () }
 
 instance Contravariant U where
