@@ -27,18 +27,24 @@ import Data.Bits
 --------------------------------------------------------------------------------
 -- Framebuffer batch -----------------------------------------------------------
 
+-- |'Framebuffer' batch.
+--
+-- A 'FBBatch' is used to expose a 'Framebuffer' and share it between several shader program
+-- batches.
 data FBBatch rw c d = FBBatch {
     fbBatchFramebuffer :: Framebuffer rw c d
   , fbBatchSPBatch     :: [AnySPBatch rw c d]
   }
 
-treatFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
-treatFBBatch (FBBatch fb spbs) = do
+-- |Run a 'FBBatch'.
+runFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
+runFBBatch (FBBatch fb spbs) = do
   liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
   -- FIXME: TEST ONLY
   liftIO $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
-  traverse_ (\(AnySPBatch spb) -> treatSPBatch spb) spbs
+  traverse_ (\(AnySPBatch spb) -> runSPBatch spb) spbs
 
+-- |Share a 'Framebuffer' between several shader program batches.
 framebufferBatch :: Framebuffer rw c d -> [AnySPBatch rw c d] -> FBBatch rw c d
 framebufferBatch = FBBatch
 
@@ -57,8 +63,8 @@ data AnySPBatch rw c d = forall u v. AnySPBatch (SPBatch rw c d u v)
 anySPBatch :: SPBatch rw c d u v -> AnySPBatch rw c d
 anySPBatch = AnySPBatch
 
-treatSPBatch :: (MonadIO m) => SPBatch rw c d u v -> m ()
-treatSPBatch (SPBatch prog uni u geometries) = do
+runSPBatch :: (MonadIO m) => SPBatch rw c d u v -> m ()
+runSPBatch (SPBatch prog uni u geometries) = do
   liftIO $ do
     glUseProgram (programID prog)
     runU uni u
