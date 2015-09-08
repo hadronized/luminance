@@ -214,6 +214,9 @@ type family TexturizeFormat a :: * where
   TexturizeFormat (Format t c) = Texture2D (Format t c)
   TexturizeFormat (a :. b)     = TexturizeFormat a :. TexturizeFormat b
 
+-- TODO: use Output c d instead of (TexturizeFormat c,TexturizeFormat d)
+data Output c d = Output (TexturizeFormat c) (TexturizeFormat d)
+
 --------------------------------------------------------------------------------
 -- Framebuffer blitting --------------------------------------------------------
 data FramebufferBlitMask
