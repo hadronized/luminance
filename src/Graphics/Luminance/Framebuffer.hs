@@ -231,21 +231,21 @@ fromFramebufferBlitMask mask = case mask of
   BlitDepth -> GL_DEPTH_BUFFER_BIT
   BlitBoth  -> GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT
 
-blit :: (MonadIO m,Readable r,Writable w)
-     => Framebuffer r c d
-     -> Framebuffer w c d
-     -> Int
-     -> Int
-     -> Natural
-     -> Natural
-     -> Int
-     -> Int
-     -> Natural
-     -> Natural
-     -> FramebufferBlitMask
-     -> Filter
-     -> m ()
-blit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO . debugGL "blit" $
+framebufferBlit :: (MonadIO m,Readable r,Writable w)
+                => Framebuffer r c d
+                -> Framebuffer w c d
+                -> Int
+                -> Int
+                -> Natural
+                -> Natural
+                -> Int
+                -> Int
+                -> Natural
+                -> Natural
+                -> FramebufferBlitMask
+                -> Filter
+                -> m ()
+framebufferBlit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO . debugGL "blit" $
     glBlitNamedFramebuffer (framebufferID src) (framebufferID dst) srcX0 srcY0 srcX1 srcY1 dstX0
       dstY0 dstX1 dstY1 (fromFramebufferBlitMask mask) (fromFilter flt)
   where
