@@ -12,13 +12,19 @@ module Graphics.Luminance.Cmd where
 
 import Graphics.Luminance.Batch
 import Graphics.Luminance.Framebuffer
+import Graphics.Luminance.RW ( Readable, Writable )
+import Graphics.Luminance.Texture ( Filter )
+import Numeric.Natural ( Natural )
 
-data Cmd a = Cmd { runCmd :: IO a } deriving (Applicative,Functor,Monad)
+newtype Cmd a = Cmd { runCmd :: IO a } deriving (Applicative,Functor,Monad)
 
 draw :: FBBatch rw c d -> Cmd (Output c d)
-draw = Cmd . runFBBatch
+draw fbb = Cmd $ do
+  runFBBatch fbb
+  pure . framebufferOutput $ fbBatchFramebuffer fbb
 
-blit :: FBBatch r c d
+blit :: (Readable r,Writable w)
+     => FBBatch r c d
      -> FBBatch w c d
      -> Int
      -> Int
@@ -31,5 +37,9 @@ blit :: FBBatch r c d
      -> FramebufferBlitMask
      -> Filter
      -> Cmd (Output c d)
-blit r w rx ry rwidth rheight wx wy wwidth wheight mask flt =
-  Cmd (framebufferBlit r w rx ry rwidth rheight wx wy wwidth wheight mask flt)
+blit r w rx ry rwidth rheight wx wy wwidth wheight mask flt = do
+  _ <- draw r
+  _ <- draw w
+  Cmd $ do
+    framebufferBlit (fbBatchFramebuffer r) (fbBatchFramebuffer w) rx ry rwidth rheight wx wy wwidth wheight mask flt
+    pure . framebufferOutput $ fbBatchFramebuffer w
