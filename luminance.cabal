@@ -31,6 +31,7 @@ library
   exposed-modules:     Graphics.Luminance.Batch
                      , Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
+                     , Graphics.Luminance.Cmd
                      , Graphics.Luminance.Debug
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
