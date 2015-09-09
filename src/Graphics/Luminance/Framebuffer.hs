@@ -34,7 +34,10 @@ import Numeric.Natural ( Natural )
 ---------------------------------------------------------------------------------
 -- Framebuffer ------------------------------------------------------------------
 
-newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLuint } deriving (Eq,Show)
+data Framebuffer rw c d = Framebuffer {
+    framebufferID :: GLuint
+  , framebufferOutput :: Output c d
+  }
 
 type ColorFramebuffer rw c = Framebuffer rw c ()
 type DepthFramebuffer rw d = Framebuffer rw () d
@@ -48,7 +51,7 @@ createFramebuffer :: forall c d e m rw. (HasFramebufferError e,MonadError e m,Mo
                   => Natural
                   -> Natural
                   -> Natural
-                  -> m (Framebuffer rw c d,TexturizeFormat c,TexturizeFormat d)
+                  -> m (Framebuffer rw c d)
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
     debugGL "createFramebuffer" $ glCreateFramebuffers 1 p
@@ -60,7 +63,7 @@ createFramebuffer w h mipmaps = do
   _ <- register . with fid $ glDeleteFramebuffers 1
   status <- glCheckNamedFramebufferStatus fid $ framebufferTarget (Proxy :: Proxy rw)
   if 
-    | status == GL_FRAMEBUFFER_COMPLETE -> pure (Framebuffer fid,colorTexs,depthTex)
+    | status == GL_FRAMEBUFFER_COMPLETE -> pure $ Framebuffer fid (Output colorTexs depthTex)
     | otherwise -> throwError . fromFramebufferError . IncompleteFramebuffer $ translateFramebufferStatus status
 
 translateFramebufferStatus :: GLenum -> String
@@ -261,5 +264,5 @@ framebufferBlit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftI
 --------------------------------------------------------------------------------
 -- Special framebuffers --------------------------------------------------------
 
-defaultFramebuffer :: Framebuffer RW c d
-defaultFramebuffer = Framebuffer 0
+defaultFramebuffer :: Framebuffer RW () ()
+defaultFramebuffer = Framebuffer 0 (Output () ())
