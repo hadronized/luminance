@@ -10,6 +10,7 @@
 
 module Graphics.Luminance.Cmd where
 
+import Control.Monad.IO.Class ( MonadIO(..) )
 import Graphics.Luminance.Batch
 import Graphics.Luminance.Framebuffer
 import Graphics.Luminance.RW ( Readable, Writable )
@@ -18,7 +19,10 @@ import Numeric.Natural ( Natural )
 
 -- |Command type. Used to accumulate GPU commands. Use 'runCmd' to execute
 -- the whole chain of commands.
-newtype Cmd a = Cmd { runCmd :: IO a } deriving (Applicative,Functor,Monad)
+newtype Cmd a = Cmd (IO a) deriving (Applicative,Functor,Monad)
+
+runCmd :: (MonadIO m) => Cmd a -> m a
+runCmd (Cmd a) = liftIO a
 
 -- |Draw a framebuffer batch and return the framebuffer’s output.
 draw :: FBBatch rw c d -> Cmd (Output c d)
