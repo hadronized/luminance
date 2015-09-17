@@ -10,7 +10,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Framebuffer where
+module Graphics.Luminance.Core.Framebuffer where
 
 import Control.Monad ( unless )
 import Control.Monad.Except ( MonadError(..) )
@@ -23,12 +23,12 @@ import Foreign.Marshal.Array ( withArrayLen )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( peek )
 import Graphics.GL
-import Graphics.Luminance.Debug
-import Graphics.Luminance.Pixel
-import Graphics.Luminance.Renderbuffer ( createRenderbuffer, renderbufferID )
-import Graphics.Luminance.RW
-import Graphics.Luminance.Texture
-import Graphics.Luminance.Tuple
+import Graphics.Luminance.Core.Debug
+import Graphics.Luminance.Core.Pixel
+import Graphics.Luminance.Core.Renderbuffer ( createRenderbuffer, renderbufferID )
+import Graphics.Luminance.Core.RW
+import Graphics.Luminance.Core.Texture
+import Graphics.Luminance.Core.Tuple
 import Numeric.Natural ( Natural )
 
 ---------------------------------------------------------------------------------

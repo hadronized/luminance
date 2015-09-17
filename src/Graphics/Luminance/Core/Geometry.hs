@@ -8,7 +8,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Geometry where
+module Graphics.Luminance.Core.Geometry where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
@@ -18,9 +18,9 @@ import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( Storable(..) )
 import Graphics.GL
-import Graphics.Luminance.Buffer
-import Graphics.Luminance.RW ( W )
-import Graphics.Luminance.Vertex
+import Graphics.Luminance.Core.Buffer
+import Graphics.Luminance.Core.RW ( W )
+import Graphics.Luminance.Core.Vertex
 
 -- OpenGL vertex array. Used as a shared type for embedding in most complex 'Geometry' type.
 data VertexArray = VertexArray {

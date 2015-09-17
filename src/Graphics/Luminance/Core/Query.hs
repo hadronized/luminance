@@ -8,7 +8,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Query where
+module Graphics.Luminance.Core.Query where
 
 import Control.Monad ( (>=>) )
 import Control.Monad.IO.Class ( MonadIO(..) )

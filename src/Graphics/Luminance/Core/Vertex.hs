@@ -8,7 +8,7 @@
 -- Portability : portable
 ----------------------------------------------------------------------------
 
-module Graphics.Luminance.Vertex where
+module Graphics.Luminance.Core.Vertex where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Data.Int ( Int32 )
@@ -19,7 +19,7 @@ import Foreign.Ptr ( Ptr, castPtr )
 import Foreign.Storable ( Storable(..) )
 import GHC.TypeLits ( KnownNat, Nat, natVal )
 import Graphics.GL
-import Graphics.Luminance.Tuple
+import Graphics.Luminance.Core.Tuple
 
 -- FIXME: use linear’s one?
 data V :: Nat -> * -> * where

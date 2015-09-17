@@ -8,7 +8,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.RW where
+module Graphics.Luminance.Core.RW where
 
 -- |Readable typeclass, for types that admit reads.
 class Readable r where

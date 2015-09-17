@@ -8,7 +8,7 @@
 -- Portability : portable
 ----------------------------------------------------------------------------
 
-module Graphics.Luminance.Shader.Stage where
+module Graphics.Luminance.Core.Shader.Stage where
 
 import Control.Applicative ( liftA2 )
 import Control.Monad.Except ( MonadError(throwError) )
