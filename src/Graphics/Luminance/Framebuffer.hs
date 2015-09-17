@@ -236,7 +236,7 @@ fromFramebufferBlitMask mask = case mask of
 
 framebufferBlit :: (MonadIO m,Readable r,Writable w)
                 => Framebuffer r c d
-                -> Framebuffer w c d
+                -> Framebuffer w c' d'
                 -> Int
                 -> Int
                 -> Natural
