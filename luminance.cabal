@@ -28,6 +28,14 @@ library
   if flag(debug-gl)
     cpp-options:       -DDEBUG_GL
 
+  exposed-modules:     Graphics.Luminance.Batch
+                     , Graphics.Luminance.Blending
+                     , Graphics.Luminance.Buffer
+                     , Graphics.Luminance.Cmd
+                     , Graphics.Luminance.Framebuffer
+                     , Graphics.Luminance.Geometry
+                     , Graphics.Luminance.Pixel
+
   other-modules:       Graphics.Luminance.Core.Batch
                      , Graphics.Luminance.Core.Blending
                      , Graphics.Luminance.Core.Buffer
