@@ -34,7 +34,10 @@ import Numeric.Natural ( Natural )
 ---------------------------------------------------------------------------------
 -- Framebuffer ------------------------------------------------------------------
 
-newtype Framebuffer rw c d = Framebuffer { framebufferID :: GLuint } deriving (Eq,Show)
+data Framebuffer rw c d = Framebuffer {
+    framebufferID :: GLuint
+  , framebufferOutput :: Output c d
+  }
 
 type ColorFramebuffer rw c = Framebuffer rw c ()
 type DepthFramebuffer rw d = Framebuffer rw () d
@@ -48,7 +51,7 @@ createFramebuffer :: forall c d e m rw. (HasFramebufferError e,MonadError e m,Mo
                   => Natural
                   -> Natural
                   -> Natural
-                  -> m (Framebuffer rw c d,TexturizeFormat c,TexturizeFormat d)
+                  -> m (Framebuffer rw c d)
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
     debugGL "createFramebuffer" $ glCreateFramebuffers 1 p
@@ -60,7 +63,7 @@ createFramebuffer w h mipmaps = do
   _ <- register . with fid $ glDeleteFramebuffers 1
   status <- glCheckNamedFramebufferStatus fid $ framebufferTarget (Proxy :: Proxy rw)
   if 
-    | status == GL_FRAMEBUFFER_COMPLETE -> pure (Framebuffer fid,colorTexs,depthTex)
+    | status == GL_FRAMEBUFFER_COMPLETE -> pure $ Framebuffer fid (Output colorTexs depthTex)
     | otherwise -> throwError . fromFramebufferError . IncompleteFramebuffer $ translateFramebufferStatus status
 
 translateFramebufferStatus :: GLenum -> String
@@ -214,6 +217,9 @@ type family TexturizeFormat a :: * where
   TexturizeFormat (Format t c) = Texture2D (Format t c)
   TexturizeFormat (a :. b)     = TexturizeFormat a :. TexturizeFormat b
 
+-- TODO: use Output c d instead of (TexturizeFormat c,TexturizeFormat d)
+data Output c d = Output (TexturizeFormat c) (TexturizeFormat d)
+
 --------------------------------------------------------------------------------
 -- Framebuffer blitting --------------------------------------------------------
 data FramebufferBlitMask
@@ -228,21 +234,21 @@ fromFramebufferBlitMask mask = case mask of
   BlitDepth -> GL_DEPTH_BUFFER_BIT
   BlitBoth  -> GL_COLOR_BUFFER_BIT .|. GL_DEPTH_BUFFER_BIT
 
-blit :: (MonadIO m,Readable r,Writable w)
-     => Framebuffer r c d
-     -> Framebuffer w c d
-     -> Int
-     -> Int
-     -> Natural
-     -> Natural
-     -> Int
-     -> Int
-     -> Natural
-     -> Natural
-     -> FramebufferBlitMask
-     -> Filter
-     -> m ()
-blit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO . debugGL "blit" $
+framebufferBlit :: (MonadIO m,Readable r,Writable w)
+                => Framebuffer r c d
+                -> Framebuffer w c' d'
+                -> Int
+                -> Int
+                -> Natural
+                -> Natural
+                -> Int
+                -> Int
+                -> Natural
+                -> Natural
+                -> FramebufferBlitMask
+                -> Filter
+                -> m ()
+framebufferBlit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO . debugGL "blit" $
     glBlitNamedFramebuffer (framebufferID src) (framebufferID dst) srcX0 srcY0 srcX1 srcY1 dstX0
       dstY0 dstX1 dstY1 (fromFramebufferBlitMask mask) (fromFilter flt)
   where
@@ -258,5 +264,5 @@ blit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO . debugGL
 --------------------------------------------------------------------------------
 -- Special framebuffers --------------------------------------------------------
 
-defaultFramebuffer :: Framebuffer RW c d
-defaultFramebuffer = Framebuffer 0
+defaultFramebuffer :: Framebuffer RW () ()
+defaultFramebuffer = Framebuffer 0 (Output () ())
