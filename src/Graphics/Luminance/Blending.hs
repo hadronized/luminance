@@ -6,6 +6,18 @@
 -- Maintainer  : Dimitri Sabadie <dimitri.sabadie@gmail.com>
 -- Stability   : experimental
 -- Portability : portable
+--
+-- That module exports blending-related types and functions.
+--
+-- Given two pixels @src@ and @dst@ – source and destination, we associate
+-- each pixel a /blending factor/ – respectively, @srcK@ and @dstK@. @src@ is
+-- the pixel being computed, and @dst@ is the pixel that is already stored in
+-- the framebuffer.
+--
+-- The pixels can be blended in several ways. See the documentation of
+-- 'BlendingMode' for further details.
+--
+-- The factors are encoded with 'BlendingFactor'.
 -----------------------------------------------------------------------------
 
 module Graphics.Luminance.Blending where
@@ -13,6 +25,28 @@ module Graphics.Luminance.Blending where
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Graphics.GL
 
+-- |All different blending modes.
+--
+-- 'Additive' represents the following blending equation:
+--
+-- @blended = src * srcK + dst * dstK
+--
+-- 'Subtract' represents the following blending equation:
+--
+-- @blended = src * srcK - dst * dstK
+--
+-- Because subtracting is not commutating, 'ReverseSubtract' represents the following additional
+-- blending equation:
+--
+-- @blended = dst * dstK - src * srcK@
+--
+-- 'Min' represents the following blending equation:
+--
+-- @blended = min src dst@
+--
+-- 'Max' represents the following blending equation:
+--
+-- @blended = max src dst@
 data BlendingMode
   = Additive
   | Subtract
@@ -29,6 +63,7 @@ fromBlendingMode m = case m of
   Min             -> GL_MIN
   Max             -> GL_MAX
 
+-- |Blending factors.
 data BlendingFactor
   = One
   | Zero
@@ -65,6 +100,8 @@ fromBlendingFactor f = case f of
   -- NegativeConstantAlpha -> GL_ONE_MINUS_CONSTANT_ALPHA
   SrcAlphaSaturate      -> GL_SRC_ALPHA_SATURATE
 
+-- Sets blending mode and both factors after having initialized the blending if something is
+-- passed. If 'Nothing', that function disables the blending.
 setBlending :: (MonadIO m) => Maybe (BlendingMode,BlendingFactor,BlendingFactor) -> m ()
 setBlending blending = liftIO $ case blending of
   Just (mode,src,dst) -> do
