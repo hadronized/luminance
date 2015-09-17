@@ -33,8 +33,8 @@ draw fbb = Cmd $ do
 -- |Blit a framebuffer batch onto a framebuffer and return the framebuffer’s output of the write
 -- framebuffer.
 blit :: (Readable r,Writable w)
-     => Framebuffer r c d
-     -> Framebuffer w c d
+     => Framebuffer r c0 d0
+     -> Framebuffer w c1 d1
      -> Int
      -> Int
      -> Natural
@@ -45,7 +45,7 @@ blit :: (Readable r,Writable w)
      -> Natural
      -> FramebufferBlitMask
      -> Filter
-     -> Cmd (Output c d)
+     -> Cmd (Output c1 d1)
 blit r w rx ry rwidth rheight wx wy wwidth wheight mask flt = Cmd $ do
   framebufferBlit r w rx ry rwidth rheight wx wy wwidth wheight mask flt
   pure (framebufferOutput w)
