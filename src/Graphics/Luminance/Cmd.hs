@@ -34,7 +34,7 @@ draw fbb = Cmd $ do
 -- framebuffer.
 blit :: (Readable r,Writable w)
      => Framebuffer r c d
-     -> FBBatch w c d
+     -> Framebuffer w c d
      -> Int
      -> Int
      -> Natural
@@ -46,8 +46,6 @@ blit :: (Readable r,Writable w)
      -> FramebufferBlitMask
      -> Filter
      -> Cmd (Output c d)
-blit r w rx ry rwidth rheight wx wy wwidth wheight mask flt = do
-  _ <- draw w
-  Cmd $ do
-    framebufferBlit r (fbBatchFramebuffer w) rx ry rwidth rheight wx wy wwidth wheight mask flt
-    pure . framebufferOutput $ fbBatchFramebuffer w
+blit r w rx ry rwidth rheight wx wy wwidth wheight mask flt = Cmd $ do
+  framebufferBlit r w rx ry rwidth rheight wx wy wwidth wheight mask flt
+  pure (framebufferOutput w)
