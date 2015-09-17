@@ -8,7 +8,7 @@
 -- Portability : portable
 ----------------------------------------------------------------------------
 
-module Graphics.Luminance.Shader.Uniform where
+module Graphics.Luminance.Core.Shader.Uniform where
 
 import Data.Functor.Contravariant ( Contravariant(..) )
 import Data.Functor.Contravariant.Divisible ( Decidable(..), Divisible(..) )
@@ -19,7 +19,7 @@ import Data.Word ( Word32 )
 import Foreign.Marshal.Array ( withArrayLen )
 import Graphics.GL
 import Graphics.GL.Ext.ARB.BindlessTexture ( glProgramUniformHandleui64ARB )
-import Graphics.Luminance.Texture ( Texture2D(textureHandle) )
+import Graphics.Luminance.Core.Texture ( Texture2D(textureHandle) )
 
 --------------------------------------------------------------------------------
 -- Uniform ---------------------------------------------------------------------

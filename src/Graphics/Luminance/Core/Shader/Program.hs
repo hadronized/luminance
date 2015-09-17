@@ -8,7 +8,7 @@
 -- Portability : portable
 ----------------------------------------------------------------------------
 
-module Graphics.Luminance.Shader.Program where
+module Graphics.Luminance.Core.Shader.Program where
 
 import Control.Applicative ( liftA2 )
 import Control.Monad.Except ( MonadError(throwError) )
@@ -20,8 +20,8 @@ import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( allocaArray )
 import Foreign.Ptr ( castPtr, nullPtr )
 import Foreign.Storable ( peek )
-import Graphics.Luminance.Shader.Stage ( Stage(..) )
-import Graphics.Luminance.Shader.Uniform ( U, Uniform(..) )
+import Graphics.Luminance.Core.Shader.Stage ( Stage(..) )
+import Graphics.Luminance.Core.Shader.Uniform ( U, Uniform(..) )
 import Graphics.GL
 import Numeric.Natural ( Natural )
 

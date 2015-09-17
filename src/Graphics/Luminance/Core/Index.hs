@@ -8,7 +8,7 @@
 -- Portability : portable
 ----------------------------------------------------------------------------
 
-module Graphics.Luminance.Index where
+module Graphics.Luminance.Core.Index where
 
 import Data.Word ( Word32 )
 

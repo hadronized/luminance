@@ -11,7 +11,7 @@
 -----------------------------------------------------------------------------
 
 -- FIXME: #13
-module Graphics.Luminance.Pixel where
+module Graphics.Luminance.Core.Pixel where
 
 import Data.Proxy ( Proxy(..) )
 import Data.Word ( Word8 )

@@ -8,18 +8,18 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Batch where
+module Graphics.Luminance.Core.Batch where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Data.Foldable ( traverse_ )
 import Foreign.Ptr ( nullPtr )
 import Graphics.GL
-import Graphics.Luminance.Blending ( setBlending )
-import Graphics.Luminance.Framebuffer ( Framebuffer(..) )
-import Graphics.Luminance.Geometry ( Geometry(..), VertexArray(..) )
-import Graphics.Luminance.Shader.Program ( Program(..) )
-import Graphics.Luminance.RenderCmd ( RenderCmd(..) )
-import Graphics.Luminance.Shader.Uniform ( U(..) )
+import Graphics.Luminance.Core.Blending ( setBlending )
+import Graphics.Luminance.Core.Framebuffer ( Framebuffer(..) )
+import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
+import Graphics.Luminance.Core.Shader.Program ( Program(..) )
+import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
+import Graphics.Luminance.Core.Shader.Uniform ( U(..) )
 
 -- FIXME: TEST ONLY
 import Data.Bits

@@ -8,9 +8,9 @@
 -- Portability : portable
 ----------------------------------------------------------------------------
 
-module Graphics.Luminance.Primitive where
+module Graphics.Luminance.Core.Primitive where
 
-import Graphics.Luminance.Index ( Index )
+import Graphics.Luminance.Core.Index ( Index )
 
 newtype Point = Point { pointIndex :: Index } deriving (Eq,Ord,Show)
 

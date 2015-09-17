@@ -8,7 +8,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Buffer where
+module Graphics.Luminance.Core.Buffer where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.RWS ( RWS, ask, get, evalRWS, execRWS, put )
@@ -22,7 +22,7 @@ import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( Ptr, castPtr, nullPtr, plusPtr )
 import Foreign.Storable ( Storable(..) )
 import Graphics.GL
-import Graphics.Luminance.RW
+import Graphics.Luminance.Core.RW
 
 -- |A 'Buffer' is an opaque and untyped region of abstract GPU memory. You cannot do much with it
 -- and you might even not see the type in the user interface as it’s not really needed. It’s shown

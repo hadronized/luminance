@@ -8,10 +8,10 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.RenderCmd where
+module Graphics.Luminance.Core.RenderCmd where
 
-import Graphics.Luminance.Blending
-import Graphics.Luminance.Shader.Uniform ( U(..) )
+import Graphics.Luminance.Core.Blending
+import Graphics.Luminance.Core.Shader.Uniform ( U(..) )
 
 -- FIXME: we need to make a tighter link between c and blending and between d and the depth test.
 data RenderCmd rw c d u a = RenderCmd (Maybe (BlendingMode,BlendingFactor,BlendingFactor)) Bool (U u) u a

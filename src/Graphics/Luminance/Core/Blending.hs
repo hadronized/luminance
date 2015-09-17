@@ -20,7 +20,7 @@
 -- The factors are encoded with 'BlendingFactor'.
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Blending where
+module Graphics.Luminance.Core.Blending where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Graphics.GL

@@ -8,7 +8,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Texture where
+module Graphics.Luminance.Core.Texture where
 
 import Control.Monad ( when )
 import Control.Monad.IO.Class ( MonadIO(..) )
@@ -22,7 +22,7 @@ import Foreign.Ptr ( castPtr )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.GL
 import Graphics.GL.Ext.ARB.BindlessTexture
-import Graphics.Luminance.Pixel
+import Graphics.Luminance.Core.Pixel
 import Numeric.Natural ( Natural )
 
 data Wrap

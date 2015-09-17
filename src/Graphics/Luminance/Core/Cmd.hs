@@ -8,13 +8,13 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Cmd where
+module Graphics.Luminance.Core.Cmd where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
-import Graphics.Luminance.Batch
-import Graphics.Luminance.Framebuffer
-import Graphics.Luminance.RW ( Readable, Writable )
-import Graphics.Luminance.Texture ( Filter )
+import Graphics.Luminance.Core.Batch
+import Graphics.Luminance.Core.Framebuffer
+import Graphics.Luminance.Core.RW ( Readable, Writable )
+import Graphics.Luminance.Core.Texture ( Filter )
 import Numeric.Natural ( Natural )
 
 -- |Command type. Used to accumulate GPU commands. Use 'runCmd' to execute
