@@ -11,6 +11,7 @@
 module Graphics.Luminance.Core.Batch where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
+import Data.Bits
 import Data.Foldable ( traverse_ )
 import Foreign.Ptr ( nullPtr )
 import Graphics.GL
@@ -20,9 +21,6 @@ import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Core.Shader.Program ( Program(..) )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
 import Graphics.Luminance.Core.Shader.Uniform ( U(..) )
-
--- FIXME: TEST ONLY
-import Data.Bits
 
 --------------------------------------------------------------------------------
 -- Framebuffer batch -----------------------------------------------------------
@@ -40,7 +38,6 @@ data FBBatch rw c d = FBBatch {
 runFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
 runFBBatch (FBBatch fb spbs) = do
   liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
-  -- FIXME: TEST ONLY
   liftIO $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
   traverse_ (\(AnySPBatch spb) -> runSPBatch spb) spbs
 
