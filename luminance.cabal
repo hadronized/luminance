@@ -35,6 +35,7 @@ library
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
                      , Graphics.Luminance.Pixel
+                     , Graphics.Luminance.Query
 
   other-modules:       Graphics.Luminance.Core.Batch
                      , Graphics.Luminance.Core.Blending
