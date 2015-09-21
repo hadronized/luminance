@@ -28,14 +28,24 @@ library
   if flag(debug-gl)
     cpp-options:       -DDEBUG_GL
 
-  exposed-modules:     Graphics.Luminance.Batch
+  exposed-modules:     Graphics.Luminance
+                     , Graphics.Luminance.Batch
                      , Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
                      , Graphics.Luminance.Cmd
+                     , Graphics.Luminance.Core.Tuple
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.Query
+                     , Graphics.Luminance.RW
+                     , Graphics.Luminance.RenderCmd
+                     , Graphics.Luminance.Shader
+                     , Graphics.Luminance.Shader.Program
+                     , Graphics.Luminance.Shader.Stage
+                     , Graphics.Luminance.Shader.Uniform
+                     , Graphics.Luminance.Texture
+                     , Graphics.Luminance.Vertex
 
   other-modules:       Graphics.Luminance.Core.Batch
                      , Graphics.Luminance.Core.Blending
@@ -55,7 +65,6 @@ library
                      , Graphics.Luminance.Core.Shader.Stage
                      , Graphics.Luminance.Core.Shader.Uniform
                      , Graphics.Luminance.Core.Texture
-                     , Graphics.Luminance.Core.Tuple
                      , Graphics.Luminance.Core.Vertex
 
   default-extensions:  DataKinds
