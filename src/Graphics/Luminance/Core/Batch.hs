@@ -48,6 +48,16 @@ framebufferBatch = FBBatch
 --------------------------------------------------------------------------------
 -- Shader program batch --------------------------------------------------------
 
+-- |Shader 'Program' batch.
+--
+-- Such a batch is used to share a 'Program' between several 'RenderCmd'. It also
+-- gathers a uniform @'U' u@ and a 'u' value to send to the uniform.
+--
+-- The 'u' type can be used to send uniforms for the whole batch. It can be useful
+-- for cold values – that won’t change very often for a given frame – like the resolution of the
+-- screen, the mouse cursor coordinates, the time, and so on and so forth.
+--
+-- The 'v' type variable is used to add uniforms per-'RenderCmd'.
 data SPBatch rw c d u v = SPBatch {
     spBatchShaderProgram :: Program
   , spBatchUniform       :: U u
@@ -55,11 +65,15 @@ data SPBatch rw c d u v = SPBatch {
   , spBatchGeometries    :: [RenderCmd rw c d v Geometry]
   }
 
+-- |Abstract 'SPBatch' over uniform interface.
 data AnySPBatch rw c d = forall u v. AnySPBatch (SPBatch rw c d u v)
 
+-- FIXME: should we call this function 'abstractSPBatch'?
+-- |Abstract 'SPBatch'.
 anySPBatch :: SPBatch rw c d u v -> AnySPBatch rw c d
 anySPBatch = AnySPBatch
 
+-- Run a 'SPBatch' in 'MonadIO'.
 runSPBatch :: (MonadIO m) => SPBatch rw c d u v -> m ()
 runSPBatch (SPBatch prog uni u geometries) = do
   liftIO $ do
@@ -67,12 +81,14 @@ runSPBatch (SPBatch prog uni u geometries) = do
     runU uni u
   traverse_ drawGeometry geometries
 
+-- |Create a new 'SPBatch'.
 shaderProgramBatch :: Program -> U u -> u -> [RenderCmd rw c d v Geometry] -> SPBatch rw c d u v
 shaderProgramBatch = SPBatch
 
 --------------------------------------------------------------------------------
 -- Geometry draw function ------------------------------------------------------
 
+-- Draw the 'Geometry' held by a 'RenderCmd'.
 drawGeometry :: (MonadIO m) => RenderCmd rw c d u Geometry -> m ()
 drawGeometry (RenderCmd blending depthTest uni u geometry) = do
   setBlending blending
