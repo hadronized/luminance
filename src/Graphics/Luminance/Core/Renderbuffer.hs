@@ -8,7 +8,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Renderbuffer where
+module Graphics.Luminance.Core.Renderbuffer where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
@@ -17,7 +17,7 @@ import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( peek )
 import Graphics.GL
-import Graphics.Luminance.Pixel ( Pixel(pixelIFormat) )
+import Graphics.Luminance.Core.Pixel ( Pixel(pixelIFormat) )
 import Numeric.Natural ( Natural )
 
 newtype Renderbuffer = Renderbuffer { renderbufferID :: GLuint } deriving (Eq,Show)

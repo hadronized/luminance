@@ -8,8 +8,10 @@
 -- Portability : portable
 ----------------------------------------------------------------------------
 
-module Graphics.Luminance.Index where
+module Graphics.Luminance.Shader (
+    module X
+  ) where
 
-import Data.Word ( Word32 )
-
-newtype Index = Index { unIndex :: Word32 } deriving (Eq,Ord,Show)
+import Graphics.Luminance.Shader.Program as X
+import Graphics.Luminance.Shader.Stage as X
+import Graphics.Luminance.Shader.Uniform as X
