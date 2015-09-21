@@ -10,7 +10,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Debug where
+module Graphics.Luminance.Core.Debug where
 
 import Control.Monad ( unless )
 import Control.Monad.IO.Class ( MonadIO(..) )

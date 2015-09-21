@@ -8,26 +8,15 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.RW where
+module Graphics.Luminance.RW (
+    -- * Readable types
+    Readable
+  , R
+    -- * Writable types
+  , Writable
+  , W
+   -- * Read/write types
+  , RW
+  ) where
 
--- |Readable typeclass, for types that admit reads.
-class Readable r where
-
--- |Writable typeclass, for types that admit writes.
-class Writable w where
-
--- |Read-only type.
-data R  = R  deriving (Eq,Ord,Show)
-
-instance Readable R
-
--- |Write-only type.
-data W  = W  deriving (Eq,Ord,Show)
-
-instance Writable W
-
--- |Read-write type.
-data RW = RW deriving (Eq,Ord,Show)
-
-instance Readable RW
-instance Writable RW
+import Graphics.Luminance.Core.RW

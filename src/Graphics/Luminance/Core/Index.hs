@@ -8,15 +8,8 @@
 -- Portability : portable
 ----------------------------------------------------------------------------
 
-module Graphics.Luminance.Shader.Program (
-    -- * Shader program creation
-    Program
-  , programID
-  , createProgram
-  , createProgram_
-    -- * Error handling
-  , ProgramError(..)
-  , HasProgramError(..)
-  ) where
+module Graphics.Luminance.Core.Index where
 
-import Graphics.Luminance.Core.Shader.Program
+import Data.Word ( Word32 )
+
+newtype Index = Index { unIndex :: Word32 } deriving (Eq,Ord,Show)

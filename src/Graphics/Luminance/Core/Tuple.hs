@@ -8,7 +8,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Tuple where
+module Graphics.Luminance.Core.Tuple where
 
 import Foreign.Storable ( Storable(..) )
 import Foreign.Ptr ( castPtr, plusPtr )
