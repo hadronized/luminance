@@ -1,3 +1,7 @@
+### 0.1.1
+
+- Added a tutoral in Graphics.Luminance.
+
 ### 0.1
 
 - Initial revision. Do not consider this revision as a stable release. It’s experimental. The

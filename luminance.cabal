@@ -1,7 +1,7 @@
 name:                luminance
-version:             0.1
+version:             0.1.1
 synopsis:            Type-safe, dependently-typed and stateless graphics framework
-description:         This package exposes several modules to work with /GPU/ in a stateless and
+description:         This package exposes several modules to work with /GPUs/ in a stateless and
                      type-safe way. Currently, it uses __OpenGL__ as backend hardware technology but
                      others will be added later on, such as __Vulkan__.
                      .
@@ -14,6 +14,14 @@ description:         This package exposes several modules to work with /GPU/ in 
                      /3D engines/ or /scene development kits/. Don’t expect to find /materials/,
                      /lights/ or /mesh/ loaders. It’s just a graphics framework initiated to fix the
                      design choices of __OpenGL__. It won’t change in any other way.
+                     .
+                     __luminance__ is a small yet powerful graphics API. It was designed so that
+                     people can quickly get their feet wet and start having fun with graphics in
+                     /Haskell/. The main idea is to unleash the graphical and visual properties of
+                     /GPUs/ in a stateless and type-safe way.
+                     .
+                     This library doesn’t expose any architectural patterns or designs. It’s up to
+                     you to design your program as you want and following your own plans.
 license:             BSD3
 license-file:        LICENSE
 author:              Dimitri Sabadie <dimitri.sabadie@gmail.com>
