@@ -2,18 +2,18 @@ name:                luminance
 version:             0.1
 synopsis:            Type-safe, dependently-typed and stateless graphics framework
 description:         This package exposes several modules to work with /GPU/ in a stateless and
-                     type-safe way. Currently, it uses **OpenGL** as backend hardware technology but
-                     others will be added later on, such as **Vulkan**.
+                     type-safe way. Currently, it uses __OpenGL__ as backend hardware technology but
+                     others will be added later on, such as __Vulkan__.
                      .
                      The initial unstable version is /0.1/. Consider everything in that version as
                      part of an experiment, even though the library should be free of bugs. If you
                      find any, please report an issue. If you think something could be enhanced,
                      feel free to fill in an issue as well.
                      .
-                     One very important point is the fact that **luminance** has nothing to do with
+                     One very important point is the fact that __luminance__ has nothing to do with
                      /3D engines/ or /scene development kits/. Don’t expect to find /materials/,
                      /lights/ or /mesh/ loaders. It’s just a graphics framework initiated to fix the
-                     design choices of **OpenGL**. It won’t change in any other way.
+                     design choices of __OpenGL__. It won’t change in any other way.
 license:             BSD3
 license-file:        LICENSE
 author:              Dimitri Sabadie <dimitri.sabadie@gmail.com>
