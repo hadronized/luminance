@@ -9,19 +9,31 @@
 ----------------------------------------------------------------------------
 
 module Graphics.Luminance (
-    module X
+    module Graphics.Luminance.Batch
+  , module Graphics.Luminance.Blending
+  , module Graphics.Luminance.Buffer
+  , module Graphics.Luminance.Cmd
+  , module Graphics.Luminance.Framebuffer
+  , module Graphics.Luminance.Geometry
+  , module Graphics.Luminance.Pixel
+  , module Graphics.Luminance.Query
+  , module Graphics.Luminance.RenderCmd
+  , module Graphics.Luminance.RW
+  , module Graphics.Luminance.Shader
+  , module Graphics.Luminance.Texture
+  , module Graphics.Luminance.Vertex
   ) where
 
-import Graphics.Luminance.Batch as X
-import Graphics.Luminance.Blending as X
-import Graphics.Luminance.Buffer as X
-import Graphics.Luminance.Cmd as X
-import Graphics.Luminance.Framebuffer as X
-import Graphics.Luminance.Geometry as X
-import Graphics.Luminance.Pixel as X
-import Graphics.Luminance.Query as X
-import Graphics.Luminance.RenderCmd as X
-import Graphics.Luminance.RW as X
-import Graphics.Luminance.Shader as X
-import Graphics.Luminance.Texture as X
-import Graphics.Luminance.Vertex as X
+import Graphics.Luminance.Batch
+import Graphics.Luminance.Blending
+import Graphics.Luminance.Buffer
+import Graphics.Luminance.Cmd
+import Graphics.Luminance.Framebuffer
+import Graphics.Luminance.Geometry
+import Graphics.Luminance.Pixel
+import Graphics.Luminance.Query
+import Graphics.Luminance.RenderCmd
+import Graphics.Luminance.RW
+import Graphics.Luminance.Shader
+import Graphics.Luminance.Texture
+import Graphics.Luminance.Vertex
