@@ -29,11 +29,11 @@ import Graphics.GL
 --
 -- 'Additive' represents the following blending equation:
 --
--- @blended = src * srcK + dst * dstK
+-- @blended = src * srcK + dst * dstK@
 --
 -- 'Subtract' represents the following blending equation:
 --
--- @blended = src * srcK - dst * dstK
+-- @blended = src * srcK - dst * dstK@
 --
 -- Because subtracting is not commutating, 'ReverseSubtract' represents the following additional
 -- blending equation:
@@ -42,11 +42,11 @@ import Graphics.GL
 --
 -- 'Min' represents the following blending equation:
 --
--- @blended = min src dst@
+-- @blended = 'min' src dst@
 --
 -- 'Max' represents the following blending equation:
 --
--- @blended = max src dst@
+-- @blended = 'max' src dst@
 data BlendingMode
   = Additive
   | Subtract
@@ -65,20 +65,22 @@ fromBlendingMode m = case m of
 
 -- |Blending factors.
 data BlendingFactor
-  = One
-  | Zero
-  | SrcColor
-  | NegativeSrcColor
-  | DestColor
-  | NegativeDestColor
-  | SrcAlpha
-  | NegativeSrcAlpha
-  | DstAlpha
-  | NegativeDstAlpha
-  -- | ConstantColor
-  -- | NegativeConstantColor
-  -- | ConstantAlpha
-  -- | NegativeConstantAlpha
+  = One               -- ^ 1 * color = factor
+  | Zero              -- ^ 0 * color = 0
+  | SrcColor          -- ^ src * color
+  | NegativeSrcColor  -- ^ (1 - src) * color
+  | DestColor         -- ^ dst * color
+  | NegativeDestColor -- ^ (1 - dst) * color
+  | SrcAlpha          -- ^ srcA * color
+  | NegativeSrcAlpha  -- ^ (1 - src) * color
+  | DstAlpha          -- ^ dstA * color
+  | NegativeDstAlpha  -- ^ (1 - dstA) * color
+  {-
+  | ConstantColor
+  | NegativeConstantColor
+  | ConstantAlpha
+  | NegativeConstantAlpha
+  -}
   | SrcAlphaSaturate
     deriving (Eq,Show)
 
