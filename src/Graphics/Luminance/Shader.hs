@@ -9,9 +9,11 @@
 ----------------------------------------------------------------------------
 
 module Graphics.Luminance.Shader (
-    module X
+    module Graphics.Luminance.Shader.Program
+  , module Graphics.Luminance.Shader.Stage
+  , module Graphics.Luminance.Shader.Uniform
   ) where
 
-import Graphics.Luminance.Shader.Program as X
-import Graphics.Luminance.Shader.Stage as X
-import Graphics.Luminance.Shader.Uniform as X
+import Graphics.Luminance.Shader.Program
+import Graphics.Luminance.Shader.Stage
+import Graphics.Luminance.Shader.Uniform
