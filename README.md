@@ -52,7 +52,6 @@ In order to use `luminance`, you need two things:
 
 1. a decent **OpenGL 4.5** implementation ;
 2. support for **GL_ARB_bindless_texture** ;
-3. support for **GL_NV_shader_buffer_load** ;
 4. a library to setup an **OpenGL** context.
 
 `luminance` does not provide point `4.` because it’s important that he not depend on windowing
