@@ -85,6 +85,10 @@ runSPBatch (SPBatch prog uni u geometries) = do
 shaderProgramBatch :: Program -> U u -> u -> [RenderCmd rw c d v Geometry] -> SPBatch rw c d u v
 shaderProgramBatch = SPBatch
 
+-- |Create a new 'SPBatch' with no uniform interface.
+shaderProgramBatch_ :: Program -> [RenderCmd rw c d v Geometry] -> SPBatch rw c d () v
+shaderProgramBatch_ p = SPBatch p mempty ()
+
 --------------------------------------------------------------------------------
 -- Geometry draw function ------------------------------------------------------
 
