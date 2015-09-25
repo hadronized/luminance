@@ -107,7 +107,7 @@
 -- back buffer with the front buffer.
 --
 -- And guess what. luminance wraps the back buffer into a 'Framebuffer' object. You can access it
--- through 'defaultFrambuffer'. That value will always represent the back buffer.
+-- through 'defaultFramebuffer'. That value will always represent the back buffer.
 --
 -- == About batched rendering
 --
@@ -164,10 +164,10 @@
 -- Here’s an exemple of such a use:
 --
 -- @
---   (program,uniformInterface) <- createProgram shaderStages $ \uni -> do
---     resolutionU <- uni $ Left "resolution"
---     timeU <- uni $ Left "time"
---     pure $ divided resolutionU timeU
+--   (program,uniformInterface) <- 'createProgram' shaderStages $ \uni -> do
+--     resolutionU <- uni $ 'Left' "resolution"
+--     timeU <- uni $ 'Left' "time"
+--     'pure' $ 'divided' resolutionU timeU
 -- @
 --
 -- In that example, @uniformInterface@ has type @U ((Float,Float),Float)@, @(Float,Float@ being the
