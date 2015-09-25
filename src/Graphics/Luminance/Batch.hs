@@ -17,6 +17,7 @@ module Graphics.Luminance.Batch (
   , AnySPBatch
   , anySPBatch
   , shaderProgramBatch
+  , shaderProgramBatch_
   ) where
 
 import Graphics.Luminance.Core.Batch
