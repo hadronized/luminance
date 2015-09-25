@@ -29,3 +29,6 @@ renderCmd = RenderCmd
 
 stdRenderCmd :: U u -> u -> a -> RenderCmd rw c d u a
 stdRenderCmd = RenderCmd Nothing True
+
+stdRenderCmd_ :: a -> RenderCmd rw c d () a
+stdRenderCmd_ = stdRenderCmd mempty ()
