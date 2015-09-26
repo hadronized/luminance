@@ -1,3 +1,10 @@
+### 0.1.2
+
+- Automatically insert GLSL pragmas in shaders.
+- Added documentation for RenderCmd.
+- Added stdRenderCmd_.
+- Added shaderProgramBatch_.
+
 ### 0.1.1.1
 
 - Fixed a typo in the Graphics.Luminance documentation.
