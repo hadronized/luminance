@@ -60,7 +60,7 @@ mkShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m)
 mkShader target src = do
   (sid,compiled,cl) <- liftIO $ do
     sid <- glCreateShader target
-    withCString src $ \cstr -> do
+    withCString (prependGLSLPragma src) $ \cstr -> do
       with cstr $ \pcstr -> glShaderSource sid 1 pcstr nullPtr
       glCompileShader sid
       compiled <- isCompiled sid
@@ -91,6 +91,12 @@ clog l sid =
   allocaArray l $
     liftA2 (*>) (glGetShaderInfoLog sid (fromIntegral l) nullPtr)
       (peekCString . castPtr)
+
+prependGLSLPragma :: String -> String
+prependGLSLPragma src =
+     "#version 450 core\n"
+  ++ "#extension GL_ARB_bindless_texture : require\n"
+  ++ src
 
 --------------------------------------------------------------------------------
 -- Shader stage errors ---------------------------------------------------------
