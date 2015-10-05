@@ -25,6 +25,17 @@ import Graphics.GL.Ext.ARB.BindlessTexture
 import Graphics.Luminance.Core.Pixel
 import Numeric.Natural ( Natural )
 
+----------------------------------------------------------------------------------------------------
+-- Texture parameters ------------------------------------------------------------------------------
+
+-- |Wrap texture parameter. Such an object is used to tell how to sampling is performed when going
+-- out of the texture coordinates.
+--
+-- 'ClampToEdge' will clamp the texture coordinates between in '[0,1]'. If you pass '1.1' or
+-- '31.456', in both cases you’ll end up with '1'. Same thing for negative values clamped to '0'.
+--
+-- 'Repeat' will clamp the texture in '[0,1]' after applying a 'fract' on the value, yielding a
+-- a repeated '[0,1]' pattern.
 data Wrap
   = ClampToEdge
   -- | ClampToBorder
@@ -37,6 +48,8 @@ fromWrap w = case w of
   -- ClampToBorder -> GL_CLAMP_TO_BORDER
   Repeat        -> GL_REPEAT
 
+-- |Sampling filter. 'Nearest' will sample the nearest texel at the sampling coordinates whilst
+-- 'Linear' will perform linear interpolation with the texels nearby.
 data Filter
   = Nearest
   | Linear
@@ -47,6 +60,8 @@ fromFilter f = case f of
   Nearest -> GL_NEAREST
   Linear  -> GL_LINEAR
 
+-- |For textures that might require depth comparison, that type defines all the possible cases for
+-- comparison.
 data CompareFunc
   = Never
   | Less
@@ -69,7 +84,10 @@ fromCompareFunc f = case f of
   NotEqual       -> GL_NOTEQUAL
   Always         -> GL_ALWAYS
 
--- |2D Texture.
+----------------------------------------------------------------------------------------------------
+-- Textures ----------------------------------------------------------------------------------------
+
+-- |A 2D texture.
 data Texture2D f = Texture2D {
     textureID     :: GLuint
   , textureHandle :: GLuint64
@@ -79,6 +97,8 @@ data Texture2D f = Texture2D {
   , textureType   :: GLenum
   } deriving (Eq,Show)
 
+-- |'createTexture w h mipmpas samplin' a new 'w'*'h' texture with 'mipmaps' levels. The format is
+-- set through the type.
 createTexture :: forall p m. (Pixel p,MonadIO m,MonadResource m)
               => Natural
               -> Natural
@@ -107,8 +127,10 @@ createTexture w h mipmaps sampling = do
     w'  = fromIntegral w
     h'  = fromIntegral h
 
-newtype Sampler = Sampler { samplerID :: GLuint } deriving (Eq,Show)
+----------------------------------------------------------------------------------------------------
+-- Sampling objects --------------------------------------------------------------------------------
 
+-- |A sampling configuration type.
 data Sampling = Sampling {
     samplingWrapS           :: Wrap
   , samplingWrapT           :: Wrap
@@ -118,6 +140,18 @@ data Sampling = Sampling {
   , samplingCompareFunction :: Maybe CompareFunc
   } deriving (Eq,Show)
 
+-- |Default 'Samplinq' for convenience.
+--
+-- @
+--   defaultSampling = Sampling {
+--       samplingWrapS           = ClampToEdge
+--     , samplingWrapT           = ClampToEdge
+--     , samplingWrapR           = ClampToEdge
+--     , samplingMinFilter       = Linear
+--     , samplingMagFilter       = Linear
+--     , samplingCompareFunction = Nothing
+--     }
+-- @
 defaultSampling :: Sampling
 defaultSampling = Sampling {
     samplingWrapS           = ClampToEdge
@@ -128,18 +162,7 @@ defaultSampling = Sampling {
   , samplingCompareFunction = Nothing
   }
 
-createSampler :: (MonadIO m,MonadResource m)
-              => Sampling
-              -> m Sampler
-createSampler s = do
-  sid <- liftIO . alloca $ \p -> do
-    glCreateSamplers 1 p
-    sid <- peek p
-    setSamplerSampling sid s
-    pure sid
-  _ <- register . with sid $ glDeleteSamplers 1
-  pure $ Sampler sid
-
+-- Apply a 'Sampling' object for a given type of object (texture, sampler, etc.).
 setSampling :: (Eq a,Eq b,MonadIO m,Num a,Num b) => (GLenum -> a -> b -> IO ()) -> GLenum -> Sampling -> m ()
 setSampling f objID s = liftIO $ do
   -- wraps
@@ -163,6 +186,28 @@ setTextureSampling = setSampling glTextureParameteri
 setSamplerSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
 setSamplerSampling = setSampling glSamplerParameteri
 
+----------------------------------------------------------------------------------------------------
+-- Samplers ----------------------------------------------------------------------------------------
+
+newtype Sampler = Sampler { samplerID :: GLuint } deriving (Eq,Show)
+
+createSampler :: (MonadIO m,MonadResource m)
+              => Sampling
+              -> m Sampler
+createSampler s = do
+  sid <- liftIO . alloca $ \p -> do
+    glCreateSamplers 1 p
+    sid <- peek p
+    setSamplerSampling sid s
+    pure sid
+  _ <- register . with sid $ glDeleteSamplers 1
+  pure $ Sampler sid
+
+----------------------------------------------------------------------------------------------------
+-- Texture operations ------------------------------------------------------------------------------
+
+-- |Upload data to the whole texture’s storage. The 'Bool' can be used to automatically generate
+-- mipmaps.
 uploadWhole :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
             => Texture2D p
             -> Bool
@@ -173,6 +218,9 @@ uploadWhole (Texture2D tid _ w h fmt typ) autolvl dat =
     withArray (toList dat) $ glTextureSubImage2D tid 0 0 0 w h fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
 
+-- |@'uploadSub' tex x y w h autolvl texels@ uploads data to a subpart of the texture’s storage.
+-- @x@ and @y@ are offset with origin at upper-left corner, and @w@ and @h@ are the size of the area
+-- to upload to. @autolvl@ is a 'Bool' that can be used to automatically generate mipmaps.
 uploadSub :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
           => Texture2D p
           -> Int
@@ -188,6 +236,7 @@ uploadSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl dat =
       (fromIntegral y) (fromIntegral w) (fromIntegral h) fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
 
+-- |Fill the whole texture’s storage with a given value.
 fillWhole :: (Foldable f, MonadIO m,PixelBase p ~ a,Storable a)
           => Texture2D p
           -> Bool
@@ -195,6 +244,7 @@ fillWhole :: (Foldable f, MonadIO m,PixelBase p ~ a,Storable a)
           -> m ()
 fillWhole tex = fillSub tex 0 0 (fromIntegral $ textureW tex) (fromIntegral $ textureH tex)
 
+-- |Fill a subpart of the texture’s storage with a given value.
 fillSub :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
         => Texture2D p
         -> Int
