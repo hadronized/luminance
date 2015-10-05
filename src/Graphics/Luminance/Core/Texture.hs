@@ -97,7 +97,7 @@ data Texture2D f = Texture2D {
   , textureType   :: GLenum
   } deriving (Eq,Show)
 
--- |'createTexture w h mipmpas samplin' a new 'w'*'h' texture with 'mipmaps' levels. The format is
+-- |'createTexture w h mipmaps sampling' a new 'w'*'h' texture with 'mipmaps' levels. The format is
 -- set through the type.
 createTexture :: forall p m. (Pixel p,MonadIO m,MonadResource m)
               => Natural
