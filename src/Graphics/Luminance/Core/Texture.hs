@@ -60,14 +60,14 @@ data CompareFunc
 
 fromCompareFunc :: (Eq a,Num a) => CompareFunc -> a
 fromCompareFunc f = case f of
-  Never -> GL_NEVER
-  Less -> GL_LESS
-  Equal -> GL_EQUAL
-  LessOrEqual -> GL_LEQUAL
-  Greater -> GL_GREATER
+  Never          -> GL_NEVER
+  Less           -> GL_LESS
+  Equal          -> GL_EQUAL
+  LessOrEqual    -> GL_LEQUAL
+  Greater        -> GL_GREATER
   GreaterOrEqual -> GL_GEQUAL
-  NotEqual -> GL_NOTEQUAL
-  Always -> GL_ALWAYS
+  NotEqual       -> GL_NOTEQUAL
+  Always         -> GL_ALWAYS
 
 -- |2D Texture.
 data Texture2D f = Texture2D {
