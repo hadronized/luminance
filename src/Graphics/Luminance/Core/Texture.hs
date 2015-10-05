@@ -27,14 +27,14 @@ import Numeric.Natural ( Natural )
 
 data Wrap
   = ClampToEdge
-  | ClampToBorder
+  -- | ClampToBorder
   | Repeat
     deriving (Eq,Show)
 
 fromWrap :: (Eq a,Num a) => Wrap -> a
 fromWrap w = case w of
   ClampToEdge   -> GL_CLAMP_TO_EDGE
-  ClampToBorder -> GL_CLAMP_TO_BORDER
+  -- ClampToBorder -> GL_CLAMP_TO_BORDER
   Repeat        -> GL_REPEAT
 
 data Filter
