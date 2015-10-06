@@ -32,9 +32,9 @@ instance (Pixel f) => Texture (Texture2D f) where
   toBaseTexture = texture2DBase
   textureTypeEnum _ = GL_TEXTURE_2D
   textureSize (Texture2D _ w h) = (w,h)
-  textureStorage _ tid levels (w,h) = do
+  textureStorage _ tid levels (w,h) =
     glTextureStorage2D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w) (fromIntegral h)
-  transferTexelsSub _ tid (x,y) (w,h) texels = do
+  transferTexelsSub _ tid (x,y) (w,h) texels =
       withArray (toList texels) $ glTextureSubImage2D tid 0 (fromIntegral x) (fromIntegral y)
         (fromIntegral w) (fromIntegral h) fmt typ . castPtr
     where
