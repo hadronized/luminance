@@ -153,7 +153,7 @@ data Sampling = Sampling {
   , samplingCompareFunction :: Maybe CompareFunc
   } deriving (Eq,Show)
 
--- |Default 'Samplinq' for convenience.
+-- |Default 'Sampling' for convenience.
 --
 -- @
 --   defaultSampling = Sampling {
