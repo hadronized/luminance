@@ -10,7 +10,7 @@
 
 module Graphics.Luminance.Texture (
     -- * Texture information and creation
-    Texture
+    Texture(TextureSize, TextureOffset)
   , createTexture
     -- * Sampling
   , Sampling(..)

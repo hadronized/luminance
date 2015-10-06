@@ -1,3 +1,7 @@
+# 0.3.0.1
+
+- Enhanced Texture documentation.
+
 # 0.3
 
 - All textures can now be used in shaders.
