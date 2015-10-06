@@ -85,6 +85,7 @@ fromCompareFunc f = case f of
 
 class Texture t where
   type TextureSize t :: *
+  type TextureOffset t :: *
   fromBaseTexture :: BaseTexture -> TextureSize t -> t
   toBaseTexture :: t -> BaseTexture
   textureTypeEnum :: proxy t -> GLenum
@@ -97,14 +98,14 @@ class Texture t where
   transferTexelsSub :: forall a f proxy. (Foldable f,Storable a)
                     => proxy t
                     -> GLuint -- texture ID
-                    -> TextureSize t -- offset
+                    -> TextureOffset t -- offset
                     -> TextureSize t -- size
                     -> f a
                     -> IO ()
   fillTextureSub :: forall a f proxy. (Foldable f,Storable a)
                  => proxy t
                  -> GLuint
-                 -> TextureSize t -- offset
+                 -> TextureOffset t -- offset
                  -> TextureSize t -- size
                  -> f a
                  -> IO ()
@@ -223,7 +224,7 @@ createSampler s = do
 -- to upload to. @autolvl@ is a 'Bool' that can be used to automatically generate mipmaps.
 uploadSub :: forall a f m t. (Foldable f,MonadIO m,Storable a,Texture t)
           => t
-          -> TextureSize t
+          -> TextureOffset t
           -> TextureSize t
           -> Bool
           -> f a
@@ -237,7 +238,7 @@ uploadSub tex offset size autolvl texels = liftIO $ do
 -- |Fill a subpart of the texture’s storage with a given value.
 fillSub :: forall a f m t. (Foldable f,MonadIO m,Storable a,Texture t)
         => t
-        -> TextureSize t
+        -> TextureOffset t
         -> TextureSize t
         -> Bool
         -> f a
