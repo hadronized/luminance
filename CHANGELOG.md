@@ -13,7 +13,7 @@
 - Changed the texture interface with type families so that we can add more in an
   easier way!
 
-# 0.2
+# 0.2
 
 #### Breaking changes
 
