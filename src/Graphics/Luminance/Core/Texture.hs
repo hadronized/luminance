@@ -13,16 +13,12 @@ module Graphics.Luminance.Core.Texture where
 import Control.Monad ( when )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
-import Data.Foldable ( toList )
 import Data.Proxy ( Proxy(..) )
 import Foreign.Marshal.Alloc ( alloca )
-import Foreign.Marshal.Array ( withArray )
 import Foreign.Marshal.Utils ( with )
-import Foreign.Ptr ( castPtr )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.GL
 import Graphics.GL.Ext.ARB.BindlessTexture
-import Graphics.Luminance.Core.Pixel
 import Numeric.Natural ( Natural )
 
 ----------------------------------------------------------------------------------------------------
