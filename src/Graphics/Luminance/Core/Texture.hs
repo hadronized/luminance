@@ -87,31 +87,80 @@ fromCompareFunc f = case f of
 ----------------------------------------------------------------------------------------------------
 -- Textures ----------------------------------------------------------------------------------------
 
--- |A 2D texture.
-data Texture2D f = Texture2D {
-    textureID     :: GLuint
-  , textureHandle :: GLuint64
-  , textureW      :: GLsizei
-  , textureH      :: GLsizei
-  , textureFormat :: GLenum
-  , textureType   :: GLenum
+class Texture t where
+  type TextureSize t :: *
+  fromBaseTexture :: BaseTexture -> TextureSize t -> t
+  toBaseTexture :: t -> BaseTexture
+  textureTypeEnum :: proxy t -> GLenum
+  textureStorage :: proxy t
+                 -> GLuint -- texture ID
+                 -> GLint -- levels
+                 -> TextureSize t -- size of the texture
+                 -> IO ()
+  transferTexelsSub :: forall a f proxy. (Foldable f,Storable a)
+                    => proxy t
+                    -> GLuint -- texture ID
+                    -> TextureSize t -- offset
+                    -> TextureSize t -- size
+                    -> f a
+                    -> IO ()
+  fillTextureSub :: forall a f proxy. (Foldable f,Storable a)
+                 => proxy t
+                 -> GLuint
+                 -> TextureSize t -- offset
+                 -> TextureSize t -- size
+                 -> f a
+                 -> IO ()
+
+-- OpenGL texture.
+data BaseTexture = BaseTexture {
+    baseTextureID  :: GLuint
+  , baseTextureHnd :: GLuint64
   } deriving (Eq,Show)
 
--- |'createTexture w h mipmaps sampling' a new 'w'*'h' texture with 'mipmaps' levels. The format is
+-- |A 2D texture.
+data Texture2D f = Texture2D {
+    texture2DBase :: BaseTexture
+  , textureW      :: Natural
+  , textureH      :: Natural
+  } deriving (Eq,Show)
+
+instance (Pixel f) => Texture (Texture2D f) where
+  type TextureSize (Texture2D f) = (Natural,Natural)
+  fromBaseTexture bt (w,h) = Texture2D bt w h
+  toBaseTexture = texture2DBase
+  textureTypeEnum _ = GL_TEXTURE_2D
+  textureStorage _ tid levels (w,h) = do
+    glTextureStorage2D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w) (fromIntegral h)
+  transferTexelsSub _ tid (x,y) (w,h) texels = do
+      withArray (toList texels) $ glTextureSubImage2D tid 0 (fromIntegral x) (fromIntegral y)
+        (fromIntegral w) (fromIntegral h) fmt typ . castPtr
+    where
+      proxy = Proxy :: Proxy f
+      fmt = pixelFormat proxy
+      typ = pixelType proxy
+  fillTextureSub _ tid (x,y) (w,h) filling = do
+      withArray (toList filling) $ glClearTexSubImage tid 0 (fromIntegral x)
+        (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 1 fmt typ . castPtr
+    where
+      proxy = Proxy :: Proxy f
+      fmt = pixelFormat proxy
+      typ = pixelType proxy
+
+-- |'createTexture w h levels sampling' a new 'w'*'h' texture with 'levels' levels. The format is
 -- set through the type.
-createTexture :: forall p m. (Pixel p,MonadIO m,MonadResource m)
-              => Natural
-              -> Natural
+createTexture :: forall m t. (MonadIO m,MonadResource m,Texture t)
+              => TextureSize t
               -> Natural
               -> Sampling
-              -> m (Texture2D p)
-createTexture w h mipmaps sampling = do
+              -> m t
+createTexture size levels sampling = do
     (tid,texH) <- liftIO . alloca $ \p -> do
-      glCreateTextures GL_TEXTURE_2D 1 p
+      glCreateTextures (textureTypeEnum (Proxy :: Proxy t)) 1 p
       tid <- peek p
-      glTextureStorage2D tid (fromIntegral mipmaps) ift w' h'
+      textureStorage (Proxy :: Proxy t) tid (fromIntegral levels) size
       glTextureParameteri tid GL_TEXTURE_BASE_LEVEL 0
-      glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral mipmaps - 1)
+      glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral levels - 1)
       setTextureSampling tid sampling
       texH <- glGetTextureHandleARB tid 
       glMakeTextureHandleResidentARB texH
@@ -119,13 +168,7 @@ createTexture w h mipmaps sampling = do
     _ <- register $ do
       glMakeTextureHandleNonResidentARB texH
       with tid $ glDeleteTextures 1
-    pure $ Texture2D tid texH w' h' ft typ
-  where
-    ft  = pixelFormat (Proxy :: Proxy p)
-    ift = pixelIFormat (Proxy :: Proxy p)
-    typ = pixelType (Proxy :: Proxy p)
-    w'  = fromIntegral w
-    h'  = fromIntegral h
+    pure $ fromBaseTexture (BaseTexture tid texH) size
 
 ----------------------------------------------------------------------------------------------------
 -- Sampling objects --------------------------------------------------------------------------------
@@ -206,6 +249,7 @@ createSampler s = do
 ----------------------------------------------------------------------------------------------------
 -- Texture operations ------------------------------------------------------------------------------
 
+{-
 -- |Upload data to the whole texture’s storage. The 'Bool' can be used to automatically generate
 -- mipmaps.
 uploadWhole :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
@@ -259,3 +303,4 @@ fillSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl filling =
     withArray (toList filling) $ glClearTexSubImage tid 0 (fromIntegral x)
       (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 1 fmt typ . castPtr
     when autolvl $ glGenerateTextureMipmap tid
+-}
