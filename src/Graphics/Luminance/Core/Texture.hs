@@ -92,6 +92,7 @@ class Texture t where
   fromBaseTexture :: BaseTexture -> TextureSize t -> t
   toBaseTexture :: t -> BaseTexture
   textureTypeEnum :: proxy t -> GLenum
+  textureSize :: t -> TextureSize t
   textureStorage :: proxy t
                  -> GLuint -- texture ID
                  -> GLint -- levels
@@ -118,34 +119,6 @@ data BaseTexture = BaseTexture {
   , baseTextureHnd :: GLuint64
   } deriving (Eq,Show)
 
--- |A 2D texture.
-data Texture2D f = Texture2D {
-    texture2DBase :: BaseTexture
-  , textureW      :: Natural
-  , textureH      :: Natural
-  } deriving (Eq,Show)
-
-instance (Pixel f) => Texture (Texture2D f) where
-  type TextureSize (Texture2D f) = (Natural,Natural)
-  fromBaseTexture bt (w,h) = Texture2D bt w h
-  toBaseTexture = texture2DBase
-  textureTypeEnum _ = GL_TEXTURE_2D
-  textureStorage _ tid levels (w,h) = do
-    glTextureStorage2D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w) (fromIntegral h)
-  transferTexelsSub _ tid (x,y) (w,h) texels = do
-      withArray (toList texels) $ glTextureSubImage2D tid 0 (fromIntegral x) (fromIntegral y)
-        (fromIntegral w) (fromIntegral h) fmt typ . castPtr
-    where
-      proxy = Proxy :: Proxy f
-      fmt = pixelFormat proxy
-      typ = pixelType proxy
-  fillTextureSub _ tid (x,y) (w,h) filling = do
-      withArray (toList filling) $ glClearTexSubImage tid 0 (fromIntegral x)
-        (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 1 fmt typ . castPtr
-    where
-      proxy = Proxy :: Proxy f
-      fmt = pixelFormat proxy
-      typ = pixelType proxy
 
 -- |'createTexture w h levels sampling' a new 'w'*'h' texture with 'levels' levels. The format is
 -- set through the type.
@@ -249,58 +222,32 @@ createSampler s = do
 ----------------------------------------------------------------------------------------------------
 -- Texture operations ------------------------------------------------------------------------------
 
-{-
--- |Upload data to the whole texture’s storage. The 'Bool' can be used to automatically generate
--- mipmaps.
-uploadWhole :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
-            => Texture2D p
-            -> Bool
-            -> f a
-            -> m ()
-uploadWhole (Texture2D tid _ w h fmt typ) autolvl dat =
-  liftIO $ do
-    withArray (toList dat) $ glTextureSubImage2D tid 0 0 0 w h fmt typ . castPtr
-    when autolvl $ glGenerateTextureMipmap tid
-
--- |@'uploadSub' tex x y w h autolvl texels@ uploads data to a subpart of the texture’s storage.
--- @x@ and @y@ are offset with origin at upper-left corner, and @w@ and @h@ are the size of the area
+-- |@'uploadSub' tex offset size autolvl texels@ uploads data to a subpart of the texture’s storage.
+-- The offset is given with origin at upper-left corner, and @size@ is the size of the area
 -- to upload to. @autolvl@ is a 'Bool' that can be used to automatically generate mipmaps.
-uploadSub :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
-          => Texture2D p
-          -> Int
-          -> Int
-          -> Natural
-          -> Natural
+uploadSub :: forall a f m t. (Foldable f,MonadIO m,Storable a,Texture t)
+          => t
+          -> TextureSize t
+          -> TextureSize t
           -> Bool
           -> f a
           -> m ()
-uploadSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl dat =
-  liftIO $ do
-    withArray (toList dat) $ glTextureSubImage2D tid 0 (fromIntegral x)
-      (fromIntegral y) (fromIntegral w) (fromIntegral h) fmt typ . castPtr
+uploadSub tex offset size autolvl texels = liftIO $ do
+    transferTexelsSub (Proxy :: Proxy t) tid offset size texels
     when autolvl $ glGenerateTextureMipmap tid
-
--- |Fill the whole texture’s storage with a given value.
-fillWhole :: (Foldable f, MonadIO m,PixelBase p ~ a,Storable a)
-          => Texture2D p
-          -> Bool
-          -> f a
-          -> m ()
-fillWhole tex = fillSub tex 0 0 (fromIntegral $ textureW tex) (fromIntegral $ textureH tex)
+  where
+    tid = baseTextureID (toBaseTexture tex)
 
 -- |Fill a subpart of the texture’s storage with a given value.
-fillSub :: (Foldable f,MonadIO m,PixelBase p ~ a,Storable a)
-        => Texture2D p
-        -> Int
-        -> Int
-        -> Natural
-        -> Natural
+fillSub :: forall a f m t. (Foldable f,MonadIO m,Storable a,Texture t)
+        => t
+        -> TextureSize t
+        -> TextureSize t
         -> Bool
         -> f a
         -> m ()
-fillSub (Texture2D tid _ _ _ fmt typ) x y w h autolvl filling =
-  liftIO $ do
-    withArray (toList filling) $ glClearTexSubImage tid 0 (fromIntegral x)
-      (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 1 fmt typ . castPtr
+fillSub tex offset size autolvl filling = liftIO $ do
+    fillTextureSub (Proxy :: Proxy t) tid offset size filling
     when autolvl $ glGenerateTextureMipmap tid
--}
+  where
+    tid = baseTextureID (toBaseTexture tex)
