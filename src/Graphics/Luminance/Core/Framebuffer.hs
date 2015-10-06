@@ -28,6 +28,7 @@ import Graphics.Luminance.Core.Pixel
 import Graphics.Luminance.Core.Renderbuffer ( createRenderbuffer, renderbufferID )
 import Graphics.Luminance.Core.RW
 import Graphics.Luminance.Core.Texture
+import Graphics.Luminance.Core.Texture2D
 import Graphics.Luminance.Core.Tuple
 import Numeric.Natural ( Natural )
 
@@ -232,9 +233,9 @@ addOutput :: forall m p proxy. (MonadIO m,MonadResource m,Pixel p)
           -> proxy p
           -> m (Texture2D p)
 addOutput fid ca w h mipmaps _ = do
-  tex :: Texture2D p <- createTexture w h mipmaps defaultSampling
+  tex :: Texture2D p <- createTexture (w,h) mipmaps defaultSampling
   debugGL "addOutput" . liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
-    (textureID tex) 0
+    (baseTextureID $ texture2DBase tex) 0
   pure tex
 
 --------------------------------------------------------------------------------
