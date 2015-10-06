@@ -87,6 +87,7 @@ library
                      , Graphics.Luminance.Core.Texture
                      , Graphics.Luminance.Core.Texture1D
                      , Graphics.Luminance.Core.Texture2D
+                     , Graphics.Luminance.Core.Texture3D
                      , Graphics.Luminance.Core.Vertex
 
   default-extensions:  DataKinds
