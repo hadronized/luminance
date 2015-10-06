@@ -1,6 +1,11 @@
 # 0.3
 
-- Added support for all OpenGL textures – though, framebuffer are not impacted yet.
+- All textures can now be used in shaders.
+- Added support for more OpenGL textures – though, framebuffers are not impacted yet.
+    - `Texture1D`
+    - `Texture2D`
+    - `Texture3D`
+    - `Cubemap`
 - Changed the texture interface with type families so that we can add more in an
   easier way!
 

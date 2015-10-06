@@ -19,8 +19,11 @@ import Data.Word ( Word32 )
 import Foreign.Marshal.Array ( withArrayLen )
 import Graphics.GL
 import Graphics.GL.Ext.ARB.BindlessTexture ( glProgramUniformHandleui64ARB )
+import Graphics.Luminance.Core.Cubemap ( Cubemap(cubemapBase) )
 import Graphics.Luminance.Core.Texture ( BaseTexture(baseTextureHnd) )
+import Graphics.Luminance.Core.Texture1D ( Texture1D(texture1DBase) )
 import Graphics.Luminance.Core.Texture2D ( Texture2D(texture2DBase) )
+import Graphics.Luminance.Core.Texture3D ( Texture3D(texture3DBase) )
 
 --------------------------------------------------------------------------------
 -- Uniform ---------------------------------------------------------------------
@@ -190,9 +193,19 @@ instance Uniform [(Float,Float,Float,Float)] where
     glProgramUniform4fv prog l . fromIntegral
 
 --------------------------------------------------------------------------------
--- Texture2D -------------------------------------------------------------------
+-- Textures --------------------------------------------------------------------
+
+instance Uniform (Texture1D f) where
+  toU prog l = U $ glProgramUniformHandleui64ARB prog l . baseTextureHnd . texture1DBase
+
 instance Uniform (Texture2D f) where
   toU prog l = U $ glProgramUniformHandleui64ARB prog l . baseTextureHnd . texture2DBase
+
+instance Uniform (Texture3D f) where
+  toU prog l = U $ glProgramUniformHandleui64ARB prog l . baseTextureHnd . texture3DBase
+
+instance Uniform (Cubemap f) where
+  toU prog l = U $ glProgramUniformHandleui64ARB prog l . baseTextureHnd . cubemapBase
 
 --------------------------------------------------------------------------------
 -- Untuple functions -----------------------------------------------------------

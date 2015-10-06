@@ -35,8 +35,13 @@ module Graphics.Luminance.Texture (
   , texture3DW
   , texture3DH
   , texture3DD
+    -- ** Cubemaps
+  , Cubemap
+  , cubemapW
+  , cubemapH
   ) where
   
+import Graphics.Luminance.Core.Cubemap
 import Graphics.Luminance.Core.Texture
 import Graphics.Luminance.Core.Texture1D
 import Graphics.Luminance.Core.Texture2D
