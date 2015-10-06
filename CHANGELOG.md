@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Added `CubeFace` in the interface.
+
 ### 0.3.0.1
 
 - Enhanced Texture documentation.
