@@ -28,6 +28,7 @@ data Texture2D f = Texture2D {
 
 instance (Pixel f) => Texture (Texture2D f) where
   type TextureSize (Texture2D f) = (Natural,Natural)
+  type TextureOffset (Texture2D f) = (Natural,Natural)
   fromBaseTexture bt (w,h) = Texture2D bt w h
   toBaseTexture = texture2DBase
   textureTypeEnum _ = GL_TEXTURE_2D

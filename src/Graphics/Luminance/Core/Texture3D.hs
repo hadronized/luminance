@@ -29,6 +29,7 @@ data Texture3D f = Texture3D {
 
 instance (Pixel f) => Texture (Texture3D f) where
   type TextureSize (Texture3D f) = (Natural,Natural,Natural)
+  type TextureOffset (Texture3D f) = (Natural,Natural,Natural)
   fromBaseTexture bt (w,h,d) = Texture3D bt w h d
   toBaseTexture = texture3DBase
   textureTypeEnum _ = GL_TEXTURE_3D
