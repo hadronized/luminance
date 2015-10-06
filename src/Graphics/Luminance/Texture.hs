@@ -37,6 +37,7 @@ module Graphics.Luminance.Texture (
   , texture3DD
     -- ** Cubemaps
   , Cubemap
+  , CubeFace(..)
   , cubemapW
   , cubemapH
   ) where

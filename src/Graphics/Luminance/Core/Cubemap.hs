@@ -19,6 +19,7 @@ import Graphics.Luminance.Core.Pixel ( Pixel(..) )
 import Graphics.GL
 import Numeric.Natural ( Natural )
 
+-- |Face of a 'Cubemap'.
 data CubeFace
   = PositiveX
   | NegativeX
