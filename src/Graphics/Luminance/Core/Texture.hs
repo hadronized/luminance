@@ -83,8 +83,13 @@ fromCompareFunc f = case f of
 ----------------------------------------------------------------------------------------------------
 -- Textures ----------------------------------------------------------------------------------------
 
+-- |Class of all textures.
 class Texture t where
+  -- |Size of a texture. This is an associated type – /type family/ – because the dimensionality of
+  -- a texture relies on its type.
   type TextureSize t :: *
+  -- |In order to index regions of texels in texture, we need another associated type – for the same
+  -- dimensionality reason as for 'TextureSize'.
   type TextureOffset t :: *
   fromBaseTexture :: BaseTexture -> TextureSize t -> t
   toBaseTexture :: t -> BaseTexture
