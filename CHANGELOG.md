@@ -1,3 +1,9 @@
+# 0.3
+
+- Added support for all OpenGL textures – though, framebuffer are not impacted yet.
+- Changed the texture interface with type families so that we can add more in an
+  easier way!
+
 # 0.2
 
 #### Breaking changes
