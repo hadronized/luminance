@@ -41,7 +41,7 @@ instance (Pixel f) => Texture (Texture2D f) where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
-  fillTextureSub _ tid (x,y) (w,h) filling = do
+  fillTextureSub _ tid (x,y) (w,h) filling =
       withArray (toList filling) $ glClearTexSubImage tid 0 (fromIntegral x)
         (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 1 fmt typ . castPtr
     where
