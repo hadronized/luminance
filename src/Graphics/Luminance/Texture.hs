@@ -10,13 +10,7 @@
 
 module Graphics.Luminance.Texture (
     -- * Texture information and creation
-    Texture2D
-  , textureID
-  , textureHandle
-  , textureW
-  , textureH
-  , textureFormat
-  , textureType
+    Texture
   , createTexture
     -- * Sampling
   , Sampling(..)
@@ -26,10 +20,14 @@ module Graphics.Luminance.Texture (
   , Wrap(..)
   , CompareFunc(..)
     -- * Texture operations
-  , uploadWhole
   , uploadSub
-  , fillWhole
   , fillSub
+    -- * Available textures
+    -- ** 2D textures
+  , Texture2D
+  , texture2DW
+  , texture2DH
   ) where
   
 import Graphics.Luminance.Core.Texture
+import Graphics.Luminance.Core.Texture2D

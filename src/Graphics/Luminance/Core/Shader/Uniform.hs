@@ -19,7 +19,8 @@ import Data.Word ( Word32 )
 import Foreign.Marshal.Array ( withArrayLen )
 import Graphics.GL
 import Graphics.GL.Ext.ARB.BindlessTexture ( glProgramUniformHandleui64ARB )
-import Graphics.Luminance.Core.Texture ( Texture2D(textureHandle) )
+import Graphics.Luminance.Core.Texture ( BaseTexture(baseTextureHnd) )
+import Graphics.Luminance.Core.Texture2D ( Texture2D(texture2DBase) )
 
 --------------------------------------------------------------------------------
 -- Uniform ---------------------------------------------------------------------
@@ -191,7 +192,7 @@ instance Uniform [(Float,Float,Float,Float)] where
 --------------------------------------------------------------------------------
 -- Texture2D -------------------------------------------------------------------
 instance Uniform (Texture2D f) where
-  toU prog l = U $ glProgramUniformHandleui64ARB prog l . textureHandle
+  toU prog l = U $ glProgramUniformHandleui64ARB prog l . baseTextureHnd . texture2DBase
 
 --------------------------------------------------------------------------------
 -- Untuple functions -----------------------------------------------------------
