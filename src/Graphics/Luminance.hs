@@ -164,7 +164,7 @@
 -- Here’s an exemple of such a use:
 --
 -- @
---   (program,uniformInterface) <- 'createProgram' shaderStages $ \uni -> do
+--   (program,uniformInterface) \<- 'createProgram' shaderStages $ \\uni -\> do
 --     resolutionU <- uni $ 'Left' "resolution"
 --     timeU <- uni $ 'Left' "time"
 --     'pure' $ 'divided' resolutionU timeU
@@ -254,7 +254,7 @@
 -- Now, let’s create the shader 'Stage's and the shader 'Program':
 --
 -- @
---   program <- 'sequenceA' ['createVertexShader' vsSrc,'createFragmentShader' fsSrc] >>= createProgram_
+--   program \<- 'sequenceA' ['createVertexShader' vsSrc,'createFragmentShader' fsSrc] \>\>= createProgram_
 -- @
 --
 -- Once again, that’s pretty straight-forward.
