@@ -1,3 +1,7 @@
+### 0.3.1.1
+
+- Fixed haddock escaping issues.
+
 ## 0.3.1
 
 - Added `CubeFace` in the interface.
