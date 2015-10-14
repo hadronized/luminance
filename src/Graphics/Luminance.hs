@@ -303,6 +303,7 @@ module Graphics.Luminance (
   , module Graphics.Luminance.Blending
   , module Graphics.Luminance.Buffer
   , module Graphics.Luminance.Cmd
+  , module Graphics.Luminance.Core.Tuple
   , module Graphics.Luminance.Framebuffer
   , module Graphics.Luminance.Geometry
   , module Graphics.Luminance.Pixel
@@ -318,6 +319,7 @@ import Graphics.Luminance.Batch
 import Graphics.Luminance.Blending
 import Graphics.Luminance.Buffer
 import Graphics.Luminance.Cmd
+import Graphics.Luminance.Core.Tuple
 import Graphics.Luminance.Framebuffer
 import Graphics.Luminance.Geometry
 import Graphics.Luminance.Pixel

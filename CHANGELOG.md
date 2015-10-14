@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Added Core.Tuple into the export liste of Luminance for easier uses in client code space.
+
 ### 0.3.1.2
 
 - Fixed Geometry haddock documentation.
