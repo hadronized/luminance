@@ -1,3 +1,7 @@
+### 0.3.1.2
+
+- Fixed Geometry haddock documentation.
+
 ### 0.3.1.1
 
 - Fixed haddock escaping issues.
