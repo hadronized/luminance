@@ -1,3 +1,10 @@
+# 0.4
+
+#### Breaking changes
+
+- `V` is not anymore luminance’s. We use linear’s one, because it already has all the instances we
+  need and is more generic. The interface is then impacted.
+
 ## 0.3.2
 
 - Added Core.Tuple into the export liste of Luminance for easier uses in client code space.
