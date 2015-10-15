@@ -10,7 +10,10 @@
 
 module Graphics.Luminance.Vertex (
     -- * Vertex components
-    V(..)
+    V
+  , vec2
+  , vec3
+  , vec4
   , VertexAttribute
     -- * Vertex
   , Vertex
