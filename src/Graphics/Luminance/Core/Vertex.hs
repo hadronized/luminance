@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedLists #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   : (C) 2015 Dimitri Sabadie
@@ -13,6 +15,9 @@ module Graphics.Luminance.Core.Vertex (
   , Vertex(..)
   , vertexBindingIndex
   , module Linear.V
+  , vec2
+  , vec3
+  , vec4
   ) where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
@@ -24,6 +29,18 @@ import GHC.TypeLits ( KnownNat, natVal )
 import Graphics.GL
 import Graphics.Luminance.Core.Tuple
 import Linear.V
+
+-- |Create a new @'V' 2@.
+vec2 :: a -> a -> V 2 a
+vec2 x y = V [x,y]
+
+-- |Create a new @'V' 3@.
+vec3 :: a -> a -> a -> V 3 a
+vec3 x y z = V [x,y,z]
+
+-- |Create a new @'V' 3@.
+vec4 :: a -> a -> a -> a -> V 4 a
+vec4 x y z w = V [x,y,z,w]
 
 -- |A vertex might have several attributes. The types of those attributes have to implement the
 -- 'VertexAttribute' typeclass in order to be used as vertex attributes.

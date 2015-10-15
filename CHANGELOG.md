@@ -1,7 +1,12 @@
 # 0.4
 
+#### Non-breaking changes
+
+- Added .gitignore.
+
 #### Breaking changes
 
+- `V2`, `V3` and `V4` replaced by `vec2`, `vec3` and `vec4`.
 - `V` is not anymore luminance’s. We use linear’s one, because it already has all the instances we
   need and is more generic. The interface is then impacted.
 
