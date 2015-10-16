@@ -21,7 +21,7 @@ data a :. b = a :. b deriving (Eq,Functor,Ord,Show)
 infixr 6 :.
 
 instance (Storable a,Storable b) => Storable (a :. b) where
-  sizeOf (a :. b) = sizeOf a + sizeOf b
+  sizeOf _ = sizeOf (undefined :: a) + sizeOf (undefined :: b)
   alignment _ = 4 -- packed data
   peek p = do
     a <- peek $ castPtr p
