@@ -12,6 +12,9 @@ module Graphics.Luminance.Core.Geometry where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
+import Data.DList as DL ( empty, snoc )
+import Data.Foldable ( toList )
+import Data.Map as M ( empty, insert, lookup, size )
 import Data.Proxy ( Proxy(..) )
 import Data.Word ( Word32 )
 import Foreign.Marshal.Alloc ( alloca )
@@ -95,3 +98,18 @@ createGeometry vertices indices mode = do
     vertNb = length vertices
     ixNb   = length indices
     mode'  = fromGeometryMode mode
+
+-- |/O (n log n)/
+--
+-- Turn /direct geometry data/ into /indirect data/. This function removes duplicate vertices from
+-- the data you pass in and register indices in consequence.
+nubDirect :: (Foldable f,Ord a,Integral i) => f a -> ([a],[i])
+nubDirect dvertices = (toList uvertices,toList indices)
+  where
+    (uvertices,indices,_) = foldl rmDup (DL.empty,DL.empty,M.empty) dvertices
+    rmDup (uverts,inds,seen) v =
+      case M.lookup v seen of
+        Just i -> (uverts,inds `snoc` i,seen)
+        Nothing ->
+          let s = fromIntegral (size seen)
+          in (uverts `snoc` v,inds `snoc` s,insert v s seen)
