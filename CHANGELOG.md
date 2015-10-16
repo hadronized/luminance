@@ -1,5 +1,6 @@
 ## 0.4.1
 
+- Fixed the `sizeOf` implementatiof of `a :. b`.
 - Added `nubDirect`, which can be used to turn *direct geometry* into *indirect geometry*.
 
 # 0.4
