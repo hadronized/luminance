@@ -102,7 +102,7 @@ createGeometry vertices indices mode = do
 -- |/O (n log n)/
 --
 -- Turn /direct geometry data/ into /indirect data/. This function removes duplicate vertices from
--- the data you pass in and register indices in consequence.
+-- the data you pass in and registers indices in consequence.
 nubDirect :: (Foldable f,Ord a,Integral i) => f a -> ([a],[i])
 nubDirect dvertices = (toList uvertices,toList indices)
   where
