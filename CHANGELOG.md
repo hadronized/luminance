@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Added `nubDirect`, which can be used to turn *direct geometry* into *indirect geometry*.
+
 # 0.4
 
 #### Non-breaking changes

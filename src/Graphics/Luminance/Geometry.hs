@@ -13,6 +13,7 @@ module Graphics.Luminance.Geometry (
     Geometry
   , GeometryMode(..)
   , createGeometry
+  , nubDirect
   ) where
 
 import Graphics.Luminance.Core.Geometry
