@@ -10,9 +10,8 @@
 
 module Graphics.Luminance.Core.Cubemap where
 
-import Data.Foldable ( toList )
 import Data.Proxy ( Proxy(..) )
-import Foreign.Marshal.Array ( withArray )
+import Data.Vector.Storable ( unsafeWith )
 import Foreign.Ptr ( castPtr )
 import Graphics.Luminance.Core.Texture ( BaseTexture(..), Texture(..) )
 import Graphics.Luminance.Core.Pixel ( Pixel(..) )
@@ -56,7 +55,7 @@ instance (Pixel f) => Texture (Cubemap f) where
     glTextureStorage2D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w)
       (fromIntegral h)
   transferTexelsSub _ tid (x,y,f) (w,h) texels =
-      withArray (toList texels) $ glTextureSubImage3D tid 0 (fromIntegral x) (fromIntegral y)
+      unsafeWith texels $ glTextureSubImage3D tid 0 (fromIntegral x) (fromIntegral y)
         (fromCubeFace f) (fromIntegral w) (fromIntegral h) 1 fmt
         typ . castPtr
     where
@@ -64,7 +63,7 @@ instance (Pixel f) => Texture (Cubemap f) where
       fmt = pixelFormat proxy
       typ = pixelType proxy
   fillTextureSub _ tid (x,y,f) (w,h) filling =
-      withArray (toList filling) $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral y) 
+      unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral y) 
         (fromCubeFace f) (fromIntegral w) (fromIntegral h) 1
         fmt typ . castPtr
     where

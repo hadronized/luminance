@@ -10,9 +10,8 @@
 
 module Graphics.Luminance.Core.Texture3D where
 
-import Data.Foldable ( toList )
 import Data.Proxy ( Proxy(..) )
-import Foreign.Marshal.Array ( withArray )
+import Data.Vector.Storable ( unsafeWith )
 import Foreign.Ptr ( castPtr )
 import Graphics.Luminance.Core.Texture ( BaseTexture(..), Texture(..) )
 import Graphics.Luminance.Core.Pixel ( Pixel(..) )
@@ -38,14 +37,14 @@ instance (Pixel f) => Texture (Texture3D f) where
     glTextureStorage3D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w)
       (fromIntegral h) (fromIntegral d)
   transferTexelsSub _ tid (x,y,z) (w,h,d) texels =
-      withArray (toList texels) $ glTextureSubImage3D tid 0 (fromIntegral x) (fromIntegral y)
+      unsafeWith texels $ glTextureSubImage3D tid 0 (fromIntegral x) (fromIntegral y)
         (fromIntegral z) (fromIntegral w) (fromIntegral h) (fromIntegral d) fmt typ . castPtr
     where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
   fillTextureSub _ tid (x,y,z) (w,h,d) filling =
-      withArray (toList filling) $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral y)
+      unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral y)
         (fromIntegral z) (fromIntegral w) (fromIntegral h) (fromIntegral d) fmt typ . castPtr
     where
       proxy = Proxy :: Proxy f
