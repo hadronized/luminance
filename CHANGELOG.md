@@ -1,6 +1,12 @@
 ## 0.5.1
 
+#### Minor changes
+
 - Added several `Uniform` instances for [linear](http://hackage.haskell.org/package/linear).
+
+#### Patch changes
+
+- Fixed the vertex attributes being ignored.
 
 ### 0.5
 
