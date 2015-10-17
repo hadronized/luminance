@@ -60,18 +60,21 @@ instance VertexAttribute Word32 where
 -- you cannot add anymore instances. However, you shouldn’t need to since you can use the already
 -- provided types to build up your vertex type.
 class Vertex v where
-  setFormatV :: (MonadIO m) => GLuint -> GLuint -> proxy v -> m ()
+  -- @setFormatV vid index proxy@ sets the format of a vertex type. The returned value is the next
+  -- index that can be used, and is used to chain index creation.
+  setFormatV :: (MonadIO m) => GLuint -> GLuint -> proxy v -> m GLuint
 
 instance (KnownNat n,Storable a,VertexAttribute a) => Vertex (V n a) where
   setFormatV vid index _ = do
     glVertexArrayAttribFormat vid index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE 0
     glVertexArrayAttribBinding vid index vertexBindingIndex
     glEnableVertexArrayAttrib vid index
+    pure (succ index)
 
 instance (Vertex a,Vertex b) => Vertex (a :. b) where
   setFormatV vid index _ = do
-    setFormatV vid index (Proxy :: Proxy a)
-    setFormatV vid index (Proxy :: Proxy b)
+    nextIndex <- setFormatV vid index (Proxy :: Proxy a)
+    setFormatV vid nextIndex (Proxy :: Proxy b)
 
 -- Used to connect vertex attribute to the vertex buffer binding point. Should be 0.
 vertexBindingIndex :: GLuint
