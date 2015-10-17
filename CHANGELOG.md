@@ -1,4 +1,9 @@
-### 0.4.2
+### 0.5
+
+#### Major changes
+
+- Changed the interface of texels transfer and filling. We dropped the `Foldable` instance and now
+  require a `Data.Vector.Storable.Vector` for performance purposes.
 
 #### Minor changes
 

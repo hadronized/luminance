@@ -14,6 +14,7 @@ import Control.Monad ( when )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Data.Proxy ( Proxy(..) )
+import Data.Vector.Storable ( Vector )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( Storable(peek) )
@@ -102,19 +103,19 @@ class Texture t where
                  -> GLint -- levels
                  -> TextureSize t -- size of the texture
                  -> IO ()
-  transferTexelsSub :: forall a f proxy. (Foldable f,Storable a)
+  transferTexelsSub :: (Storable a)
                     => proxy t
                     -> GLuint -- texture ID
                     -> TextureOffset t -- offset
                     -> TextureSize t -- size
-                    -> f a
+                    -> Vector a
                     -> IO ()
-  fillTextureSub :: forall a f proxy. (Foldable f,Storable a)
+  fillTextureSub :: (Storable a)
                  => proxy t
                  -> GLuint
                  -> TextureOffset t -- offset
                  -> TextureSize t -- size
-                 -> f a
+                 -> Vector a
                  -> IO ()
 
 -- OpenGL texture.
@@ -229,12 +230,12 @@ createSampler s = do
 -- |@'uploadSub' tex offset size autolvl texels@ uploads data to a subpart of the texture’s storage.
 -- The offset is given with origin at upper-left corner, and @size@ is the size of the area
 -- to upload to. @autolvl@ is a 'Bool' that can be used to automatically generate mipmaps.
-uploadSub :: forall a f m t. (Foldable f,MonadIO m,Storable a,Texture t)
+uploadSub :: forall a m t. (MonadIO m,Storable a,Texture t)
           => t
           -> TextureOffset t
           -> TextureSize t
           -> Bool
-          -> f a
+          -> Vector a
           -> m ()
 uploadSub tex offset size autolvl texels = liftIO $ do
     transferTexelsSub (Proxy :: Proxy t) tid offset size texels
@@ -243,12 +244,12 @@ uploadSub tex offset size autolvl texels = liftIO $ do
     tid = baseTextureID (toBaseTexture tex)
 
 -- |Fill a subpart of the texture’s storage with a given value.
-fillSub :: forall a f m t. (Foldable f,MonadIO m,Storable a,Texture t)
+fillSub :: forall a m t. (MonadIO m,Storable a,Texture t)
         => t
         -> TextureOffset t
         -> TextureSize t
         -> Bool
-        -> f a
+        -> Vector a
         -> m ()
 fillSub tex offset size autolvl filling = liftIO $ do
     fillTextureSub (Proxy :: Proxy t) tid offset size filling
