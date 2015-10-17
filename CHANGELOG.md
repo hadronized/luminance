@@ -1,4 +1,10 @@
-### 0.4.1.1
+### 0.4.2
+
+#### Minor changes
+
+- Added `MirrorRepeat` constructor to `Wrap`.
+
+#### Patch changes
 
 - Fixed prerequisites in README.
 
