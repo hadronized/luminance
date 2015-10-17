@@ -48,18 +48,25 @@ an operating system with **OpenGL** installed.
 
 # What are the prerequisites?
 
-In order to use `luminance`, you need two things:
+In order to use `luminance`, you need several prerequisites to be fulfilled:
 
-1. a decent **OpenGL 4.5** implementation ;
-2. support for **GL_ARB_bindless_texture** ;
-4. a library to setup an **OpenGL** context.
+1. a library to setup an **OpenGL** context.
+2. a decent **OpenGL 4.5** implementation ;
+3. support for **GL_ARB_bindless_texture** ;
 
-`luminance` does not provide point `4.` because it’s important that he not depend on windowing
+`luminance` does not provide point `1.` because it’s important that he not depend on windowing
 libraries so that end-users can use whatever they like. Furthermore, such libraries typically
 implement windowing and events features, which have nothing to do with our initial purposes.
+However, a few packages might come up, like `luminance-glfw` if such libraries are judged useful.
+
+## Important point about OpenGL compatibility
+
+Recently, a lot of people asked whether older version of **OpenGL** are planned to be supported.
+Even though I decided not to support them, I’ve changed my mind. A support for **OpenGL 3.2+**
+might be planned as well as a version for **OpenGL ES**. The specification is yet to set but it will
+eventually be a thing.
 
 # How to dig in?
 
-`luminance` is written to be fairly simple. The documentation – on hackage – will be very
-transparent about what the library does and several articles and wikis will appear shortly after the
-initial release. Keep tuned!
+`luminance` is written to be fairly simple. The documentation – on hackage – is very transparent
+about what the library does and several articles will appear as the development goes on. Keep tuned!

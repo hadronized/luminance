@@ -1,3 +1,7 @@
+### 0.4.1.1
+
+- Fixed prerequisites in README.
+
 ## 0.4.1
 
 - Fixed the `sizeOf` implementatiof of `a :. b`.
