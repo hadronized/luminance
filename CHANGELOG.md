@@ -1,3 +1,7 @@
+## 0.5.1
+
+- Added several `Uniform` instances for [linear](http://hackage.haskell.org/package/linear).
+
 ### 0.5
 
 #### Major changes
