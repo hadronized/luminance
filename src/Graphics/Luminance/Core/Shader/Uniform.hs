@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   : (C) 2015 Dimitri Sabadie
@@ -13,10 +15,13 @@ module Graphics.Luminance.Core.Shader.Uniform where
 import Data.Functor.Contravariant ( Contravariant(..) )
 import Data.Functor.Contravariant.Divisible ( Decidable(..), Divisible(..) )
 import Data.Int ( Int32 )
+import Data.Foldable ( toList )
 import Data.Semigroup ( Semigroup(..) )
 import Data.Void ( absurd )
 import Data.Word ( Word32 )
+import Foreign.Marshal.Utils ( with )
 import Foreign.Marshal.Array ( withArrayLen )
+import Foreign.Ptr ( castPtr )
 import Graphics.GL
 import Graphics.GL.Ext.ARB.BindlessTexture ( glProgramUniformHandleui64ARB )
 import Graphics.Luminance.Core.Cubemap ( Cubemap(cubemapBase) )
@@ -24,6 +29,8 @@ import Graphics.Luminance.Core.Texture ( BaseTexture(baseTextureHnd) )
 import Graphics.Luminance.Core.Texture1D ( Texture1D(texture1DBase) )
 import Graphics.Luminance.Core.Texture2D ( Texture2D(texture2DBase) )
 import Graphics.Luminance.Core.Texture3D ( Texture3D(texture3DBase) )
+import Linear
+import Linear.V ( V(V) )
 
 --------------------------------------------------------------------------------
 -- Uniform ---------------------------------------------------------------------
@@ -87,13 +94,37 @@ instance Uniform Int32 where
 instance Uniform (Int32,Int32) where
   toU prog l = U $ \(x,y) -> glProgramUniform2i prog l x y
 
+instance Uniform (V2 Int32) where
+  toU prog l = U $ \(V2 x y) -> glProgramUniform2i prog l x y
+
+instance Uniform (V 2 Int32) where
+  toU prog l = U $ \(V v) -> case toList v of
+    [x,y] -> glProgramUniform2i prog l x y
+    _ -> pure ()
+    
 -- D3
 instance Uniform (Int32,Int32,Int32) where
   toU prog l = U $ \(x,y,z) -> glProgramUniform3i prog l x y z
 
+instance Uniform (V3 Int32) where
+  toU prog l = U $ \(V3 x y z) -> glProgramUniform3i prog l x y z
+
+instance Uniform (V 3 Int32) where
+  toU prog l = U $ \(V v) -> case toList v of
+    [x,y,z] -> glProgramUniform3i prog l x y z
+    _ -> pure ()
+
 -- D4
 instance Uniform (Int32,Int32,Int32,Int32) where
   toU prog l = U $ \(x,y,z,w) -> glProgramUniform4i prog l x y z w
+
+instance Uniform (V4 Int32) where
+  toU prog l = U $ \(V4 x y z w) -> glProgramUniform4i prog l x y z w
+
+instance Uniform (V 4 Int32) where
+  toU prog l = U $ \(V v) -> case toList v of
+    [x,y,z,w] -> glProgramUniform4i prog l x y z w
+    _ -> pure ()
 
 -- scalar array
 instance Uniform [Int32] where
@@ -104,15 +135,39 @@ instance Uniform [(Int32,Int32)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unPair v) $
     glProgramUniform2iv prog l . fromIntegral
 
+instance Uniform [V2 Int32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform2iv prog l (fromIntegral size) (castPtr p)
+
+instance Uniform [V 2 Int32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform2iv prog l (fromIntegral size) (castPtr p)
+
 -- D3 array
 instance Uniform [(Int32,Int32,Int32)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unTriple v) $
     glProgramUniform3iv prog l . fromIntegral
 
+instance Uniform [V3 Int32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform3iv prog l (fromIntegral size) (castPtr p)
+
+instance Uniform [V 3 Int32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform3iv prog l (fromIntegral size) (castPtr p)
+
 -- D4 array
 instance Uniform [(Int32,Int32,Int32,Int32)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glProgramUniform4iv prog l . fromIntegral
+
+instance Uniform [V4 Int32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform4iv prog l (fromIntegral size) (castPtr p)
+
+instance Uniform [V 4 Int32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform4iv prog l (fromIntegral size) (castPtr p)
 
 --------------------------------------------------------------------------------
 -- Word32 instances ------------------------------------------------------------
@@ -125,13 +180,37 @@ instance Uniform Word32 where
 instance Uniform (Word32,Word32) where
   toU prog l = U $ \(x,y) -> glProgramUniform2ui prog l x y
 
+instance Uniform (V2 Word32) where
+  toU prog l = U $ \(V2 x y) -> glProgramUniform2ui prog l x y
+
+instance Uniform (V 2 Word32) where
+  toU prog l = U $ \(V v) -> case toList v of
+    [x,y] -> glProgramUniform2ui prog l x y
+    _ -> pure ()
+
 -- D3
 instance Uniform (Word32,Word32,Word32) where
   toU prog l = U $ \(x,y,z) -> glProgramUniform3ui prog l x y z
 
+instance Uniform (V3 Word32) where
+  toU prog l = U $ \(V3 x y z) -> glProgramUniform3ui prog l x y z
+
+instance Uniform (V 3 Word32) where
+  toU prog l = U $ \(V v) -> case toList v of
+    [x,y,z] -> glProgramUniform3ui prog l x y z
+    _ -> pure ()
+
 -- D4
 instance Uniform (Word32,Word32,Word32,Word32) where
   toU prog l = U $ \(x,y,z,w) -> glProgramUniform4ui prog l x y z w
+
+instance Uniform (V4 Word32) where
+  toU prog l = U $ \(V4 x y z w) -> glProgramUniform4ui prog l x y z w
+
+instance Uniform (V 4 Word32) where
+  toU prog l = U $ \(V v) -> case toList v of
+    [x,y,z,w] -> glProgramUniform4ui prog l x y z w
+    _ -> pure ()
 
 -- scalar array
 instance Uniform [Word32] where
@@ -143,15 +222,39 @@ instance Uniform [(Word32,Word32)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unPair v) $
     glProgramUniform2uiv prog l . fromIntegral
 
+instance Uniform [V2 Word32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform2uiv prog l (fromIntegral size) (castPtr p)
+
+instance Uniform [V 2 Word32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform2uiv prog l (fromIntegral size) (castPtr p)
+
 -- D3 array
 instance Uniform [(Word32,Word32,Word32)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unTriple v) $
     glProgramUniform3uiv prog l . fromIntegral
 
+instance Uniform [V3 Word32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform3uiv prog l (fromIntegral size) (castPtr p)
+
+instance Uniform [V 3 Word32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform3uiv prog l (fromIntegral size) (castPtr p)
+
 -- D4 array
 instance Uniform [(Word32,Word32,Word32,Word32)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glProgramUniform4uiv prog l . fromIntegral
+
+instance Uniform [V4 Word32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform4uiv prog l (fromIntegral size) (castPtr p)
+
+instance Uniform [V 4 Word32] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform4uiv prog l (fromIntegral size) (castPtr p)
 
 --------------------------------------------------------------------------------
 -- Float instances -------------------------------------------------------------
@@ -164,13 +267,37 @@ instance Uniform Float where
 instance Uniform (Float,Float) where
   toU prog l = U $ \(x,y) -> glProgramUniform2f prog l x y
 
+instance Uniform (V2 Float) where
+  toU prog l = U $ \(V2 x y) -> glProgramUniform2f prog l x y
+
+instance Uniform (V 2 Float) where
+  toU prog l = U $ \(V v) -> case toList v of
+    [x,y] -> glProgramUniform2f prog l x y
+    _ -> pure ()
+
 -- D3
 instance Uniform (Float,Float,Float) where
   toU prog l = U $ \(x,y,z) -> glProgramUniform3f prog l x y z
 
+instance Uniform (V3 Float) where
+  toU prog l = U $ \(V3 x y z) -> glProgramUniform3f prog l x y z
+
+instance Uniform (V 3 Float) where
+  toU prog l = U $ \(V v) -> case toList v of
+    [x,y,z] -> glProgramUniform3f prog l x y z
+    _ -> pure ()
+
 -- D4
 instance Uniform (Float,Float,Float,Float) where
   toU prog l = U $ \(x,y,z,w) -> glProgramUniform4f prog l x y z w
+
+instance Uniform (V4 Float) where
+  toU prog l = U $ \(V4 x y z w) -> glProgramUniform4f prog l x y z w
+
+instance Uniform (V 4 Float) where
+  toU prog l = U $ \(V v) -> case toList v of
+    [x,y,z,w] -> glProgramUniform4f prog l x y z w
+    _ -> pure ()
 
 -- scalar array
 instance Uniform [Float] where
@@ -182,15 +309,48 @@ instance Uniform [(Float,Float)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unPair v) $
     glProgramUniform2fv prog l . fromIntegral
 
+instance Uniform [V2 Float] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform2fv prog l (fromIntegral size) (castPtr p)
+
+instance Uniform [V 2 Float] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform2fv prog l (fromIntegral size) (castPtr p)
+
 -- D3 array
 instance Uniform [(Float,Float,Float)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unTriple v) $
     glProgramUniform3fv prog l . fromIntegral
 
+instance Uniform [V3 Float] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform3fv prog l (fromIntegral size) (castPtr p)
+
+instance Uniform [V 3 Float] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform3fv prog l (fromIntegral size) (castPtr p)
+
 -- D4 array
 instance Uniform [(Float,Float,Float,Float)] where
   toU prog l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glProgramUniform4fv prog l . fromIntegral
+
+instance Uniform [V4 Float] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform4fv prog l (fromIntegral size) (castPtr p)
+
+instance Uniform [V 4 Float] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniform4fv prog l (fromIntegral size) (castPtr p)
+
+--------------------------------------------------------------------------------
+-- Matrices --------------------------------------------------------------------
+instance Uniform (M44 Float) where
+  toU prog l = U $ \v -> with v $ glProgramUniformMatrix4fv prog l 1 GL_FALSE . castPtr
+
+instance Uniform [M44 Float] where
+  toU prog l = U $ \v -> withArrayLen v $ \size p ->
+    glProgramUniformMatrix4fv prog l (fromIntegral size) GL_FALSE (castPtr p)
 
 --------------------------------------------------------------------------------
 -- Textures --------------------------------------------------------------------
