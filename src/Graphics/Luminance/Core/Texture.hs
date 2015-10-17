@@ -36,13 +36,15 @@ data Wrap
   = ClampToEdge
   -- | ClampToBorder
   | Repeat
+  | MirroredRepeat
     deriving (Eq,Show)
 
 fromWrap :: (Eq a,Num a) => Wrap -> a
 fromWrap w = case w of
-  ClampToEdge   -> GL_CLAMP_TO_EDGE
-  -- ClampToBorder -> GL_CLAMP_TO_BORDER
-  Repeat        -> GL_REPEAT
+  ClampToEdge    -> GL_CLAMP_TO_EDGE
+  -- ClampToBorder  -> GL_CLAMP_TO_BORDER
+  Repeat         -> GL_REPEAT
+  MirroredRepeat -> GL_MIRRORED_REPEAT
 
 -- |Sampling filter. 'Nearest' will sample the nearest texel at the sampling coordinates whilst
 -- 'Linear' will perform linear interpolation with the texels nearby.
