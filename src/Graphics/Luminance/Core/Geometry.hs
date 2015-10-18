@@ -85,7 +85,7 @@ createGeometry vertices indices mode = do
     (vreg :: Region W v,vbo) <- createBuffer_ $ newRegion (fromIntegral vertNb)
     writeWhole vreg vertices
     liftIO $ glVertexArrayVertexBuffer vid vertexBindingIndex (bufferID vbo) 0 (fromIntegral $ sizeOf (undefined :: v))
-    _ <- setFormatV vid 0 (Proxy :: Proxy v)
+    _ <- setFormatV vid 0 0 (Proxy :: Proxy v)
     -- element buffer, if required
     case indices of
       Just indices' -> do
