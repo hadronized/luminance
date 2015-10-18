@@ -24,7 +24,7 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 import Data.Int ( Int32 )
 import Data.Proxy ( Proxy(..) )
 import Data.Word ( Word32 )
-import Foreign.Storable ( Storable )
+import Foreign.Storable ( Storable(sizeOf) )
 import GHC.TypeLits ( KnownNat, natVal )
 import Graphics.GL
 import Graphics.Luminance.Core.Tuple
@@ -60,21 +60,22 @@ instance VertexAttribute Word32 where
 -- you cannot add anymore instances. However, you shouldn’t need to since you can use the already
 -- provided types to build up your vertex type.
 class Vertex v where
-  -- @setFormatV vid index proxy@ sets the format of a vertex type. The returned value is the next
-  -- index that can be used, and is used to chain index creation.
-  setFormatV :: (MonadIO m) => GLuint -> GLuint -> proxy v -> m GLuint
+  -- @setFormatV vid index offset proxy@ sets the format of a vertex type. The returned value is the
+  -- next index that can be used – and is used to chain index creation – along with the next offset
+  -- to use.
+  setFormatV :: (MonadIO m) => GLuint -> GLuint -> GLuint -> proxy v -> m (GLuint,GLuint)
 
 instance (KnownNat n,Storable a,VertexAttribute a) => Vertex (V n a) where
-  setFormatV vid index _ = do
-    glVertexArrayAttribFormat vid index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE 0
+  setFormatV vid index offset _ = do
+    glVertexArrayAttribFormat vid index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE offset
     glVertexArrayAttribBinding vid index vertexBindingIndex
     glEnableVertexArrayAttrib vid index
-    pure (succ index)
+    pure (succ index,offset + fromIntegral (sizeOf (undefined :: V n a)))
 
 instance (Vertex a,Vertex b) => Vertex (a :. b) where
-  setFormatV vid index _ = do
-    nextIndex <- setFormatV vid index (Proxy :: Proxy a)
-    setFormatV vid nextIndex (Proxy :: Proxy b)
+  setFormatV vid index offset _ = do
+    (nextIndex,nextOffset) <- setFormatV vid index offset (Proxy :: Proxy a)
+    setFormatV vid nextIndex nextOffset (Proxy :: Proxy b)
 
 -- Used to connect vertex attribute to the vertex buffer binding point. Should be 0.
 vertexBindingIndex :: GLuint
