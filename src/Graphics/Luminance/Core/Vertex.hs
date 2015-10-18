@@ -38,7 +38,7 @@ vec2 x y = V [x,y]
 vec3 :: a -> a -> a -> V 3 a
 vec3 x y z = V [x,y,z]
 
--- |Create a new @'V' 3@.
+-- |Create a new @'V' 4@.
 vec4 :: a -> a -> a -> a -> V 4 a
 vec4 x y z w = V [x,y,z,w]
 
