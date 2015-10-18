@@ -89,6 +89,7 @@ createGeometry vertices indices mode = do
     -- element buffer, if required
     case indices of
       Just indices' -> do
+        let ixNb = length indices'
         (ireg :: Region W Word32,ibo) <- createBuffer_ $ newRegion (fromIntegral ixNb)
         writeWhole ireg indices'
         glVertexArrayElementBuffer vid (bufferID ibo)
@@ -96,7 +97,6 @@ createGeometry vertices indices mode = do
       Nothing -> pure . DirectGeometry $ VertexArray vid mode' (fromIntegral vertNb)
   where
     vertNb = length vertices
-    ixNb   = length indices
     mode'  = fromGeometryMode mode
 
 -- |/O (n log n)/

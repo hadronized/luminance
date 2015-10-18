@@ -6,6 +6,7 @@
 
 #### Patch changes
 
+- Fixed the indexed render.
 - Fixed the vertex attributes being ignored.
 
 ### 0.5
