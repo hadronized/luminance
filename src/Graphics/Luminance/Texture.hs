@@ -33,6 +33,9 @@ module Graphics.Luminance.Texture (
   , Texture2D
   , texture2DW
   , texture2DH
+    -- *** Array texture
+  , Texture2DArray
+  , texture2DArrayW
     -- ** 3D textures
   , Texture3D
   , texture3DW

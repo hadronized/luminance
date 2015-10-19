@@ -44,7 +44,7 @@ instance (KnownNat n,Pixel f) => Texture (Texture1DArray n f) where
       fmt = pixelFormat proxy
       typ = pixelType proxy
   fillTextureSub _ tid (layer,x) w filling =
-      unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral layer) 0 (fromIntegral w) 1 1
+      unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral layer) 0 (fromIntegral w) (fromIntegral $ natVal (Proxy :: Proxy n)) 1
         fmt typ . castPtr
     where
       proxy = Proxy :: Proxy f
