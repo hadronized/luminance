@@ -26,6 +26,9 @@ module Graphics.Luminance.Texture (
     -- ** 1D textures
   , Texture1D
   , texture1DW
+    -- *** Array texture
+  , Texture1DArray
+  , texture1DArrayW
     -- ** 2D textures
   , Texture2D
   , texture2DW
@@ -45,5 +48,6 @@ module Graphics.Luminance.Texture (
 import Graphics.Luminance.Core.Cubemap
 import Graphics.Luminance.Core.Texture
 import Graphics.Luminance.Core.Texture1D
+import Graphics.Luminance.Core.Texture1DArray
 import Graphics.Luminance.Core.Texture2D
 import Graphics.Luminance.Core.Texture3D
