@@ -46,11 +46,17 @@ module Graphics.Luminance.Texture (
   , CubeFace(..)
   , cubemapW
   , cubemapH
+    -- ** Array textures
+  , CubemapArray
+  , cubemapArrayW
+  , cubemapArrayH
   ) where
   
 import Graphics.Luminance.Core.Cubemap
+import Graphics.Luminance.Core.CubemapArray
 import Graphics.Luminance.Core.Texture
 import Graphics.Luminance.Core.Texture1D
 import Graphics.Luminance.Core.Texture1DArray
 import Graphics.Luminance.Core.Texture2D
+import Graphics.Luminance.Core.Texture2DArray
 import Graphics.Luminance.Core.Texture3D

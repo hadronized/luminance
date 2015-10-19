@@ -26,8 +26,9 @@ data Texture1DArray (n :: Nat) (f :: *) = Texture1DArray {
   } deriving (Eq,Show)
 
 instance (KnownNat n,Pixel f) => Texture (Texture1DArray n f) where
+  -- |(w)
   type TextureSize (Texture1DArray n f) = Natural
-  -- |(layer,offset)
+  -- |(layer,x)
   type TextureOffset (Texture1DArray n f) = (Natural,Natural)
   fromBaseTexture = Texture1DArray
   toBaseTexture = texture1DArrayBase
