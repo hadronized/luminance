@@ -1,3 +1,12 @@
+## 0.5.2
+
+#### Minor changes
+
+- Added texture arrays:
+    + `Texture1DArray`
+    + `Texture2DArray`
+    + `CubemapArray`
+
 ## 0.5.1
 
 #### Minor changes
