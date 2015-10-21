@@ -1,5 +1,5 @@
 name:                luminance
-version:             0.5.2
+version:             0.6
 synopsis:            Type-safe, dependently-typed and stateless graphics framework
 description:         This package exposes several modules to work with /GPUs/ in a stateless and
                      type-safe way. Currently, it uses OpenGL as backend hardware technology but
@@ -86,6 +86,7 @@ library
                      , Graphics.Luminance.Core.Shader.Program
                      , Graphics.Luminance.Core.Shader.Stage
                      , Graphics.Luminance.Core.Shader.Uniform
+                     , Graphics.Luminance.Core.Shader.UniformBlock
                      , Graphics.Luminance.Core.Texture
                      , Graphics.Luminance.Core.Texture1D
                      , Graphics.Luminance.Core.Texture1DArray

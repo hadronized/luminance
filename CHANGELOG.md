@@ -1,6 +1,18 @@
+# 0.6
+
+#### Breaking changes
+
+- The uniform interface creation is not performed in a arbitrary, user-defined monad anymore. A
+  dedicated type was introduced for that very purpose – `UniformInterface` – constraining the user
+  to only use the uniformize functions to map semantics to `U` values.
+
+#### Non-breaking changes
+
+- Added `UB`, which can be used along with `Buffer` to create *UBO* buffer and pass them to shaders.
+
 ## 0.5.2
 
-#### Minor changes
+#### Non-breaking changes
 
 - Added texture arrays:
     + `Texture1DArray`
@@ -9,7 +21,7 @@
 
 ## 0.5.1
 
-#### Minor changes
+#### Non-breaking changes
 
 - Added several `Uniform` instances for [linear](http://hackage.haskell.org/package/linear).
 
@@ -20,12 +32,12 @@
 
 ### 0.5
 
-#### Major changes
+#### Breaking changes
 
 - Changed the interface of texels transfer and filling. We dropped the `Foldable` instance and now
   require a `Data.Vector.Storable.Vector` for performance purposes.
 
-#### Minor changes
+#### Non-breaking changes
 
 - Added `MirrorRepeat` constructor to `Wrap`.
 
