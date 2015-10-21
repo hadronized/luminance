@@ -14,6 +14,7 @@ import Control.Applicative ( liftA2 )
 import Control.Monad.Except ( MonadError(throwError) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
+import Control.Monad.Trans.State ( StateT, evalStateT )
 import Data.Foldable ( traverse_ )
 import Foreign.C ( peekCString, withCString )
 import Foreign.Marshal.Alloc ( alloca )
@@ -44,7 +45,7 @@ newtype Program = Program { programID :: GLuint }
 -- the function you pass as argument. You can use that value to gather uniforms for instance.
 createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               => [Stage]
-              -> ((forall a. (Uniform a) => Either String Natural -> m (U a)) -> m i)
+              -> ((forall a. (Uniform a) => Either String Natural -> UniformInterface m (U a)) -> UniformInterface m i)
               -> m (Program,i)
 createProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
@@ -56,10 +57,10 @@ createProgram stages buildIface = do
     cl <- clog ll pid
     pure (pid,linked,cl)
   if
-    | linked    -> do
+    | linked -> do
         _ <- register $ glDeleteProgram pid
         let prog = Program pid
-        iface <- buildIface $ ifaceWith prog
+        iface <- runUniformInterface (buildIface $ ifaceWith prog)
         pure (prog,iface)
     | otherwise -> throwError . fromProgramError $ LinkFailed cl
 
@@ -89,12 +90,31 @@ clog l pid =
     liftA2 (*>) (glGetProgramInfoLog pid (fromIntegral l) nullPtr)
       (peekCString . castPtr)
 
+--------------------------------------------------------------------------------
+-- Uniform interface -----------------------------------------------------------
+
+newtype UniformInterface m a = UniformInterface {
+    runUniformInterface' :: StateT UniformInterfaceCtxt m a
+  } deriving (Applicative,Functor,Monad)
+
+runUniformInterface :: (Monad m) => UniformInterface m a -> m a
+runUniformInterface ui = evalStateT (runUniformInterface' ui) emptyUniformInterfaceCtxt
+
+newtype UniformInterfaceCtxt = UniformInterfaceCtxt {
+    uniformInterfaceBufferBinding :: GLuint
+  } deriving (Eq,Show)
+
+emptyUniformInterfaceCtxt :: UniformInterfaceCtxt
+emptyUniformInterfaceCtxt = UniformInterfaceCtxt {
+    uniformInterfaceBufferBinding = 0
+  }
+
 -- |Either map a 'String' or 'Natural' to a uniform.
 ifaceWith :: (HasProgramError e,MonadError e m,MonadIO m,Uniform a)
           => Program
           -> Either String Natural
-          -> m (U a)
-ifaceWith prog access = case access of
+          -> UniformInterface m (U a)
+ifaceWith prog access = UniformInterface $ case access of
     Left name -> do
       location <- liftIO . withCString name $ glGetUniformLocation pid
       if
