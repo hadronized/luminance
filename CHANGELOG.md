@@ -1,3 +1,9 @@
+# 0.6
+
+#### Patch changes
+
+- Changed internal representation of `Region`.
+
 ## 0.5.2
 
 #### Minor changes
