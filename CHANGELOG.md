@@ -2,6 +2,8 @@
 
 #### Breaking changes
 
+- Added a new function to the `createProgram` and `createProgram_` uniform interface builder
+  argument. That function can now be used to retrieve `U (Region rw (UB a))`, which is a *UBO*.
 - The uniform interface creation is not performed in a arbitrary, user-defined monad anymore. A
   dedicated type was introduced for that very purpose – `UniformInterface` – constraining the user
   to only use the uniformize functions to map semantics to `U` values.
