@@ -47,7 +47,7 @@ newtype Program = Program { programID :: GLuint }
 -- the function you pass as argument. You can use that value to gather uniforms for instance.
 createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               => [Stage]
-              -> ((forall a. (Uniform a) => Either String Natural -> UniformInterface m (U a)) -> UniformInterface m i)
+              -> ((forall a. (Uniform a) => Either String Natural -> UniformInterface m (U a)) -> (forall a. (Storable a,UniformBlock a) => String -> UniformInterface m (U (Region rw (UB a)))) -> UniformInterface m i)
               -> m (Program,i)
 createProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
@@ -62,8 +62,8 @@ createProgram stages buildIface = do
     | linked -> do
         _ <- register $ glDeleteProgram pid
         let prog = Program pid
-        iface <- runUniformInterface (buildIface $ uniformize prog)
-        pure (prog,iface)
+        a <- runUniformInterface $ buildIface (uniformize prog) (uniformizeBlock prog)
+        pure (prog,a)
     | otherwise -> throwError . fromProgramError $ LinkFailed cl
 
 -- |A simpler version of 'createProgram'. That function assumes you don’t need a uniform interface
@@ -71,7 +71,7 @@ createProgram stages buildIface = do
 createProgram_ :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
                 => [Stage]
                 -> m Program
-createProgram_ stages = fmap fst $ createProgram stages (\_ -> pure ())
+createProgram_ stages = fmap fst $ createProgram stages (\_ _ -> pure ())
 
 -- |Is a shader program linked?
 isLinked :: GLuint -> IO Bool
