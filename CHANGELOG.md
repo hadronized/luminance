@@ -1,7 +1,7 @@
-# 0.6
+### 0.5.2.1
 
-#### Patch changes
-
+- Relaxed lower bound of `linear` to accept `linear-1.19.*`. That changes should enable `lumimance`
+  to be included into stackage.
 - Changed internal representation of `Region`.
 
 ## 0.5.2
