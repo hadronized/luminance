@@ -144,7 +144,7 @@ instance (Storable a,UniformBlock a) => UniformBlock (V2 a) where
 
 instance (Storable a,UniformBlock a) => UniformBlock (V3 a) where
   alignmentSTD140 _ = alignmentSTD140 (Proxy :: Proxy a) * 4
-  sizeOfSTD140 _ = sizeOfSTD140 (Proxy :: Proxy a) * 3
+  sizeOfSTD140 _ = sizeOfSTD140 (Proxy :: Proxy a) * 4
   peekSTD140 p o = liftIO (peekByteOff p o)
   pokeSTD140 p o a = liftIO (pokeByteOff p o a)
 
