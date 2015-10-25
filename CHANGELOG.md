@@ -10,7 +10,8 @@
 
 #### Non-breaking changes
 
-- Added `UB`, which can be used along with `Buffer` to create *UBO* buffer and pass them to shaders.
+- Added `UB`, which can be used along with `Buffer` to create *UBO* buffers and pass them to
+  shaders.
 
 ### 0.5.2.1
 
