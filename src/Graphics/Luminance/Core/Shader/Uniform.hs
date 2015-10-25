@@ -39,6 +39,8 @@ import Linear.V ( V(V) )
 -- handle a lot of uniform types. However, you should have a look at the 'U' documentation for
 -- further information about how to augment the scope of the types you can send down to shaders.
 class Uniform a where
+  -- |@'toU' prog l@ creates a new 'U a' by mapping it to the 'Program' @prog@ and using the
+  -- location 'l'.
   toU :: GLuint -> GLint -> U a
 
 -- |A shader uniform. @'U' a@ doesn’t hold any value. It’s more like a mapping between the host
