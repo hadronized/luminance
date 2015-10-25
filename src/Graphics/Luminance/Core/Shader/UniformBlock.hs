@@ -21,6 +21,9 @@ import Data.Word ( Word32 )
 import Foreign.Ptr ( Ptr )
 import Foreign.Storable ( Storable(..), peekByteOff, pokeByteOff )
 import GHC.Generics
+import Linear.V2 ( V2 )
+import Linear.V3 ( V3 )
+import Linear.V4 ( V4 )
 
 --------------------------------------------------------------------------------
 -- UB wrapper type -------------------------------------------------------------
@@ -132,6 +135,24 @@ instance UniformBlock Bool where
   sizeOfSTD140 _ = 4
   peekSTD140 p o = liftIO (fmap toBool $ peekByteOff p o)
   pokeSTD140 p o a = liftIO (pokeByteOff p o $ fromBool a)
+
+instance (Storable a,UniformBlock a) => UniformBlock (V2 a) where
+  alignmentSTD140 _ = alignmentSTD140 (Proxy :: Proxy a) * 2
+  sizeOfSTD140 _ = sizeOfSTD140 (Proxy :: Proxy a) * 2
+  peekSTD140 p o = liftIO (peekByteOff p o)
+  pokeSTD140 p o a = liftIO (pokeByteOff p o a)
+
+instance (Storable a,UniformBlock a) => UniformBlock (V3 a) where
+  alignmentSTD140 _ = alignmentSTD140 (Proxy :: Proxy a) * 4
+  sizeOfSTD140 _ = sizeOfSTD140 (Proxy :: Proxy a) * 3
+  peekSTD140 p o = liftIO (peekByteOff p o)
+  pokeSTD140 p o a = liftIO (pokeByteOff p o a)
+
+instance (Storable a,UniformBlock a) => UniformBlock (V4 a) where
+  alignmentSTD140 _ = alignmentSTD140 (Proxy :: Proxy a) * 4
+  sizeOfSTD140 _ = sizeOfSTD140 (Proxy :: Proxy a) * 4
+  peekSTD140 p o = liftIO (peekByteOff p o)
+  pokeSTD140 p o a = liftIO (pokeByteOff p o a)
 
 fromBool :: Bool -> Int32
 fromBool False = 0
