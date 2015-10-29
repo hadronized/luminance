@@ -16,15 +16,16 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Control.Monad.Trans.State ( StateT, evalStateT, gets, modify )
 import Data.Foldable ( traverse_ )
+import Data.Proxy ( Proxy(..) )
 import Foreign.C ( peekCString, withCString )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( allocaArray )
 import Foreign.Ptr ( castPtr, nullPtr )
-import Foreign.Storable ( Storable(peek, sizeOf) )
+import Foreign.Storable ( Storable(peek) )
 import Graphics.Luminance.Core.Buffer ( Region(..), bufferID )
 import Graphics.Luminance.Core.Shader.Stage ( Stage(..) )
 import Graphics.Luminance.Core.Shader.Uniform ( U(..), Uniform(..) )
-import Graphics.Luminance.Core.Shader.UniformBlock ( UB, UniformBlock )
+import Graphics.Luminance.Core.Shader.UniformBlock ( UB, UniformBlock(sizeOfSTD140) )
 import Graphics.GL
 import Numeric.Natural ( Natural )
 
@@ -47,7 +48,7 @@ newtype Program = Program { programID :: GLuint }
 -- the function you pass as argument. You can use that value to gather uniforms for instance.
 createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               => [Stage]
-              -> ((forall a. (Uniform a) => Either String Natural -> UniformInterface m (U a)) -> (forall a. (Storable a,UniformBlock a) => String -> UniformInterface m (U (Region rw (UB a)))) -> UniformInterface m i)
+              -> ((forall a. (Uniform a) => Either String Natural -> UniformInterface m (U a)) -> (forall a. (UniformBlock a) => String -> UniformInterface m (U (Region rw (UB a)))) -> UniformInterface m i)
               -> m (Program,i)
 createProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
@@ -127,7 +128,7 @@ uniformize Program{programID = pid} access = UniformInterface $ case access of
     | otherwise    -> throwError . fromProgramError $ InactiveUniform access
 
 -- |Map a 'String' to a uniform block.
-uniformizeBlock :: forall a e m rw. (HasProgramError e,MonadError e m,MonadIO m,Storable a,UniformBlock a)
+uniformizeBlock :: forall a e m rw. (HasProgramError e,MonadError e m,MonadIO m,UniformBlock a)
                 => Program
                 -> String
                 -> UniformInterface m (U (Region rw (UB a)))
@@ -145,7 +146,7 @@ uniformizeBlock Program{programID = pid} name = UniformInterface $ do
               binding
               (bufferID $ regionBuffer r)
               (fromIntegral $ regionOffset r)
-              (fromIntegral $ regionSize r * sizeOf (undefined :: a))
+              (fromIntegral $ regionSize r * sizeOfSTD140 (Proxy :: Proxy a))
       | otherwise -> throwError . fromProgramError $ InactiveUniformBlock name
 
 --------------------------------------------------------------------------------
