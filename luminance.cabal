@@ -1,6 +1,6 @@
 name:                luminance
-version:             0.6
-synopsis:            Type-safe, dependently-typed and stateless graphics framework
+version:             0.6.0.1
+synopsis:            Type-safe, type-level and stateless graphics framework
 description:         This package exposes several modules to work with /GPUs/ in a stateless and
                      type-safe way. Currently, it uses OpenGL as backend hardware technology but
                      others will be added later on, such as Vulkan.
