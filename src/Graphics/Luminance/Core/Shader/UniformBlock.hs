@@ -21,6 +21,7 @@ import Data.Word ( Word32 )
 import Foreign.Ptr ( Ptr )
 import Foreign.Storable ( Storable(..), peekByteOff, pokeByteOff )
 import GHC.Generics
+import Graphics.Luminance.Core.Tuple ( (:.) )
 import Linear.V2 ( V2 )
 import Linear.V3 ( V3 )
 import Linear.V4 ( V4 )
@@ -153,6 +154,8 @@ instance (Storable a,UniformBlock a) => UniformBlock (V4 a) where
   sizeOfSTD140 _ = sizeOfSTD140 (Proxy :: Proxy a) * 4
   peekSTD140 p o = liftIO (peekByteOff p o)
   pokeSTD140 p o a = liftIO (pokeByteOff p o a)
+
+instance (UniformBlock a,UniformBlock b) => UniformBlock (a :. b) where
 
 fromBool :: Bool -> Int32
 fromBool False = 0

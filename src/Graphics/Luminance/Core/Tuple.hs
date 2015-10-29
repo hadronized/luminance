@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 -----------------------------------------------------------------------------
 -- |
 -- Copyright   : (C) 2015 Dimitri Sabadie
@@ -12,11 +14,12 @@ module Graphics.Luminance.Core.Tuple where
 
 import Foreign.Storable ( Storable(..) )
 import Foreign.Ptr ( castPtr, plusPtr )
+import GHC.Generics ( Generic )
 
 -- |A tuple of types, right-associated.
 --
 -- The 'Storable' instance is used for foreign packing on 32-bit.
-data a :. b = a :. b deriving (Eq,Functor,Ord,Show)
+data a :. b = a :. b deriving (Eq,Functor,Generic,Ord,Show)
 
 infixr 6 :.
 
