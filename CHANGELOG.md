@@ -1,3 +1,7 @@
+### 0.6.0.1
+
+- Added `(:.)`, `(,)`, `(,,)` and `(,,,)` into `UniformBlock`.
+
 # 0.6
 
 #### Breaking changes
