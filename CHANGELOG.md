@@ -1,5 +1,6 @@
 ### 0.6.0.1
 
+- Fixed `(:*:)` for `UniformBlock`.
 - Dumped the `Storable` constraint in the `uniBlock` function (rank2 function passed to build
   uniform interfaces to `createProgram`).
 - Added `(:.)`, `(,)`, `(,,)` and `(,,,)` into `UniformBlock`.
