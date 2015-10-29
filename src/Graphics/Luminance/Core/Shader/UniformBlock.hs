@@ -157,6 +157,10 @@ instance (Storable a,UniformBlock a) => UniformBlock (V4 a) where
 
 instance (UniformBlock a,UniformBlock b) => UniformBlock (a :. b) where
 
+instance (UniformBlock a,UniformBlock b) => UniformBlock (a,b)
+instance (UniformBlock a,UniformBlock b,UniformBlock c) => UniformBlock (a,b,c)
+instance (UniformBlock a,UniformBlock b,UniformBlock c,UniformBlock d) => UniformBlock (a,b,c,d)
+
 fromBool :: Bool -> Int32
 fromBool False = 0
 fromBool True = 1
