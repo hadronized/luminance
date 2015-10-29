@@ -1,6 +1,6 @@
 # What is this?
 
-![Hackage](https://img.shields.io/badge/hackage-0.5.2-orange.svg?style=flat)
+![Hackage](https://img.shields.io/badge/hackage-0.6.0.1-orange.svg?style=flat)
 ![License](https://img.shields.io/badge/license-BSD3-blue.svg?style=flat)
 
 `luminance` is an effort to make graphics rendering simple and elegant in **Haskell**. It’s forked
