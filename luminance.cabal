@@ -46,11 +46,27 @@ flag debug-gl
   default:             False
   manual:              True
 
+flag gl45-bindless-textures
+  description:         Compile with the OpenGL 4.5 + bindless textures backend
+  default:             False
+  manual:              True
+
+flag gl32
+  description:         Compile with the OpenGL 3.2 backend
+  default:             True
+  manual:              True
+
 library
   ghc-options:         -W -Wall
 
   if flag(debug-gl)
     cpp-options:       -DDEBUG_GL
+
+  if flag(gl45-bindless-textures)
+    cpp-options:       -DGL45_BINDLESS_TEXTURES_BACKEND
+
+  if flag(gl32)
+    cpp-options:       -DGL32_BACKEND
 
   exposed-modules:     Graphics.Luminance
                      , Graphics.Luminance.Batch
