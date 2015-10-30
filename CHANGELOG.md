@@ -1,3 +1,8 @@
+### 0.6.0.3
+
+- Updated .cabal documentation.
+- Support for `semigroups-0.17`.
+
 ### 0.6.0.2
 
 - Fixed typo in the hackage documentation.
