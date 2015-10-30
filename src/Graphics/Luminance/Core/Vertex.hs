@@ -60,7 +60,7 @@ instance VertexAttribute Word32 where
   vertexGLType _ = GL_UNSIGNED_INT
 
 -- |A vertex has to implement 'Vertex' in order to be used as-is. That typeclass is closed, so you
--- you cannot add anymore instances. However, you shouldn’t need to since you can use the already
+-- cannot add anymore instances. However, you shouldn’t need to since you can use the already
 -- provided types to build up your vertex type.
 class Vertex v where
   -- @setFormatV vid index offset proxy@ sets the format of a vertex type. The returned value is the
