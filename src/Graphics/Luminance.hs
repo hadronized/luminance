@@ -188,8 +188,8 @@
 -- A 'Geometry' is a /GPU/ version of a mesh. It’s composed of /vertices/, /indices/ and a primitive
 -- mode used to know how to link vertices between each others. Sometimes, 'Geometry' doesn’t have
 -- /indices/. That’s called __direct geometry__, because the /vertices/ are supposed to be directly
--- used when creating primitives. If you use /indices/, then you have a __indiced geometry__ and the
--- /vertices/ can linked by looking at the /indices/ you’ve fed in.
+-- used when creating primitives. If you use /indices/, then you have an __indexed geometry__ and
+-- the /vertices/ can linked by looking at the /indices/ you’ve fed in.
 --
 -- A 'Geometry' is created with the 'createGeometry' function and a 'RenderCmd' is created with
 -- 'renderCmd'. You’re supposed to create a 'Geometry' once – while loading your resources for
@@ -203,9 +203,9 @@
 --   vertices :: ['V' 2 'Float']
 --   vertices =
 --     [
---       'V2' (-0.5) (-0.5)
---     , 'V2' 0 0.5
---     , 'V2' 0.5 (-0.5)
+--       'vec2' (-0.5) (-0.5)
+--     , 'vec2' 0 0.5
+--     , 'vec2' 0.5 (-0.5)
 --     ]
 -- @
 --

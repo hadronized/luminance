@@ -1,3 +1,7 @@
+### 0.6.0.2
+
+- Fixed typo in the hackage documentation.
+
 ### 0.6.0.1
 
 - Fixed `(:*:)` for `UniformBlock`.
