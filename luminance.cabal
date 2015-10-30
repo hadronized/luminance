@@ -1,5 +1,5 @@
 name:                luminance
-version:             0.6.0.3
+version:             0.6.0.4
 synopsis:            Type-safe, type-level and stateless graphics framework
 description:         This package exposes several modules to work with /GPUs/ in a stateless and
                      type-safe way. Currently, it uses OpenGL as backend hardware technology but
@@ -96,27 +96,6 @@ library
                      , Graphics.Luminance.Core.Texture2DArray
                      , Graphics.Luminance.Core.Texture3D
                      , Graphics.Luminance.Core.Vertex
-
-  default-extensions:  DataKinds
-                     , DeriveFoldable
-                     , DeriveFunctor
-                     , DeriveGeneric
-                     , FlexibleContexts
-                     , FlexibleInstances
-                     , GADTs
-                     , GeneralizedNewtypeDeriving
-                     , MultiParamTypeClasses
-                     , MultiWayIf
-                     , PolyKinds
-                     , RankNTypes
-                     , ScopedTypeVariables
-                     , StandaloneDeriving
-                     , TupleSections
-                     , TypeFamilies
-                     , TypeOperators
-
-  other-extensions:    CPP
-                     , UndecidableInstances
 
   build-depends:       base           >= 4.8  && < 4.9
                      , containers     >= 0.5  && < 0.6
