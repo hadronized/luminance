@@ -1,3 +1,7 @@
+### 0.6.0.4
+
+- Extensions are now set per module.
+
 ### 0.6.0.3
 
 - Updated .cabal documentation.
