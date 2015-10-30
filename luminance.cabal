@@ -1,19 +1,17 @@
 name:                luminance
-version:             0.6.0.2
+version:             0.6.0.3
 synopsis:            Type-safe, type-level and stateless graphics framework
 description:         This package exposes several modules to work with /GPUs/ in a stateless and
                      type-safe way. Currently, it uses OpenGL as backend hardware technology but
                      others will be added later on, such as Vulkan.
                      .
-                     The initial unstable version is /0.1/. Consider everything in that version as
-                     part of an experiment, even though the library should be free of bugs. If you
-                     find any, please report an issue. If you think something could be enhanced,
-                     feel free to fill in an issue as well.
-                     .
                      One very important point is the fact that luminance has nothing to do with
                      /3D engines/ or /scene development kits/. Don’t expect to find /materials/,
                      /lights/ or /mesh/ loaders. It’s just a graphics framework initiated to fix the
-                     design choices of OpenGL. It won’t change in any other way.
+                     design choices of OpenGL. It won’t change in any other way. However, as it
+                     grows, the plan is to make luminance a good graphics framework following the
+                     Haskell philosophy. In the end, it should be used as-is, not as an OpenGL
+                     abstraction.
                      .
                      luminance is a small yet powerful graphics API. It was designed so that
                      people can quickly get their feet wet and start having fun with graphics in
@@ -22,6 +20,10 @@ description:         This package exposes several modules to work with /GPUs/ in
                      .
                      This library doesn’t expose any architectural patterns or designs. It’s up to
                      you to design your program as you want and following your own plans.
+                     .
+                     In the end, as many people has asked me since the beginning of the development,
+                     the OpenGL version – current is 4.5 – will be lowered. You’ll be able to choose
+                     the backend to use through compilation flags.
 license:             BSD3
 license-file:        LICENSE
 author:              Dimitri Sabadie <dimitri.sabadie@gmail.com>
@@ -124,7 +126,7 @@ library
                      , linear         >= 1.19 && < 1.21
                      , mtl            >= 2.2  && < 2.3
                      , resourcet      >= 1.1  && < 1.2
-                     , semigroups     >= 0.16 && < 0.17
+                     , semigroups     >= 0.16 && < 0.18
                      , transformers   >= 0.4  && < 0.5
                      , vector         >= 0.11 && < 0.12
                      , void           >= 0.7  && < 0.8
