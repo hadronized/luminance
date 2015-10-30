@@ -46,6 +46,11 @@ flag debug-gl
   default:             False
   manual:              True
 
+flag gl45
+  description:         Compile with the OpenGL 4.5 backend
+  default:             False
+  manual:              True
+
 flag gl45-bindless-textures
   description:         Compile with the OpenGL 4.5 + bindless textures backend
   default:             False
@@ -62,8 +67,11 @@ library
   if flag(debug-gl)
     cpp-options:       -DDEBUG_GL
 
+  if flag(gl45)
+    cpp-options:       -DGL45_BACKEND
+
   if flag(gl45-bindless-textures)
-    cpp-options:       -DGL45_BINDLESS_TEXTURES_BACKEND
+    cpp-options:       -DGL45_BACKEND -DGL45_BINDLESS_TEXTURES_BACKEND
 
   if flag(gl32)
     cpp-options:       -DGL32_BACKEND
