@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -14,8 +15,9 @@
 module Graphics.Luminance.Core.Cubemap where
 
 import Data.Proxy ( Proxy(..) )
-import Data.Vector.Storable ( unsafeWith )
-import Foreign.Ptr ( castPtr )
+import Data.Vector.Storable as V ( concat, unsafeWith )
+import Data.Foldable ( for_ )
+import Foreign.Ptr ( castPtr, nullPtr )
 import Graphics.Luminance.Core.Texture ( BaseTexture(..), Texture(..) )
 import Graphics.Luminance.Core.Pixel ( Pixel(..) )
 import Graphics.GL
@@ -54,17 +56,35 @@ instance (Pixel f) => Texture (Cubemap f) where
   toBaseTexture = cubemapBase
   textureTypeEnum _ = GL_TEXTURE_CUBE_MAP
   textureSize (Cubemap _ w h) = (w,h)
+#if GL45_BACKEND
   textureStorage _ tid levels (w,h) =
     glTextureStorage2D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w)
       (fromIntegral h)
+#elif GL32_BACKEND
+  textureStorage _ tid levels (w,h) = do
+    glBindTexture GL_TEXTURE_CUBE_MAP tid
+    for_ [0..levels-1] $ \lvl ->
+      glTexImage2D GL_TEXTURE_CUBE_MAP lvl (fromIntegral $ pixelIFormat (Proxy :: Proxy f))
+        (fromIntegral w) (fromIntegral h) 0 (pixelFormat (Proxy :: Proxy f))
+        (pixelType (Proxy :: Proxy f)) nullPtr
+#endif
+#if GL45_BACKEND
   transferTexelsSub _ tid (x,y,f) (w,h) texels =
       unsafeWith texels $ glTextureSubImage3D tid 0 (fromIntegral x) (fromIntegral y)
         (fromCubeFace f) (fromIntegral w) (fromIntegral h) 1 fmt
         typ . castPtr
+#elif GL32_BACKEND
+  transferTexelsSub _ tid (x,y,f) (w,h) texels = do
+      glBindTexture GL_TEXTURE_CUBE_MAP tid
+      unsafeWith texels $ glTexSubImage3D GL_TEXTURE_CUBE_MAP 0 (fromIntegral x) (fromIntegral y)
+        (fromCubeFace f) (fromIntegral w) (fromIntegral h) 1 fmt
+        typ . castPtr
+#endif
     where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
+#if GL45_BACKEND
   fillTextureSub _ tid (x,y,f) (w,h) filling =
       unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral y) 
         (fromCubeFace f) (fromIntegral w) (fromIntegral h) 1
@@ -73,3 +93,7 @@ instance (Pixel f) => Texture (Cubemap f) where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
+#elif GL32_BACKEND
+  fillTextureSub proxy tid o (w,h) filling =
+    transferTexelsSub proxy tid o (w,h) (V.concat $ replicate (fromIntegral $ w*h) filling)
+#endif
