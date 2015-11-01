@@ -56,7 +56,6 @@ and **gl45**.
 - **gl32**
   - a decent *OpenGL 3.2* implementation
   - support for extension *GL_ARB_texture_cube_map*
-  - support for extension *GL_ARB_tessellation_shader
 - **gl45**
   - a decent *OpenGL 4.5* implementation
 - **gl-bindless-textures** (bonus)
