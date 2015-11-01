@@ -115,6 +115,7 @@ prependGLSLPragma src =
 #endif
 #if __GL_BINDLESS_TEXTURES
   ++ "#extension GL_ARB_bindless_texture : require\n"
+  ++ "layout (bindless_sampler) uniform;"
 #endif
   ++ src
 
