@@ -53,8 +53,8 @@ determine which backend you will be able to use. Currently, two backends are ava
 and **gl45**.
 
 - a library to setup an *OpenGL* context.
-- **gl30**
-  - a decent *OpenGL 3.0* implementation
+- **gl32**
+  - a decent *OpenGL 3.2* implementation
   - support for extension *GL_ARB_texture_cube_map*
 - **gl45**
   - a decent *OpenGL 4.5* implementation
