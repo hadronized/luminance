@@ -1,3 +1,7 @@
+### 0.6.0.5
+
+- semigroups-0.18 support.
+
 ### 0.6.0.4
 
 - Extensions are now set per module.
