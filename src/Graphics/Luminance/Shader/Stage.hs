@@ -12,12 +12,7 @@ module Graphics.Luminance.Shader.Stage (
     -- * Shader stage creation
     Stage
   , stageID
-  , createTessCtrlShader
-  , createTessEvalShader
-  , createVertexShader
-  , createGeometryShader
-  , createFragmentShader
-  , createComputeShader
+  , createStage
     -- * Error handling
   , StageError(..)
   , HasStageError(..)
