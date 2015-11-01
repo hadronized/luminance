@@ -11,6 +11,7 @@
 module Graphics.Luminance.Shader.Stage (
     -- * Shader stage creation
     Stage
+  , StageType(..)
   , stageID
   , createStage
     -- * Error handling
