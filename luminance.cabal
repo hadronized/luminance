@@ -1,5 +1,5 @@
 name:                luminance
-version:             0.6.0.4
+version:             0.6.0.5
 synopsis:            Type-safe, type-level and stateless graphics framework
 description:         This package exposes several modules to work with /GPUs/ in a stateless and
                      type-safe way. Currently, it uses OpenGL as backend hardware technology but
@@ -105,7 +105,7 @@ library
                      , linear         >= 1.19 && < 1.21
                      , mtl            >= 2.2  && < 2.3
                      , resourcet      >= 1.1  && < 1.2
-                     , semigroups     >= 0.16 && < 0.18
+                     , semigroups     >= 0.16 && < 0.19
                      , transformers   >= 0.4  && < 0.5
                      , vector         >= 0.11 && < 0.12
                      , void           >= 0.7  && < 0.8
