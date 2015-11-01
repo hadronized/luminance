@@ -39,6 +39,7 @@ createRenderbuffer w h depthProxy = do
   rid <- liftIO . alloca $ \p -> do
     glGenRenderbuffers 1 p
     rid <- peek p
+    glBindRenderbuffer GL_RENDERBUFFER rid
     glRenderbufferStorage GL_RENDERBUFFER (pixelIFormat depthProxy) (fromIntegral w) (fromIntegral h)
     pure rid
   _ <- register $ with rid (glDeleteRenderbuffers 1)
