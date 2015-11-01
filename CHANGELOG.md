@@ -1,3 +1,14 @@
+# 0.7
+
+#### Breaking changes
+
+- Shader interface now uses the type `StageType` and `createStage` to create new shader stages.
+
+#### Minor changes
+
+- Added `gl32` and `gl45` backends. The default backend is `gl32` and backends can be selected via
+  compilation flags.
+
 ### 0.6.0.4
 
 - Extensions are now set per module.
