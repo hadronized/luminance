@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE MultiWayIf #-}
 
 -----------------------------------------------------------------------------
@@ -96,8 +97,14 @@ clog l sid =
 
 prependGLSLPragma :: String -> String
 prependGLSLPragma src =
+#if GL45_BACKEND
      "#version 450 core\n"
+#elif GL32_BACKEND
+     "#version 150 core\n"
+#endif
+#if __GL_BINDLESS_TEXTURES
   ++ "#extension GL_ARB_bindless_texture : require\n"
+#endif
   ++ src
 
 --------------------------------------------------------------------------------

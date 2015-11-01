@@ -71,7 +71,7 @@ library
     cpp-options:       -DGL45_BACKEND
 
   if flag(gl45-bindless-textures)
-    cpp-options:       -DGL45_BACKEND -DGL45_BINDLESS_TEXTURES_BACKEND
+    cpp-options:       -DGL45_BACKEND -D__GL_BINDLESS_TEXTURES
 
   if flag(gl32)
     cpp-options:       -DGL32_BACKEND
