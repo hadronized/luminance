@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -122,11 +123,16 @@ class Texture t where
                  -> IO ()
 
 -- OpenGL texture.
+#if GL45_BACKEND && __GL_BINDLESS_TEXTURES
 data BaseTexture = BaseTexture {
     baseTextureID  :: GLuint
   , baseTextureHnd :: GLuint64
   } deriving (Eq,Show)
-
+#elif GL32_BACKEND
+newtype BaseTexture = BaseTexture {
+    baseTextureID  :: GLuint
+  } deriving (Eq,Show)
+#endif
 
 -- |'createTexture w h levels sampling' a new 'w'*'h' texture with 'levels' levels. The format is
 -- set through the type.
@@ -135,21 +141,37 @@ createTexture :: forall m t. (MonadIO m,MonadResource m,Texture t)
               -> Natural
               -> Sampling
               -> m t
+#if GL45_BACKEND && __GL_BINDLESS_TEXTURES
 createTexture size levels sampling = do
-    (tid,texH) <- liftIO . alloca $ \p -> do
-      glCreateTextures (textureTypeEnum (Proxy :: Proxy t)) 1 p
+  (tid,texH) <- liftIO . alloca $ \p -> do
+    glCreateTextures (textureTypeEnum (Proxy :: Proxy t)) 1 p
+    tid <- peek p
+    textureStorage (Proxy :: Proxy t) tid (fromIntegral levels) size
+    glTextureParameteri tid GL_TEXTURE_BASE_LEVEL 0
+    glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral levels - 1)
+    setTextureSampling tid sampling
+    texH <- glGetTextureHandleARB tid 
+    glMakeTextureHandleResidentARB texH
+    pure (tid,texH)
+  _ <- register $ do
+    glMakeTextureHandleNonResidentARB texH
+    with tid (glDeleteTextures 1)
+  pure $ fromBaseTexture (BaseTexture tid texH) size
+#elif GL32_BACKEND
+createTexture size levels sampling = do
+    tid <- liftIO . alloca $ \p -> do
+      glGenTextures 1 p
       tid <- peek p
       textureStorage (Proxy :: Proxy t) tid (fromIntegral levels) size
-      glTextureParameteri tid GL_TEXTURE_BASE_LEVEL 0
-      glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral levels - 1)
+      glTexParameteri target GL_TEXTURE_BASE_LEVEL 0
+      glTexParameteri target GL_TEXTURE_MAX_LEVEL (fromIntegral levels - 1)
       setTextureSampling tid sampling
-      texH <- glGetTextureHandleARB tid 
-      glMakeTextureHandleResidentARB texH
-      pure (tid,texH)
-    _ <- register $ do
-      glMakeTextureHandleNonResidentARB texH
-      with tid $ glDeleteTextures 1
-    pure $ fromBaseTexture (BaseTexture tid texH) size
+      pure tid
+    _ <- register $ with tid (glDeleteTextures 1)
+    pure $ fromBaseTexture (BaseTexture tid) size
+  where
+    target = textureTypeEnum (Proxy :: Proxy t)
+#endif
 
 ----------------------------------------------------------------------------------------------------
 -- Sampling objects --------------------------------------------------------------------------------
@@ -213,6 +235,7 @@ setSamplerSampling = setSampling glSamplerParameteri
 ----------------------------------------------------------------------------------------------------
 -- Samplers ----------------------------------------------------------------------------------------
 
+{-
 newtype Sampler = Sampler { samplerID :: GLuint } deriving (Eq,Show)
 
 createSampler :: (MonadIO m,MonadResource m)
@@ -226,6 +249,7 @@ createSampler s = do
     pure sid
   _ <- register . with sid $ glDeleteSamplers 1
   pure $ Sampler sid
+-}
 
 ----------------------------------------------------------------------------------------------------
 -- Texture operations ------------------------------------------------------------------------------
@@ -240,9 +264,15 @@ uploadSub :: forall a m t. (MonadIO m,Storable a,Texture t)
           -> Bool
           -> Vector a
           -> m ()
+#if GL45_BACKEND
 uploadSub tex offset size autolvl texels = liftIO $ do
     transferTexelsSub (Proxy :: Proxy t) tid offset size texels
     when autolvl $ glGenerateTextureMipmap tid
+#elif GL32_BACKEND
+uploadSub tex offset size autolvl texels = liftIO $ do
+    transferTexelsSub (Proxy :: Proxy t) tid offset size texels
+    when autolvl $ glGenerateMipmap (textureTypeEnum (Proxy :: Proxy t))
+#endif
   where
     tid = baseTextureID (toBaseTexture tex)
 
