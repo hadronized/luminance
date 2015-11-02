@@ -24,7 +24,10 @@ import Data.Word ( Word32 )
 import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Array ( peekArray, pokeArray )
 import Foreign.Marshal.Utils ( with )
-import Foreign.Ptr ( Ptr, castPtr, nullPtr, plusPtr )
+import Foreign.Ptr ( Ptr, castPtr, nullPtr )
+#ifdef __GL45
+import Foreign.Ptr ( plusPtr )
+#endif
 import Foreign.Storable ( Storable(..) )
 import Graphics.GL
 import Graphics.Luminance.Core.RW
@@ -155,8 +158,8 @@ newRegion :: forall rw a. (Storable a) => Word32 -> BuildRegion rw (Region rw a)
 newRegion size = BuildRegion $ do
     offset <- get
     put $ offset + fromIntegral size * sizeOf (undefined :: a)
-    (buffer,ptr) <- ask
 #ifdef __GL45
+    (buffer,ptr) <- ask
     pure $ Region {
         regionPtr = (castPtr $ ptr `plusPtr` fromIntegral offset)
       , regionOffset = offset
@@ -164,6 +167,7 @@ newRegion size = BuildRegion $ do
       , regionBuffer = buffer
       }
 #elif defined(__GL32)
+    (buffer,_) <- ask
     pure $ Region {
         regionOffset = offset
       , regionSize = fromIntegral size

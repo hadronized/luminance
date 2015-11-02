@@ -31,7 +31,7 @@ import Data.Int ( Int32 )
 import Data.Proxy ( Proxy(..) )
 import Data.Word ( Word32 )
 import Foreign.Storable ( Storable(sizeOf) )
-#if __GL32
+#ifdef __GL32
 import Foreign.Ptr ( nullPtr )
 #endif
 import GHC.TypeLits ( KnownNat, natVal )

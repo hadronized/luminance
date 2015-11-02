@@ -15,9 +15,15 @@
 module Graphics.Luminance.Core.Cubemap where
 
 import Data.Proxy ( Proxy(..) )
-import Data.Vector.Storable as V ( concat, unsafeWith )
+#ifdef __GL32
 import Data.Foldable ( for_ )
-import Foreign.Ptr ( castPtr, nullPtr )
+import Data.Vector.Storable as V ( concat )
+#endif
+import Data.Vector.Storable ( unsafeWith )
+import Foreign.Ptr ( castPtr )
+#ifdef __GL32
+import Foreign.Ptr ( nullPtr )
+#endif
 import Graphics.Luminance.Core.Texture ( BaseTexture(..), Texture(..) )
 import Graphics.Luminance.Core.Pixel ( Pixel(..) )
 import Graphics.GL
