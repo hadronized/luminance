@@ -23,7 +23,9 @@ import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.GL
+#ifdef __GL_BINDLESS_TEXTURES
 import Graphics.GL.Ext.ARB.BindlessTexture
+#endif
 import Numeric.Natural ( Natural )
 
 ----------------------------------------------------------------------------------------------------
