@@ -97,33 +97,33 @@ instance Uniform () where
 
 -- scalar
 instance Uniform Int32 where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U (glProgramUniform1i prog l)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U (glUniform1i l)
 #endif
 
 -- D2
 instance Uniform (Int32,Int32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(x,y) -> glProgramUniform2i prog l x y
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(x,y) -> glUniform2i l x y
 #endif
 
 instance Uniform (V2 Int32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V2 x y) -> glProgramUniform2i prog l x y
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V2 x y) -> glUniform2i l x y
 #endif
 
 instance Uniform (V 2 Int32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V v) -> case toList v of
     [x,y] -> glProgramUniform2i prog l x y
     _ -> pure ()
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V v) -> case toList v of
     [x,y] -> glUniform2i l x y
     _ -> pure ()
@@ -131,25 +131,25 @@ instance Uniform (V 2 Int32) where
     
 -- D3
 instance Uniform (Int32,Int32,Int32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(x,y,z) -> glProgramUniform3i prog l x y z
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(x,y,z) -> glUniform3i l x y z
 #endif
 
 instance Uniform (V3 Int32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V3 x y z) -> glProgramUniform3i prog l x y z
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V3 x y z) -> glUniform3i l x y z
 #endif
 
 instance Uniform (V 3 Int32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V v) -> case toList v of
     [x,y,z] -> glProgramUniform3i prog l x y z
     _ -> pure ()
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V v) -> case toList v of
     [x,y,z] -> glUniform3i l x y z
     _ -> pure ()
@@ -157,25 +157,25 @@ instance Uniform (V 3 Int32) where
 
 -- D4
 instance Uniform (Int32,Int32,Int32,Int32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(x,y,z,w) -> glProgramUniform4i prog l x y z w
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(x,y,z,w) -> glUniform4i l x y z w
 #endif
 
 instance Uniform (V4 Int32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V4 x y z w) -> glProgramUniform4i prog l x y z w
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V4 x y z w) -> glUniform4i l x y z w
 #endif
 
 instance Uniform (V 4 Int32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V v) -> case toList v of
     [x,y,z,w] -> glProgramUniform4i prog l x y z w
     _ -> pure ()
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V v) -> case toList v of
     [x,y,z,w] -> glUniform4i l x y z w
     _ -> pure ()
@@ -183,92 +183,92 @@ instance Uniform (V 4 Int32) where
 
 -- scalar array
 instance Uniform [Int32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ glProgramUniform1iv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ glUniform1iv l . fromIntegral
 #endif
 
 -- D2 array
 instance Uniform [(Int32,Int32)] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen (concatMap unPair v) $
     glProgramUniform2iv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen (concatMap unPair v) $
     glUniform2iv l . fromIntegral
 #endif
 
 instance Uniform [V2 Int32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform2iv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform2iv l (fromIntegral size) (castPtr p)
 #endif
 
 instance Uniform [V 2 Int32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform2iv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform2iv l (fromIntegral size) (castPtr p)
 #endif
 
 -- D3 array
 instance Uniform [(Int32,Int32,Int32)] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen (concatMap unTriple v) $
     glProgramUniform3iv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen (concatMap unTriple v) $
     glUniform3iv l . fromIntegral
 #endif
 
 instance Uniform [V3 Int32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform3iv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform3iv l (fromIntegral size) (castPtr p)
 #endif
 
 instance Uniform [V 3 Int32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform3iv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform3iv l (fromIntegral size) (castPtr p)
 #endif
 
 -- D4 array
 instance Uniform [(Int32,Int32,Int32,Int32)] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glProgramUniform4iv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glUniform4iv l . fromIntegral
 #endif
 
 instance Uniform [V4 Int32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform4iv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform4iv l (fromIntegral size) (castPtr p)
 #endif
 
 instance Uniform [V 4 Int32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform4iv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform4iv l (fromIntegral size) (castPtr p)
 #endif
@@ -278,33 +278,33 @@ instance Uniform [V 4 Int32] where
 
 -- scalar
 instance Uniform Word32 where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ glProgramUniform1ui prog l
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ glUniform1ui l
 #endif
 
 -- D2
 instance Uniform (Word32,Word32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(x,y) -> glProgramUniform2ui prog l x y
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(x,y) -> glUniform2ui l x y
 #endif
 
 instance Uniform (V2 Word32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V2 x y) -> glProgramUniform2ui prog l x y
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V2 x y) -> glUniform2ui l x y
 #endif
 
 instance Uniform (V 2 Word32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V v) -> case toList v of
     [x,y] -> glProgramUniform2ui prog l x y
     _ -> pure ()
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V v) -> case toList v of
     [x,y] -> glUniform2ui l x y
     _ -> pure ()
@@ -312,25 +312,25 @@ instance Uniform (V 2 Word32) where
 
 -- D3
 instance Uniform (Word32,Word32,Word32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(x,y,z) -> glProgramUniform3ui prog l x y z
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(x,y,z) -> glUniform3ui l x y z
 #endif
 
 instance Uniform (V3 Word32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V3 x y z) -> glProgramUniform3ui prog l x y z
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V3 x y z) -> glUniform3ui l x y z
 #endif
 
 instance Uniform (V 3 Word32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V v) -> case toList v of
     [x,y,z] -> glProgramUniform3ui prog l x y z
     _ -> pure ()
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V v) -> case toList v of
     [x,y,z] -> glUniform3ui l x y z
     _ -> pure ()
@@ -338,25 +338,25 @@ instance Uniform (V 3 Word32) where
 
 -- D4
 instance Uniform (Word32,Word32,Word32,Word32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(x,y,z,w) -> glProgramUniform4ui prog l x y z w
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(x,y,z,w) -> glUniform4ui l x y z w
 #endif
 
 instance Uniform (V4 Word32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V4 x y z w) -> glProgramUniform4ui prog l x y z w
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V4 x y z w) -> glUniform4ui l x y z w
 #endif
 
 instance Uniform (V 4 Word32) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V v) -> case toList v of
     [x,y,z,w] -> glProgramUniform4ui prog l x y z w
     _ -> pure ()
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V v) -> case toList v of
     [x,y,z,w] -> glUniform4ui l x y z w
     _ -> pure ()
@@ -364,94 +364,94 @@ instance Uniform (V 4 Word32) where
 
 -- scalar array
 instance Uniform [Word32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $
     glProgramUniform1uiv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $
     glUniform1uiv l . fromIntegral
 #endif
 
 -- D2 array
 instance Uniform [(Word32,Word32)] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen (concatMap unPair v) $
     glProgramUniform2uiv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen (concatMap unPair v) $
     glUniform2uiv l . fromIntegral
 #endif
 
 instance Uniform [V2 Word32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform2uiv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform2uiv l (fromIntegral size) (castPtr p)
 #endif
 
 instance Uniform [V 2 Word32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform2uiv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform2uiv l (fromIntegral size) (castPtr p)
 #endif
 
 -- D3 array
 instance Uniform [(Word32,Word32,Word32)] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen (concatMap unTriple v) $
     glProgramUniform3uiv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen (concatMap unTriple v) $
     glUniform3uiv l . fromIntegral
 #endif
 
 instance Uniform [V3 Word32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform3uiv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform3uiv l (fromIntegral size) (castPtr p)
 #endif
 
 instance Uniform [V 3 Word32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform3uiv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform3uiv l (fromIntegral size) (castPtr p)
 #endif
 
 -- D4 array
 instance Uniform [(Word32,Word32,Word32,Word32)] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glProgramUniform4uiv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glUniform4uiv l . fromIntegral
 #endif
 
 instance Uniform [V4 Word32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform4uiv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform4uiv l (fromIntegral size) (castPtr p)
 #endif
 
 instance Uniform [V 4 Word32] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform4uiv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform4uiv l (fromIntegral size) (castPtr p)
 #endif
@@ -461,33 +461,33 @@ instance Uniform [V 4 Word32] where
 
 -- scalar
 instance Uniform Float where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ glProgramUniform1f prog l
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ glUniform1f l
 #endif
 
 -- D2
 instance Uniform (Float,Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(x,y) -> glProgramUniform2f prog l x y
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(x,y) -> glUniform2f l x y
 #endif
 
 instance Uniform (V2 Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V2 x y) -> glProgramUniform2f prog l x y
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V2 x y) -> glUniform2f l x y
 #endif
 
 instance Uniform (V 2 Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V v) -> case toList v of
     [x,y] -> glProgramUniform2f prog l x y
     _ -> pure ()
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V v) -> case toList v of
     [x,y] -> glUniform2f l x y
     _ -> pure ()
@@ -495,25 +495,25 @@ instance Uniform (V 2 Float) where
 
 -- D3
 instance Uniform (Float,Float,Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(x,y,z) -> glProgramUniform3f prog l x y z
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(x,y,z) -> glUniform3f l x y z
 #endif
 
 instance Uniform (V3 Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V3 x y z) -> glProgramUniform3f prog l x y z
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V3 x y z) -> glUniform3f l x y z
 #endif
 
 instance Uniform (V 3 Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V v) -> case toList v of
     [x,y,z] -> glProgramUniform3f prog l x y z
     _ -> pure ()
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V v) -> case toList v of
     [x,y,z] -> glUniform3f l x y z
     _ -> pure ()
@@ -521,25 +521,25 @@ instance Uniform (V 3 Float) where
 
 -- D4
 instance Uniform (Float,Float,Float,Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(x,y,z,w) -> glProgramUniform4f prog l x y z w
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(x,y,z,w) -> glUniform4f l x y z w
 #endif
 
 instance Uniform (V4 Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V4 x y z w) -> glProgramUniform4f prog l x y z w
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V4 x y z w) -> glUniform4f l x y z w
 #endif
 
 instance Uniform (V 4 Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \(V v) -> case toList v of
     [x,y,z,w] -> glProgramUniform4f prog l x y z w
     _ -> pure ()
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \(V v) -> case toList v of
     [x,y,z,w] -> glUniform4f l x y z w
     _ -> pure ()
@@ -547,94 +547,94 @@ instance Uniform (V 4 Float) where
 
 -- scalar array
 instance Uniform [Float] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $
     glProgramUniform1fv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $
     glUniform1fv l . fromIntegral
 #endif
 
 -- D2 array
 instance Uniform [(Float,Float)] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen (concatMap unPair v) $
     glProgramUniform2fv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen (concatMap unPair v) $
     glUniform2fv l . fromIntegral
 #endif
 
 instance Uniform [V2 Float] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform2fv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform2fv l (fromIntegral size) (castPtr p)
 #endif
 
 instance Uniform [V 2 Float] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform2fv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform2fv l (fromIntegral size) (castPtr p)
 #endif
 
 -- D3 array
 instance Uniform [(Float,Float,Float)] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen (concatMap unTriple v) $
     glProgramUniform3fv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen (concatMap unTriple v) $
     glUniform3fv l . fromIntegral
 #endif
 
 instance Uniform [V3 Float] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform3fv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform3fv l (fromIntegral size) (castPtr p)
 #endif
 
 instance Uniform [V 3 Float] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform3fv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform3fv l (fromIntegral size) (castPtr p)
 #endif
 
 -- D4 array
 instance Uniform [(Float,Float,Float,Float)] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glProgramUniform4fv prog l . fromIntegral
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen (concatMap unQuad v) $
     glUniform4fv l . fromIntegral
 #endif
 
 instance Uniform [V4 Float] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform4fv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform4fv l (fromIntegral size) (castPtr p)
 #endif
 
 instance Uniform [V 4 Float] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniform4fv prog l (fromIntegral size) (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniform4fv l (fromIntegral size) (castPtr p)
 #endif
@@ -642,17 +642,17 @@ instance Uniform [V 4 Float] where
 --------------------------------------------------------------------------------
 -- Matrices --------------------------------------------------------------------
 instance Uniform (M44 Float) where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> with v $ glProgramUniformMatrix4fv prog l 1 GL_FALSE . castPtr
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> with v $ glUniformMatrix4fv l 1 GL_FALSE . castPtr
 #endif
 
 instance Uniform [M44 Float] where
-#if GL45_BACKEND
+#ifdef __GL45
   toU prog l = U $ \v -> withArrayLen v $ \size p ->
     glProgramUniformMatrix4fv prog l (fromIntegral size) GL_FALSE (castPtr p)
-#elif GL32_BACKEND
+#elif defined(__GL32)
   toU _ l = U $ \v -> withArrayLen v $ \size p ->
     glUniformMatrix4fv l (fromIntegral size) GL_FALSE (castPtr p)
 #endif
@@ -672,7 +672,7 @@ instance Uniform (Texture3D f) where
 
 instance Uniform (Cubemap f) where
   toU prog l = U $ glProgramUniformHandleui64ARB prog l . baseTextureHnd . cubemapBase
-#elif GL32_BACKEND
+#elif defined(__GL32)
 instance (Pixel f) => Uniform (Texture1D f) where
   toU _ l = U $ \tex -> do
     glActiveTexture 0

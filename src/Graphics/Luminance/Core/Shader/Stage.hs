@@ -108,9 +108,9 @@ clog l sid =
 
 prependGLSLPragma :: String -> String
 prependGLSLPragma src =
-#if GL45_BACKEND
+#ifdef __GL45
      "#version 450 core\n"
-#elif GL32_BACKEND
+#elif defined(__GL32)
      "#version 150 core\n"
 #endif
 #if __GL_BINDLESS_TEXTURES
