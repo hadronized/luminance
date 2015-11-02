@@ -43,11 +43,11 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
   toBaseTexture = cubemapArrayBase
   textureTypeEnum _ = GL_TEXTURE_CUBE_MAP_ARRAY
   textureSize (CubemapArray _ w h) = (w,h)
-#if GL45_BACKEND
+#ifdef __GL45
   textureStorage _ tid levels (w,h) =
     glTextureStorage3D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w)
       (fromIntegral h) (fromIntegral $ natVal (Proxy :: Proxy n))
-#elif GL32_BACKEND
+#elif defined(__GL32)
   textureStorage _ tid levels (w,h) = do
       glBindTexture GL_TEXTURE_CUBE_MAP_ARRAY tid
       for_ [0..levels-1] $ \lvl -> glTexImage3D GL_TEXTURE_CUBE_MAP_ARRAY lvl
@@ -57,12 +57,12 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
     where
       pf = Proxy :: Proxy f
 #endif
-#if GL45_BACKEND
+#ifdef __GL45
   transferTexelsSub _ tid (layer,x,y,f) (w,h) texels =
       unsafeWith texels $ glTextureSubImage3D tid 0 (fromIntegral x) (fromIntegral y)
         (fromCubeFace f + fromIntegral layer*6) (fromIntegral w) (fromIntegral h) 1 fmt
         typ . castPtr
-#elif GL32_BACKEND
+#elif defined(__GL32)
   transferTexelsSub _ tid (layer,x,y,f) (w,h) texels = do
       glBindTexture GL_TEXTURE_CUBE_MAP_ARRAY tid
       unsafeWith texels $ glTexSubImage3D GL_TEXTURE_CUBE_MAP_ARRAY 0 (fromIntegral x)
@@ -73,7 +73,7 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
-#if GL45_BACKEND
+#ifdef __GL45
   fillTextureSub _ tid (layer,x,y,f) (w,h) filling =
       unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral y) 
         (fromCubeFace f + fromIntegral layer*6) (fromIntegral w) (fromIntegral h) 1
@@ -82,7 +82,7 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
-#elif GL32_BACKEND
+#elif defined(__GL32)
   fillTextureSub proxy tid o (w,h) filling =
     transferTexelsSub proxy tid o (w,h) (V.concat $ replicate (fromIntegral $ w*h) filling)
 #endif

@@ -73,7 +73,7 @@ fromGeometryMode m = case m of
 -- If you don’t pass indices ('Nothing'), you end up with a /direct geometry/. Otherwise, you get an
 -- /indexed geometry/. You also have to provide a 'GeometryMode' to state how you want the vertices
 -- to be connected with each other.
-#if GL45_BACKEND
+#ifdef __GL45
 createGeometry :: forall f m v. (Foldable f,MonadIO m,MonadResource m,Storable v,Vertex v)
                => f v
                -> Maybe (f Word32)
@@ -102,7 +102,7 @@ createGeometry vertices indices mode = do
   where
     vertNb = length vertices
     mode'  = fromGeometryMode mode
-#elif GL32_BACKEND
+#elif defined(__GL32)
 createGeometry :: forall f m v. (Foldable f,MonadIO m,MonadResource m,Storable v,Vertex v)
                => f v
                -> Maybe (f Word32)

@@ -25,7 +25,7 @@ import Numeric.Natural ( Natural )
 newtype Renderbuffer = Renderbuffer { renderbufferID :: GLuint } deriving (Eq,Show)
 
 createRenderbuffer :: (MonadIO m,MonadResource m,Pixel f) => Natural -> Natural -> Proxy f -> m Renderbuffer
-#if GL45_BACKEND
+#ifdef __GL45
 createRenderbuffer w h depthProxy = do
   rid <- liftIO . alloca $ \p -> do
     glCreateRenderbuffers 1 p
@@ -34,7 +34,7 @@ createRenderbuffer w h depthProxy = do
     pure rid
   _ <- register $ with rid (glDeleteRenderbuffers 1)
   pure (Renderbuffer rid)
-#elif GL32_BACKEND
+#elif defined(__GL32)
 createRenderbuffer w h depthProxy = do
   rid <- liftIO . alloca $ \p -> do
     glGenRenderbuffers 1 p

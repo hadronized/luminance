@@ -17,7 +17,7 @@
 module Graphics.Luminance.Core.Vertex (
     VertexAttribute(..)
   , Vertex(..)
-#if GL45_BACKEND
+#ifdef __GL45
   , vertexBindingIndex
 #endif
   , module Linear.V
@@ -31,7 +31,7 @@ import Data.Int ( Int32 )
 import Data.Proxy ( Proxy(..) )
 import Data.Word ( Word32 )
 import Foreign.Storable ( Storable(sizeOf) )
-#if GL32_BACKEND
+#if __GL32
 import Foreign.Ptr ( nullPtr )
 #endif
 import GHC.TypeLits ( KnownNat, natVal )
@@ -75,12 +75,12 @@ class Vertex v where
   setFormatV :: (MonadIO m) => GLuint -> GLuint -> GLuint -> proxy v -> m (GLuint,GLuint)
 
 instance (KnownNat n,Storable a,VertexAttribute a) => Vertex (V n a) where
-#if GL45_BACKEND
+#ifdef __GL45
   setFormatV vid index offset _ = do
     glVertexArrayAttribFormat vid index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE offset
     glVertexArrayAttribBinding vid index vertexBindingIndex
     glEnableVertexArrayAttrib vid index
-#elif GL32_BACKEND
+#elif defined(__GL32)
   setFormatV _ index offset _ = do
     glVertexAttribPointer index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE (fromIntegral offset) nullPtr
     glEnableVertexAttribArray index
@@ -92,7 +92,7 @@ instance (Vertex a,Vertex b) => Vertex (a :. b) where
     (nextIndex,nextOffset) <- setFormatV vid index offset (Proxy :: Proxy a)
     setFormatV vid nextIndex nextOffset (Proxy :: Proxy b)
 
-#if GL45_BACKEND
+#ifdef __GL45
 -- Used to connect vertex attribute to the vertex buffer binding point. Should be 0.
 vertexBindingIndex :: GLuint
 vertexBindingIndex = 0

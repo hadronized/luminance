@@ -128,7 +128,7 @@ data BaseTexture = BaseTexture {
     baseTextureID  :: GLuint
   , baseTextureHnd :: GLuint64
   } deriving (Eq,Show)
-#elif GL32_BACKEND
+#elif defined(__GL32)
 newtype BaseTexture = BaseTexture {
     baseTextureID  :: GLuint
   } deriving (Eq,Show)
@@ -157,7 +157,7 @@ createTexture size levels sampling = do
     glMakeTextureHandleNonResidentARB texH
     with tid (glDeleteTextures 1)
   pure $ fromBaseTexture (BaseTexture tid texH) size
-#elif GL32_BACKEND
+#elif defined(__GL32)
 createTexture size levels sampling = do
     tid <- liftIO . alloca $ \p -> do
       glGenTextures 1 p
@@ -264,11 +264,11 @@ uploadSub :: forall a m t. (MonadIO m,Storable a,Texture t)
           -> Bool
           -> Vector a
           -> m ()
-#if GL45_BACKEND
+#ifdef __GL45
 uploadSub tex offset size autolvl texels = liftIO $ do
     transferTexelsSub (Proxy :: Proxy t) tid offset size texels
     when autolvl $ glGenerateTextureMipmap tid
-#elif GL32_BACKEND
+#elif defined(__GL32)
 uploadSub tex offset size autolvl texels = liftIO $ do
     transferTexelsSub (Proxy :: Proxy t) tid offset size texels
     when autolvl $ glGenerateMipmap (textureTypeEnum (Proxy :: Proxy t))

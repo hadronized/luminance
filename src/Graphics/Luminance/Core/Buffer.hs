@@ -39,7 +39,7 @@ mkBuffer :: (MonadIO m,MonadResource m)
          => GLbitfield
          -> Int
          -> m (Buffer,Ptr ())
-#if GL45_BACKEND
+#ifdef __GL45
 mkBuffer flags size = do
   (bid,mapped) <- liftIO . alloca $ \p -> do
     glCreateBuffers 1 p
@@ -48,7 +48,7 @@ mkBuffer flags size = do
     pure (bid,mapped)
   _ <- register . with bid $ glDeleteBuffers 1
   pure (Buffer bid,mapped)
-#elif GL32_BACKEND
+#elif defined(__GL32)
 mkBuffer flags size = do
   (bid,mapped) <- liftIO . alloca $ \p -> do
     glGenBuffers 1 p
@@ -61,14 +61,14 @@ mkBuffer flags size = do
 
 -- Create the required OpenGL storage for a 'Buffer'.
 createStorage :: GLuint -> GLbitfield -> Int -> IO (Ptr ())
-#if GL45_BACKEND
+#ifdef __GL45
 createStorage bid flags size = do
     glNamedBufferStorage bid bytes nullPtr flags
     ptr <- glMapNamedBufferRange bid 0 bytes flags
     pure ptr
   where
     bytes = fromIntegral size
-#elif GL32_BACKEND
+#elif defined(__GL32)
 createStorage bid _ size = do
     glBindBuffer GL_ARRAY_BUFFER bid
     glBufferData GL_ARRAY_BUFFER bytes nullPtr GL_STREAM_DRAW
@@ -121,21 +121,21 @@ createBuffer_ = mkBufferWithRegions $
   bufferFlagsFromRW (Proxy :: Proxy rw) .|. persistentCoherentBits
 
 persistentCoherentBits :: GLbitfield
-#if GL45_BACKEND
+#ifdef __GL45
 persistentCoherentBits = GL_MAP_PERSISTENT_BIT .|. GL_MAP_COHERENT_BIT
-#elif GL32_BACKEND
+#elif defined(__GL32)
 persistentCoherentBits = 0
 #endif
 
 -- |A 'Region' is a GPU typed memory area. It can be pictured as a GPU array.
-#if GL45_BACKEND
+#ifdef __GL45
 data Region rw a = Region {
     regionPtr :: Ptr a -- mapped pointer (into GPU memory)
   , regionOffset :: Int
   , regionSize :: Int -- number of elements living in that region
   , regionBuffer :: Buffer -- buffer the region lays in
   } deriving (Eq,Show)
-#elif GL32_BACKEND
+#elif defined(__GL32)
 -- OpenGL 3.2 doesn’t have any support for persistent/coherent buffers, so we don’t need to store
 -- the pointer, as we will ask for it each time we want to do something with the buffer.
 data Region rw a = Region {
@@ -156,14 +156,14 @@ newRegion size = BuildRegion $ do
     offset <- get
     put $ offset + fromIntegral size * sizeOf (undefined :: a)
     (buffer,ptr) <- ask
-#if GL45_BACKEND
+#ifdef __GL45
     pure $ Region {
         regionPtr = (castPtr $ ptr `plusPtr` fromIntegral offset)
       , regionOffset = offset
       , regionSize = fromIntegral size
       , regionBuffer = buffer
       }
-#elif GL32_BACKEND
+#elif defined(__GL32)
     pure $ Region {
         regionOffset = offset
       , regionSize = fromIntegral size
@@ -173,9 +173,9 @@ newRegion size = BuildRegion $ do
 
 -- |Read a whole 'Region'.
 readWhole :: (MonadIO m,Readable r,Storable a) => Region r a -> m [a]
-#if GL45_BACKEND
+#ifdef __GL45
 readWhole r = liftIO $ peekArray (regionSize r) (regionPtr r)
-#elif GL32_BACKEND
+#elif defined(__GL32)
 readWhole r = liftIO $ do
   glBindBuffer GL_ARRAY_BUFFER (bufferID $ regionBuffer r)
   p <- glMapBufferRange GL_ARRAY_BUFFER (fromIntegral $ regionOffset r) (fromIntegral $ regionSize r) GL_MAP_READ_BIT
@@ -190,9 +190,9 @@ writeWhole :: (Foldable f,MonadIO m,Storable a,Writable w)
            => Region w a
            -> f a
            -> m ()
-#if GL45_BACKEND
+#ifdef __GL45
 writeWhole r values = liftIO . pokeArray (regionPtr r) . take (regionSize r) $ toList values
-#elif GL32_BACKEND
+#elif defined(__GL32)
 writeWhole r values = liftIO $ do
   glBindBuffer GL_ARRAY_BUFFER (bufferID $ regionBuffer r)
   p <- glMapBufferRange GL_ARRAY_BUFFER (fromIntegral $ regionOffset r) (fromIntegral $ regionSize r) GL_MAP_WRITE_BIT
@@ -212,9 +212,9 @@ r @? i
 
 -- |Index getter. Unsafe version of '(@?)'.
 (@!) :: (MonadIO m,Storable a,Readable r) => Region r a -> Word32 -> m a
-#if GL45_BACKEND
+#ifdef __GL45
 r @! i = liftIO $ peekElemOff (regionPtr r) (fromIntegral i)
-#elif GL32_BACKEND
+#elif defined(__GL32)
 r @! i = liftIO $ do
   glBindBuffer GL_ARRAY_BUFFER (bufferID $ regionBuffer r)
   p <- glMapBufferRange GL_ARRAY_BUFFER (fromIntegral $ regionOffset r) (fromIntegral $ regionSize r) GL_MAP_READ_BIT
@@ -231,9 +231,9 @@ writeAt r i a
 
 -- |Index setter. Unsafe version of 'writeAt''.
 writeAt' :: (MonadIO m,Storable a,Writable w) => Region w a -> Word32 -> a -> m ()
-#if GL45_BACKEND
+#ifdef __GL45
 writeAt' r i a = liftIO $ pokeElemOff (regionPtr r) (fromIntegral i) a
-#elif GL32_BACKEND
+#elif defined(__GL32)
 writeAt' r i a = liftIO $ do
   glBindBuffer GL_ARRAY_BUFFER (bufferID $ regionBuffer r)
   p <- glMapBufferRange GL_ARRAY_BUFFER (fromIntegral $ regionOffset r) (fromIntegral $ regionSize r) GL_MAP_WRITE_BIT
