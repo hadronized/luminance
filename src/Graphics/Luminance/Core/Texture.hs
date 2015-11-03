@@ -125,7 +125,7 @@ class Texture t where
                  -> IO ()
 
 -- OpenGL texture.
-#if GL45_BACKEND && __GL_BINDLESS_TEXTURES
+#if __GL45 && __GL_BINDLESS_TEXTURES
 data BaseTexture = BaseTexture {
     baseTextureID  :: GLuint
   , baseTextureHnd :: GLuint64
@@ -143,7 +143,7 @@ createTexture :: forall m t. (MonadIO m,MonadResource m,Texture t)
               -> Natural
               -> Sampling
               -> m t
-#if GL45_BACKEND && __GL_BINDLESS_TEXTURES
+#if __GL45 && __GL_BINDLESS_TEXTURES
 createTexture size levels sampling = do
   (tid,texH) <- liftIO . alloca $ \p -> do
     glCreateTextures (textureTypeEnum (Proxy :: Proxy t)) 1 p
