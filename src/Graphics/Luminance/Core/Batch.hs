@@ -20,9 +20,8 @@ import Graphics.GL
 import Graphics.Luminance.Core.Blending ( setBlending )
 import Graphics.Luminance.Core.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
-import Graphics.Luminance.Core.Shader.Program ( Program(..) )
+import Graphics.Luminance.Core.Shader.Program ( Program(..), U(..) )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
-import Graphics.Luminance.Core.Shader.Uniform ( U(..) )
 
 --------------------------------------------------------------------------------
 -- Framebuffer batch -----------------------------------------------------------

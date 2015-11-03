@@ -11,9 +11,7 @@
 module Graphics.Luminance.Shader (
     module Graphics.Luminance.Shader.Program
   , module Graphics.Luminance.Shader.Stage
-  , module Graphics.Luminance.Shader.Uniform
   ) where
 
 import Graphics.Luminance.Shader.Program
 import Graphics.Luminance.Shader.Stage
-import Graphics.Luminance.Shader.Uniform
