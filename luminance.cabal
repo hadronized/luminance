@@ -91,7 +91,6 @@ library
                      , Graphics.Luminance.Shader
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
-                     , Graphics.Luminance.Shader.Uniform
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Vertex
 
@@ -111,7 +110,6 @@ library
                      , Graphics.Luminance.Core.RW
                      , Graphics.Luminance.Core.Shader.Program
                      , Graphics.Luminance.Core.Shader.Stage
-                     , Graphics.Luminance.Core.Shader.Uniform
                      , Graphics.Luminance.Core.Shader.UniformBlock
                      , Graphics.Luminance.Core.Texture
                      , Graphics.Luminance.Core.Texture1D
