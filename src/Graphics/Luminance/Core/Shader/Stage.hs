@@ -113,7 +113,7 @@ prependGLSLPragma src =
 #elif defined(__GL32)
      "#version 150 core\n"
 #endif
-#if __GL_BINDLESS_TEXTURES
+#ifdef __GL_BINDLESS_TEXTURES
   ++ "#extension GL_ARB_bindless_texture : require\n"
   ++ "layout (bindless_sampler) uniform;"
 #endif
