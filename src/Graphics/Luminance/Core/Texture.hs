@@ -266,13 +266,11 @@ uploadSub :: forall a m t. (MonadIO m,Storable a,Texture t)
           -> Bool
           -> Vector a
           -> m ()
-#ifdef __GL45
 uploadSub tex offset size autolvl texels = liftIO $ do
     transferTexelsSub (Proxy :: Proxy t) tid offset size texels
+#ifdef __GL45
     when autolvl $ glGenerateTextureMipmap tid
 #elif defined(__GL32)
-uploadSub tex offset size autolvl texels = liftIO $ do
-    transferTexelsSub (Proxy :: Proxy t) tid offset size texels
     when autolvl $ glGenerateMipmap (textureTypeEnum (Proxy :: Proxy t))
 #endif
   where
@@ -288,6 +286,10 @@ fillSub :: forall a m t. (MonadIO m,Storable a,Texture t)
         -> m ()
 fillSub tex offset size autolvl filling = liftIO $ do
     fillTextureSub (Proxy :: Proxy t) tid offset size filling
+#ifdef __GL45
     when autolvl $ glGenerateTextureMipmap tid
+#elif defined(__GL32)
+    when autolvl $ glGenerateMipmap (textureTypeEnum (Proxy :: Proxy t))
+#endif
   where
     tid = baseTextureID (toBaseTexture tex)
