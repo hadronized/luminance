@@ -167,7 +167,7 @@ createTexture size levels sampling = do
       textureStorage (Proxy :: Proxy t) tid (fromIntegral levels) size
       glTexParameteri target GL_TEXTURE_BASE_LEVEL 0
       glTexParameteri target GL_TEXTURE_MAX_LEVEL (fromIntegral levels - 1)
-      setTextureSampling tid sampling
+      setTextureSampling target sampling
       pure tid
     _ <- register $ with tid (glDeleteTextures 1)
     pure $ fromBaseTexture (BaseTexture tid) size
@@ -212,24 +212,28 @@ defaultSampling = Sampling {
 
 -- Apply a 'Sampling' object for a given type of object (texture, sampler, etc.).
 setSampling :: (Eq a,Eq b,MonadIO m,Num a,Num b) => (GLenum -> a -> b -> IO ()) -> GLenum -> Sampling -> m ()
-setSampling f objID s = liftIO $ do
+setSampling f oid s = liftIO $ do
   -- wraps
-  f objID GL_TEXTURE_WRAP_S . fromWrap $ samplingWrapS s
-  f objID GL_TEXTURE_WRAP_T . fromWrap $ samplingWrapT s
-  f objID GL_TEXTURE_WRAP_R . fromWrap $ samplingWrapR s
+  f oid GL_TEXTURE_WRAP_S . fromWrap $ samplingWrapS s
+  f oid GL_TEXTURE_WRAP_T . fromWrap $ samplingWrapT s
+  f oid GL_TEXTURE_WRAP_R . fromWrap $ samplingWrapR s
   -- filters
-  f objID GL_TEXTURE_MIN_FILTER . fromFilter $ samplingMinFilter s
-  f objID GL_TEXTURE_MAG_FILTER . fromFilter $ samplingMagFilter s
+  f oid GL_TEXTURE_MIN_FILTER . fromFilter $ samplingMinFilter s
+  f oid GL_TEXTURE_MAG_FILTER . fromFilter $ samplingMagFilter s
   -- comparison function
   case samplingCompareFunction s of
     Just cmpf -> do
-      f objID GL_TEXTURE_COMPARE_FUNC $ fromCompareFunc cmpf
-      f objID GL_TEXTURE_COMPARE_MODE GL_COMPARE_REF_TO_TEXTURE
+      f oid GL_TEXTURE_COMPARE_FUNC $ fromCompareFunc cmpf
+      f oid GL_TEXTURE_COMPARE_MODE GL_COMPARE_REF_TO_TEXTURE
     Nothing ->
-      f objID GL_TEXTURE_COMPARE_MODE GL_NONE
+      f oid GL_TEXTURE_COMPARE_MODE GL_NONE
 
 setTextureSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
+#if __GL45
 setTextureSampling = setSampling glTextureParameteri
+#elif defined(__GL32)
+setTextureSampling = setSampling glTexParameteri
+#endif
 
 setSamplerSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
 setSamplerSampling = setSampling glSamplerParameteri
