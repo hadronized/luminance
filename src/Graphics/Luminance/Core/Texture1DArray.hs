@@ -52,7 +52,7 @@ instance (KnownNat n,Pixel f) => Texture (Texture1DArray n f) where
         0 (pixelFormat pf) (pixelType pf) nullPtr
     where pf = Proxy :: Proxy f
 #endif
-#if __GL45
+#ifdef __GL45
   transferTexelsSub _ tid (layer,x) w texels =
       unsafeWith texels $ glTextureSubImage2D tid 0 (fromIntegral x) (fromIntegral w) (fromIntegral layer) 1 fmt
         typ . castPtr
@@ -66,7 +66,7 @@ instance (KnownNat n,Pixel f) => Texture (Texture1DArray n f) where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
-#if __GL45
+#ifdef __GL45
   fillTextureSub _ tid (layer,x) w filling =
       unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral layer) 0 (fromIntegral w) (fromIntegral $ natVal (Proxy :: Proxy n)) 1
         fmt typ . castPtr
