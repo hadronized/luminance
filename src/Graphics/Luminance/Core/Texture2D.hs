@@ -63,7 +63,7 @@ instance (Pixel f) => Texture (Texture2D f) where
       typ = pixelType proxy
 #ifdef __GL45
   fillTextureSub _ tid (x,y) (w,h) filling =
-      unsafeWith filling $ glClearTexSubImage GL_TEXTURE_2D 0 (fromIntegral x)
+      unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x)
         (fromIntegral y) 0 (fromIntegral w) (fromIntegral h) 1 fmt typ . castPtr
     where
       proxy = Proxy :: Proxy f
