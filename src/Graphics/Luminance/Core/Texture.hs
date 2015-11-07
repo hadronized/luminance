@@ -164,10 +164,11 @@ createTexture size levels sampling = do
     tid <- liftIO . alloca $ \p -> do
       glGenTextures 1 p
       tid <- peek p
-      textureStorage (Proxy :: Proxy t) tid (fromIntegral levels) size
+      glBindTexture target tid
       glTexParameteri target GL_TEXTURE_BASE_LEVEL 0
       glTexParameteri target GL_TEXTURE_MAX_LEVEL (fromIntegral levels - 1)
       setTextureSampling target sampling
+      textureStorage (Proxy :: Proxy t) tid (fromIntegral levels) size
       pure tid
     _ <- register $ with tid (glDeleteTextures 1)
     pure $ fromBaseTexture (BaseTexture tid) size

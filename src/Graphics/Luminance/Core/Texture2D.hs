@@ -41,8 +41,7 @@ instance (Pixel f) => Texture (Texture2D f) where
   textureStorage _ tid levels (w,h) =
     glTextureStorage2D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w) (fromIntegral h)
 #elif defined(__GL32)
-  textureStorage _ tid levels (w,h) = do
-      glBindTexture GL_TEXTURE_2D tid
+  textureStorage _ _ levels (w,h) = do
       for_ [0..levels-1] $ \lvl -> do
         let divisor = 2 ^ lvl
         glTexImage2D GL_TEXTURE_2D lvl (fromIntegral $ pixelIFormat pf)
