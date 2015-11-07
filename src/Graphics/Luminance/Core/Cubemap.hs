@@ -68,9 +68,11 @@ instance (Pixel f) => Texture (Cubemap f) where
 #elif defined(__GL32)
   textureStorage _ tid levels (w,h) = do
       glBindTexture GL_TEXTURE_CUBE_MAP tid
-      for_ [0..levels-1] $ \lvl -> glTexImage2D GL_TEXTURE_CUBE_MAP lvl
-        (fromIntegral $ pixelIFormat pf) (fromIntegral w) (fromIntegral h) 0 (pixelFormat pf)
-        (pixelType pf) nullPtr
+      for_ [0..levels-1] $ \lvl -> do
+        let divisor = 2 ^ lvl
+        glTexImage2D GL_TEXTURE_CUBE_MAP lvl (fromIntegral $ pixelIFormat pf)
+          (fromIntegral w `div` divisor) (fromIntegral h `div` divisor) 0 (pixelFormat pf)
+          (pixelType pf) nullPtr
     where pf = Proxy :: Proxy f
 #endif
 #ifdef __GL45

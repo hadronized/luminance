@@ -48,9 +48,11 @@ instance (KnownNat n,Pixel f) => Texture (Texture2DArray n f) where
 #elif defined(__GL32)
   textureStorage _ tid levels (w,h) = do
       glBindTexture GL_TEXTURE_2D_ARRAY tid
-      for_ [0..levels-1] $ \lvl -> glTexImage3D GL_TEXTURE_2D_ARRAY lvl
-        (fromIntegral $ pixelIFormat pf) (fromIntegral w) (fromIntegral h)
-        (fromIntegral $ natVal (Proxy :: Proxy n)) 0 (pixelFormat pf) (pixelType pf) nullPtr
+      for_ [0..levels-1] $ \lvl -> do
+        let divisor = 2 ^ lvl
+        glTexImage3D GL_TEXTURE_2D_ARRAY lvl (fromIntegral $ pixelIFormat pf)
+          (fromIntegral w `div` divisor) (fromIntegral h `div` divisor)
+          (fromIntegral $ natVal (Proxy :: Proxy n)) 0 (pixelFormat pf) (pixelType pf) nullPtr
     where pf = Proxy :: Proxy f
 #endif
 #ifdef __GL45
