@@ -38,14 +38,14 @@ import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( castPtr, nullPtr )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.Luminance.Core.Buffer ( Region(..), bufferID )
-import Graphics.Luminance.Core.Cubemap ( Cubemap )
+import Graphics.Luminance.Core.Cubemap ( Cubemap(..) )
 import Graphics.Luminance.Core.Pixel ( Pixel )
 import Graphics.Luminance.Core.Shader.Stage ( Stage(..) )
 import Graphics.Luminance.Core.Shader.UniformBlock ( UB, UniformBlock(sizeOfSTD140) )
-import Graphics.Luminance.Core.Texture ( Texture(..), baseTextureID )
-import Graphics.Luminance.Core.Texture1D ( Texture1D )
-import Graphics.Luminance.Core.Texture2D ( Texture2D )
-import Graphics.Luminance.Core.Texture3D ( Texture3D )
+import Graphics.Luminance.Core.Texture
+import Graphics.Luminance.Core.Texture1D
+import Graphics.Luminance.Core.Texture2D
+import Graphics.Luminance.Core.Texture3D
 import Graphics.GL
 #ifdef __GL_BINDLESS_TEXTURES
 import Graphics.GL.Ext.ARB.BindlessTexture ( glProgramUniformHandleui64ARB )
@@ -182,11 +182,13 @@ uniformizeBlock Program{programID = pid} name = UniformInterface $ do
               (fromIntegral $ regionSize r * sizeOfSTD140 (Proxy :: Proxy a))
       | otherwise -> throwError . fromProgramError $ InactiveUniformBlock name
 
+#if !defined(__GL_BINDLESS_TEXTURES)
 nextTextureUnit :: (Monad m) => UniformInterface m GLuint
 nextTextureUnit = UniformInterface $ do
   texUnit <- gets uniformInterfaceTextureUnit
   modify $ \ctxt -> ctxt { uniformInterfaceTextureUnit = succ texUnit }
   pure texUnit
+#endif
 
 --------------------------------------------------------------------------------
 -- Uniform ---------------------------------------------------------------------
