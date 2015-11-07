@@ -17,6 +17,7 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 #if DEBUG_GL
 import Data.Foldable ( traverse_ )
 #endif
+import GHC.Stack ( currentCallStack )
 import Graphics.GL
 
 --------------------------------------------------------------------------------
@@ -65,17 +66,18 @@ toGLError e = case e of
 
 -- |Given a context 'String' and an action, that function clears the OpenGL errors in order to run
 -- the action in a sane and error-free OpenGL context. If an error has occured, print it on 'stderr'
--- along with the 'String' context. Otherwise, simply it returns the action’s result.
+-- along with the callstack. Otherwise, it returns the action’s result.
 --
 -- Keep in mind that you can mute that function’s implementation by disabling the cabal flag
 -- 'debug-gl', which is the default setting.
-debugGL :: (MonadIO m) => String -> m a -> m a
+debugGL :: (MonadIO m) => m a -> m a
 #if DEBUG_GL
-debugGL ctx gl = do
+debugGL gl = do
   clearGLError
   a <- gl
-  liftIO $ fmap toGLError glGetError >>= traverse_ (\e -> putStrLn ctx >> print e)
+  callStack <- liftIO (fmap unlines currentCallStack)
+  liftIO $ fmap toGLError glGetError >>= traverse_ (\e -> putStrLn callStack >> print e)
   pure a
 #else
-debugGL _ = id
+debugGL = id
 #endif
