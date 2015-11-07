@@ -143,7 +143,7 @@ createTexture :: forall m t. (MonadIO m,MonadResource m,Texture t)
               -> Natural
               -> Sampling
               -> m t
-#if __GL45 && __GL_BINDLESS_TEXTURES
+#if defined(__GL45) && defined(__GL_BINDLESS_TEXTURES)
 createTexture size levels sampling = do
   (tid,texH) <- liftIO . alloca $ \p -> do
     glCreateTextures (textureTypeEnum (Proxy :: Proxy t)) 1 p
@@ -229,7 +229,7 @@ setSampling f oid s = liftIO $ do
       f oid GL_TEXTURE_COMPARE_MODE GL_NONE
 
 setTextureSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
-#if __GL45
+#ifdef __GL45
 setTextureSampling = setSampling glTextureParameteri
 #elif defined(__GL32)
 setTextureSampling = setSampling glTexParameteri
