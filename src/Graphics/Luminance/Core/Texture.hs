@@ -26,6 +26,7 @@ import Graphics.GL
 #ifdef __GL_BINDLESS_TEXTURES
 import Graphics.GL.Ext.ARB.BindlessTexture
 #endif
+import Graphics.Luminance.Core.Debug
 import Numeric.Natural ( Natural )
 
 ----------------------------------------------------------------------------------------------------
@@ -125,7 +126,7 @@ class Texture t where
                  -> IO ()
 
 -- OpenGL texture.
-#if __GL45 && __GL_BINDLESS_TEXTURES
+#if defined(__GL45) && defined(__GL_BINDLESS_TEXTURES)
 data BaseTexture = BaseTexture {
     baseTextureID  :: GLuint
   , baseTextureHnd :: GLuint64
