@@ -75,7 +75,7 @@ debugGL :: (MonadIO m) => m a -> m a
 debugGL gl = do
   clearGLError
   a <- gl
-  callStack <- liftIO (fmap unlines currentCallStack)
+  callStack <- liftIO (fmap renderStack currentCallStack)
   liftIO $ fmap toGLError glGetError >>= traverse_ (\e -> putStrLn callStack >> print e)
   pure a
 #else
