@@ -132,7 +132,7 @@ data UniformInterfaceCtxt = UniformInterfaceCtxt {
     uniformInterfaceBufferBinding :: GLuint
 #if !defined(__GL_BINDLESS_TEXTURES)
     -- Used to generate texture units when necessary
-  , uniformInterfaceTextureUnit :: GLuint
+  , uniformInterfaceTextureUnit :: GLenum
 #endif
   } deriving (Eq,Show)
 
@@ -837,7 +837,7 @@ toUTex _ l = do
   texUnit <- nextTextureUnit
   pure . U $ \tex -> do
     debugGL $ glUniform1i l (fromIntegral texUnit) -- FIXME: a bit redundant?
-    debugGL $ glActiveTexture texUnit
+    debugGL $ glActiveTexture (GL_TEXTURE0 + texUnit)
     debugGL $ glBindTexture (textureTypeEnum (Proxy :: Proxy tex)) (baseTextureID $ toBaseTexture tex)
 #endif
 
