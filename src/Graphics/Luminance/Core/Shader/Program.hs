@@ -838,9 +838,9 @@ toUTex :: forall m tex. (Monad m,Texture tex) => GLuint -> GLint -> UniformInter
 toUTex _ l = do
   texUnit <- nextTextureUnit
   pure . U $ \tex -> do
+    glUniform1i l (fromIntegral texUnit) -- FIXME: a bit redundant?
     glActiveTexture texUnit
     glBindTexture (textureTypeEnum (Proxy :: Proxy tex)) (baseTextureID $ toBaseTexture tex)
-    glUniform1i l (fromIntegral texUnit)
 #endif
 
 --------------------------------------------------------------------------------
