@@ -48,31 +48,20 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
     glTextureStorage3D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w)
       (fromIntegral h) (fromIntegral $ natVal (Proxy :: Proxy n))
 #elif defined(__GL32)
-  textureStorage _ tid levels (w,h) = do
-      glBindTexture GL_TEXTURE_CUBE_MAP_ARRAY tid
-      for_ [0..levels-1] $ \lvl -> glTexImage3D GL_TEXTURE_CUBE_MAP_ARRAY lvl
-        (fromIntegral $ pixelIFormat pf)(fromIntegral w) (fromIntegral h)
-        (fromIntegral $ natVal (Proxy :: Proxy n)) 0 (fromIntegral $ pixelFormat pf)
-        (fromIntegral $ pixelType pf) nullPtr
-    where
-      pf = Proxy :: Proxy f
+  textureStorage _ _ _ _ = pure ()
 #endif
 #ifdef __GL45
   transferTexelsSub _ tid (layer,x,y,f) (w,h) texels =
       unsafeWith texels $ glTextureSubImage3D tid 0 (fromIntegral x) (fromIntegral y)
         (fromCubeFace f + fromIntegral layer*6) (fromIntegral w) (fromIntegral h) 1 fmt
         typ . castPtr
-#elif defined(__GL32)
-  transferTexelsSub _ tid (layer,x,y,f) (w,h) texels = do
-      glBindTexture GL_TEXTURE_CUBE_MAP_ARRAY tid
-      unsafeWith texels $ glTexSubImage3D GL_TEXTURE_CUBE_MAP_ARRAY 0 (fromIntegral x)
-        (fromIntegral y) (fromCubeFace f + fromIntegral layer*6) (fromIntegral w) (fromIntegral h)
-        1 fmt typ . castPtr
-#endif
     where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
+#elif defined(__GL32)
+  transferTexelsSub _ _ _ _ _ = pure ()
+#endif
 #ifdef __GL45
   fillTextureSub _ tid (layer,x,y,f) (w,h) filling =
       unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral y) 
@@ -83,6 +72,5 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
       fmt = pixelFormat proxy
       typ = pixelType proxy
 #elif defined(__GL32)
-  fillTextureSub proxy tid o (w,h) filling =
-    transferTexelsSub proxy tid o (w,h) (V.concat $ replicate (fromIntegral $ w*h) filling)
+  fillTextureSub _ _ _ _ _ = pure ()
 #endif
