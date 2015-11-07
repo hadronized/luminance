@@ -2,7 +2,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -19,6 +18,7 @@
 module Graphics.Luminance.Core.Shader.Program where
 
 import Control.Applicative ( liftA2 )
+import Control.Monad ( unless, when )
 import Control.Monad.Except ( MonadError(throwError) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
@@ -85,13 +85,13 @@ createProgram stages buildIface = do
     ll <- clogLength pid
     cl <- clog ll pid
     pure (pid,linked,cl)
-  if
-    | linked -> do
-        _ <- register $ glDeleteProgram pid
-        let prog = Program pid
-        a <- runUniformInterface $ buildIface (uniformize prog) (uniformizeBlock prog)
-        pure (prog,a)
-    | otherwise -> throwError . fromProgramError $ LinkFailed cl
+  unless linked $ do
+    liftIO (glDeleteProgram pid)
+    throwError . fromProgramError $ LinkFailed cl
+  _ <- register $ glDeleteProgram pid
+  let prog = Program pid
+  a <- runUniformInterface $ buildIface (uniformize prog) (uniformizeBlock prog)
+  pure (prog,a)
 
 -- |A simpler version of 'createProgram'. That function assumes you don’t need a uniform interface
 -- and then just returns the 'Program'.
@@ -152,12 +152,11 @@ uniformize :: (HasProgramError e,MonadError e m,MonadIO m,Uniform a)
 uniformize Program{programID = pid} access = UniformInterface $ case access of
   Left name -> do
     location <- liftIO . debugGL . withCString name $ glGetUniformLocation pid
-    if
-      | location /= -1 -> runUniformInterface' (toU pid location)
-      | otherwise -> throwError . fromProgramError $ InactiveUniform access
-  Right sem
-    | sem /= -1 -> runUniformInterface' $ toU pid (fromIntegral sem)
-    | otherwise -> throwError . fromProgramError $ InactiveUniform access
+    when (location == -1) (throwError . fromProgramError $ InactiveUniform access)
+    runUniformInterface' (toU pid location)
+  Right sem -> do
+    when (sem == -1) (throwError . fromProgramError $ InactiveUniform access)
+    runUniformInterface' $ toU pid (fromIntegral sem)
 
 -- |Map a 'String' to a uniform block.
 uniformizeBlock :: forall a e m rw. (HasProgramError e,MonadError e m,MonadIO m,UniformBlock a)
@@ -165,21 +164,19 @@ uniformizeBlock :: forall a e m rw. (HasProgramError e,MonadError e m,MonadIO m,
                 -> String
                 -> UniformInterface m (U (Region rw (UB a)))
 uniformizeBlock Program{programID = pid} name = UniformInterface $ do
-    index <- liftIO . debugGL . withCString name $ glGetUniformBlockIndex pid
-    if
-      | index /= GL_INVALID_INDEX -> do
-          -- retrieve a new binding value and use it
-          binding <- gets uniformInterfaceBufferBinding
-          modify $ \ctxt -> ctxt { uniformInterfaceBufferBinding = succ $ uniformInterfaceBufferBinding ctxt }
-          liftIO . debugGL $ glUniformBlockBinding pid index binding
-          pure . U $ \r -> do
-            glBindBufferRange
-              GL_UNIFORM_BUFFER
-              binding
-              (bufferID $ regionBuffer r)
-              (fromIntegral $ regionOffset r)
-              (fromIntegral $ regionSize r * sizeOfSTD140 (Proxy :: Proxy a))
-      | otherwise -> throwError . fromProgramError $ InactiveUniformBlock name
+  index <- liftIO . debugGL . withCString name $ glGetUniformBlockIndex pid
+  when (index == GL_INVALID_INDEX) (throwError . fromProgramError $ InactiveUniformBlock name)
+  -- retrieve a new binding value and use it
+  binding <- gets uniformInterfaceBufferBinding
+  modify $ \ctxt -> ctxt { uniformInterfaceBufferBinding = succ $ uniformInterfaceBufferBinding ctxt }
+  liftIO . debugGL $ glUniformBlockBinding pid index binding
+  pure . U $ \r -> do
+    glBindBufferRange
+      GL_UNIFORM_BUFFER
+      binding
+      (bufferID $ regionBuffer r)
+      (fromIntegral $ regionOffset r)
+      (fromIntegral $ regionSize r * sizeOfSTD140 (Proxy :: Proxy a))
 
 #if !defined(__GL_BINDLESS_TEXTURES)
 nextTextureUnit :: (Monad m) => UniformInterface m GLuint
