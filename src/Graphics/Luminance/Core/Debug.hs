@@ -17,7 +17,7 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 #if DEBUG_GL
 import Data.Foldable ( traverse_ )
 #endif
-import GHC.Stack ( currentCallStack )
+import GHC.Stack ( currentCallStack, renderStack )
 import Graphics.GL
 
 --------------------------------------------------------------------------------
