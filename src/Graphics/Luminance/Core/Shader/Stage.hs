@@ -55,8 +55,8 @@ createStage :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m)
             -> String
             -> m Stage
 createStage t src = case t of
-    TessControlShader -> checkTessSupport "tessellation control" >> mkShader GL_TESS_CONTROL_SHADER src
-    TessEvaluationShader -> checkTessSupport "tessellation evaluation" >> mkShader GL_TESS_EVALUATION_SHADER src
+    TessControlShader -> checkTessSupport t >> mkShader GL_TESS_CONTROL_SHADER src
+    TessEvaluationShader -> checkTessSupport t >> mkShader GL_TESS_EVALUATION_SHADER src
     VertexShader -> mkShader GL_VERTEX_SHADER src
     GeometryShader -> mkShader GL_GEOMETRY_SHADER src
     FragmentShader -> mkShader GL_FRAGMENT_SHADER src
@@ -108,12 +108,12 @@ clog l sid =
 
 prependGLSLPragma :: String -> String
 prependGLSLPragma src =
-#ifdef __GL45
+#if defined(__GL45)
      "#version 450 core\n"
 #elif defined(__GL32)
      "#version 150 core\n"
 #endif
-#ifdef __GL_BINDLESS_TEXTURES
+#if defined(__GL_BINDLESS_TEXTURES)
   ++ "#extension GL_ARB_bindless_texture : require\n"
   ++ "layout (bindless_sampler) uniform;"
 #endif
@@ -131,7 +131,7 @@ prependGLSLPragma src =
 -- the current hardware.
 data StageError
   = CompilationFailed String 
-  | UnsupportedStage String
+  | UnsupportedStage StageType
     deriving (Eq,Show)
 
 -- |Types that can handle 'StageError'.
