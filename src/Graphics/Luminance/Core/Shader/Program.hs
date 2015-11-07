@@ -811,7 +811,7 @@ instance Uniform [M44 Float] where
 --------------------------------------------------------------------------------
 -- Textures --------------------------------------------------------------------
 
-#if __GL45 && __GL_BINDLESS_TEXTURES
+#if defined(__GL45) && defined(__GL_BINDLESS_TEXTURES)
 instance Uniform (Texture1D f) where
   toU prog l = pure . U $ glProgramUniformHandleui64ARB prog l . baseTextureHnd . texture1DBase
 
