@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE MultiWayIf #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -81,11 +80,11 @@ mkShader target src = do
       ll <- clogLength sid
       cl <- clog ll sid
       pure (sid,compiled,cl)
-  if
-    | compiled  -> do
-        _ <- register $ glDeleteShader sid
-        pure $ Stage sid
-    | otherwise -> throwError . fromStageError $ CompilationFailed cl
+  unless compiled $ do
+    liftIO (glDeleteShader sid)
+    throwError . fromStageError $ CompilationFailed cl
+  _ <- register $ glDeleteShader sid
+  pure $ Stage sid
 
 -- Is a shader compiled?
 isCompiled :: GLuint -> IO Bool
