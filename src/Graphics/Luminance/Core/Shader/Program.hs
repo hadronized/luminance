@@ -38,6 +38,7 @@ import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( castPtr, nullPtr )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.Luminance.Core.Buffer ( Region(..), bufferID )
+import Graphics.Luminance.Core.Debug
 import Graphics.Luminance.Core.Cubemap ( Cubemap(..) )
 import Graphics.Luminance.Core.Pixel ( Pixel )
 import Graphics.Luminance.Core.Shader.Stage ( Stage(..) )
@@ -77,10 +78,10 @@ createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               -> m (Program,i)
 createProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
-    pid <- glCreateProgram
-    traverse_ (glAttachShader pid . stageID) stages
-    glLinkProgram pid
-    linked <- isLinked pid
+    pid <- debugGL glCreateProgram
+    traverse_ (debugGL . glAttachShader pid . stageID) stages
+    debugGL $ glLinkProgram pid
+    linked <- debugGL $ isLinked pid
     ll <- clogLength pid
     cl <- clog ll pid
     pure (pid,linked,cl)
@@ -102,21 +103,19 @@ createProgram_ stages = fmap fst $ createProgram stages (\_ _ -> pure ())
 -- |Is a shader program linked?
 isLinked :: GLuint -> IO Bool
 isLinked pid = do
-  ok <- alloca $ liftA2 (*>) (glGetProgramiv pid GL_LINK_STATUS) peek
+  ok <- debugGL . alloca $ liftA2 (*>) (glGetProgramiv pid GL_LINK_STATUS) peek
   pure $ ok == GL_TRUE
 
 -- |Shader program link log’s length.
 clogLength :: GLuint -> IO Int
 clogLength pid =
-  fmap fromIntegral .
-    alloca $ liftA2 (*>) (glGetProgramiv pid GL_INFO_LOG_LENGTH) peek
+  fmap fromIntegral . debugGL . alloca $ liftA2 (*>) (glGetProgramiv pid GL_INFO_LOG_LENGTH) peek
 
 -- |Shader program link log.
 clog :: Int -> GLuint -> IO String
 clog l pid =
-  allocaArray l $
-    liftA2 (*>) (glGetProgramInfoLog pid (fromIntegral l) nullPtr)
-      (peekCString . castPtr)
+  debugGL . allocaArray l $
+    liftA2 (*>) (glGetProgramInfoLog pid (fromIntegral l) nullPtr) (peekCString . castPtr)
 
 --------------------------------------------------------------------------------
 -- Uniform interface -----------------------------------------------------------
@@ -152,7 +151,7 @@ uniformize :: (HasProgramError e,MonadError e m,MonadIO m,Uniform a)
            -> UniformInterface m (U a)
 uniformize Program{programID = pid} access = UniformInterface $ case access of
   Left name -> do
-    location <- liftIO . withCString name $ glGetUniformLocation pid
+    location <- liftIO . debugGL . withCString name $ glGetUniformLocation pid
     if
       | location /= -1 -> runUniformInterface' (toU pid location)
       | otherwise -> throwError . fromProgramError $ InactiveUniform access
@@ -166,13 +165,13 @@ uniformizeBlock :: forall a e m rw. (HasProgramError e,MonadError e m,MonadIO m,
                 -> String
                 -> UniformInterface m (U (Region rw (UB a)))
 uniformizeBlock Program{programID = pid} name = UniformInterface $ do
-    index <- liftIO . withCString name $ glGetUniformBlockIndex pid
+    index <- liftIO . debugGL . withCString name $ glGetUniformBlockIndex pid
     if
       | index /= GL_INVALID_INDEX -> do
           -- retrieve a new binding value and use it
           binding <- gets uniformInterfaceBufferBinding
           modify $ \ctxt -> ctxt { uniformInterfaceBufferBinding = succ $ uniformInterfaceBufferBinding ctxt }
-          liftIO (glUniformBlockBinding pid index binding)
+          liftIO . debugGL $ glUniformBlockBinding pid index binding
           pure . U $ \r -> do
             glBindBufferRange
               GL_UNIFORM_BUFFER
@@ -840,9 +839,9 @@ toUTex :: forall m tex. (Monad m,Texture tex) => GLuint -> GLint -> UniformInter
 toUTex _ l = do
   texUnit <- nextTextureUnit
   pure . U $ \tex -> do
-    glUniform1i l (fromIntegral texUnit) -- FIXME: a bit redundant?
-    glActiveTexture texUnit
-    glBindTexture (textureTypeEnum (Proxy :: Proxy tex)) (baseTextureID $ toBaseTexture tex)
+    debugGL $ glUniform1i l (fromIntegral texUnit) -- FIXME: a bit redundant?
+    debugGL $ glActiveTexture texUnit
+    debugGL $ glBindTexture (textureTypeEnum (Proxy :: Proxy tex)) (baseTextureID $ toBaseTexture tex)
 #endif
 
 --------------------------------------------------------------------------------
