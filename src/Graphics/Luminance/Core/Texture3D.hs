@@ -45,8 +45,11 @@ instance (Pixel f) => Texture (Texture3D f) where
 #elif defined(__GL32)
   textureStorage _ tid levels (w,h,d) = do
       glBindTexture GL_TEXTURE_3D tid
-      for_ [0..levels-1] $ \lvl -> glTexImage3D GL_TEXTURE_3D lvl (fromIntegral $ pixelIFormat pf)
-        (fromIntegral w) (fromIntegral h) (fromIntegral d) 0 (pixelFormat pf) (pixelType pf) nullPtr
+      for_ [0..levels-1] $ \lvl -> do
+        let divisor = 2 ^ lvl
+        glTexImage3D GL_TEXTURE_3D lvl (fromIntegral $ pixelIFormat pf)
+          (fromIntegral w `div` divisor) (fromIntegral h `div` divisor)
+          (fromIntegral d `div` divisor) 0 (pixelFormat pf) (pixelType pf) nullPtr
     where pf = Proxy :: Proxy f
 #endif
 #ifdef __GL45
