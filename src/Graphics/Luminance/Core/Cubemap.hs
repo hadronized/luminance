@@ -17,7 +17,6 @@ module Graphics.Luminance.Core.Cubemap where
 import Data.Proxy ( Proxy(..) )
 #ifdef __GL32
 import Data.Foldable ( for_ )
-import Data.Vector.Storable as V ( concat )
 #endif
 import Data.Vector.Storable ( unsafeWith )
 import Foreign.Ptr ( castPtr )
@@ -68,11 +67,11 @@ instance (Pixel f) => Texture (Cubemap f) where
       (fromIntegral h)
 #elif defined(__GL32)
   textureStorage _ tid levels (w,h) = do
-    glBindTexture GL_TEXTURE_CUBE_MAP tid
-    for_ [0..levels-1] $ \lvl ->
-      glTexImage2D GL_TEXTURE_CUBE_MAP lvl (fromIntegral $ pixelIFormat (Proxy :: Proxy f))
-        (fromIntegral w) (fromIntegral h) 0 (pixelFormat (Proxy :: Proxy f))
-        (pixelType (Proxy :: Proxy f)) nullPtr
+      glBindTexture GL_TEXTURE_CUBE_MAP tid
+      for_ [0..levels-1] $ \lvl -> glTexImage2D GL_TEXTURE_CUBE_MAP lvl
+        (fromIntegral $ pixelIFormat pf) (fromIntegral w) (fromIntegral h) 0 (pixelFormat pf)
+        (pixelType pf) nullPtr
+    where pf = Proxy :: Proxy f
 #endif
 #ifdef __GL45
   transferTexelsSub _ tid (x,y,f) (w,h) texels =
@@ -100,6 +99,5 @@ instance (Pixel f) => Texture (Cubemap f) where
       fmt = pixelFormat proxy
       typ = pixelType proxy
 #elif defined(__GL32)
-  fillTextureSub proxy tid o (w,h) filling =
-    transferTexelsSub proxy tid o (w,h) (V.concat $ replicate (fromIntegral $ w*h) filling)
+  fillTextureSub p tid o w filling = transferTexelsSub p tid o w filling
 #endif
