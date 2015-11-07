@@ -30,30 +30,29 @@ import Numeric.Natural ( Natural )
 -- |A cubemap array.
 data CubemapArray (n :: Nat) (f :: *) = CubemapArray {
     cubemapArrayBase :: BaseTexture
-  , cubemapArrayW    :: Natural
-  , cubemapArrayH    :: Natural
+  , cubemapArraySize :: Natural
   } deriving (Eq,Show)
 
 instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
   -- |(w,h)
-  type TextureSize (CubemapArray n f) = (Natural,Natural)
+  type TextureSize (CubemapArray n f) = Natural
   -- |(layer,x,y,face)
   type TextureOffset (CubemapArray n f) = (Natural,Natural,Natural,CubeFace)
-  fromBaseTexture bt (w,h) = CubemapArray bt w h
+  fromBaseTexture bt s = CubemapArray bt s
   toBaseTexture = cubemapArrayBase
   textureTypeEnum _ = GL_TEXTURE_CUBE_MAP_ARRAY
-  textureSize (CubemapArray _ w h) = (w,h)
+  textureSize (CubemapArray _ s) = s
 #ifdef __GL45
-  textureStorage _ tid levels (w,h) =
-    glTextureStorage3D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w)
-      (fromIntegral h) (fromIntegral $ natVal (Proxy :: Proxy n))
+  textureStorage _ tid levels s =
+    glTextureStorage3D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral s)
+      (fromIntegral s) (fromIntegral $ natVal (Proxy :: Proxy n))
 #elif defined(__GL32)
   textureStorage _ _ _ _ = pure ()
 #endif
 #ifdef __GL45
-  transferTexelsSub _ tid (layer,x,y,f) (w,h) texels =
+  transferTexelsSub _ tid (layer,x,y,f) s texels =
       unsafeWith texels $ glTextureSubImage3D tid 0 (fromIntegral x) (fromIntegral y)
-        (fromCubeFace f + fromIntegral layer*6) (fromIntegral w) (fromIntegral h) 1 fmt
+        (fromCubeFace f + fromIntegral layer*6) (fromIntegral s) (fromIntegral s) 1 fmt
         typ . castPtr
     where
       proxy = Proxy :: Proxy f
@@ -63,9 +62,9 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
   transferTexelsSub _ _ _ _ _ = pure ()
 #endif
 #ifdef __GL45
-  fillTextureSub _ tid (layer,x,y,f) (w,h) filling =
+  fillTextureSub _ tid (layer,x,y,f) s filling =
       unsafeWith filling $ glClearTexSubImage tid 0 (fromIntegral x) (fromIntegral y) 
-        (fromCubeFace f + fromIntegral layer*6) (fromIntegral w) (fromIntegral h) 1
+        (fromCubeFace f + fromIntegral layer*6) (fromIntegral s) (fromIntegral s) 1
         fmt typ . castPtr
     where
       proxy = Proxy :: Proxy f
