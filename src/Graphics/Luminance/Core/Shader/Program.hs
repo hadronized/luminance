@@ -833,7 +833,6 @@ instance (Pixel f) => Uniform (Texture3D f) where
 
 instance (Pixel f) => Uniform (Cubemap f) where
   toU = toUTex
-#endif
 
 toUTex :: forall m tex. (Monad m,Texture tex) => GLuint -> GLint -> UniformInterface m (U tex)
 toUTex _ l = do
@@ -842,6 +841,7 @@ toUTex _ l = do
     glActiveTexture texUnit
     glBindTexture (textureTypeEnum (Proxy :: Proxy tex)) (baseTextureID $ toBaseTexture tex)
     glUniform1i l (fromIntegral texUnit)
+#endif
 
 --------------------------------------------------------------------------------
 -- Untuple functions -----------------------------------------------------------
