@@ -18,6 +18,7 @@ import Control.Monad.Except ( MonadError(throwError) )
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans.Resource ( MonadResource, register )
 import Graphics.GL
+import Graphics.Luminance.Core.Debug
 import Graphics.Luminance.Core.Query ( getGLExtensions )
 import Foreign.C.String ( peekCString, withCString )
 import Foreign.Marshal.Alloc ( alloca )
@@ -72,10 +73,10 @@ mkShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m)
          -> m Stage
 mkShader target src = do
   (sid,compiled,cl) <- liftIO $ do
-    sid <- glCreateShader target
+    sid <- debugGL $ glCreateShader target
     withCString (prependGLSLPragma src) $ \cstr -> do
-      with cstr $ \pcstr -> glShaderSource sid 1 pcstr nullPtr
-      glCompileShader sid
+      with cstr $ \pcstr -> debugGL $ glShaderSource sid 1 pcstr nullPtr
+      debugGL $ glCompileShader sid
       compiled <- isCompiled sid
       ll <- clogLength sid
       cl <- clog ll sid
@@ -89,19 +90,19 @@ mkShader target src = do
 -- Is a shader compiled?
 isCompiled :: GLuint -> IO Bool
 isCompiled sid = do
-  ok <- alloca $ liftA2 (*>) (glGetShaderiv sid GL_COMPILE_STATUS) peek
+  ok <- debugGL . alloca $ liftA2 (*>) (glGetShaderiv sid GL_COMPILE_STATUS) peek
   pure $ ok == GL_TRUE
 
 -- Shader compilation log’s length.
 clogLength :: GLuint -> IO Int
 clogLength sid =
-  fmap fromIntegral . alloca $
+  fmap fromIntegral . debugGL . alloca $
     liftA2 (*>) (glGetShaderiv sid GL_INFO_LOG_LENGTH) peek
 
 -- Shader compilation log.
 clog :: Int -> GLuint -> IO String
 clog l sid =
-  allocaArray l $
+  debugGL . allocaArray l $
     liftA2 (*>) (glGetShaderInfoLog sid (fromIntegral l) nullPtr)
       (peekCString . castPtr)
 
