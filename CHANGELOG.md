@@ -2,12 +2,23 @@
 
 #### Breaking changes
 
+- Shader creation can fail with the `UnsupportedStage` error, holding the stage (and not a `String`)
+  as it used to.
+- Fixed cubemap size interface.
 - Shader interface now uses the type `StageType` and `createStage` to create new shader stages.
 
 #### Minor changes
 
+- Several internal architectural changes.
+- Added `gl45-bindless-textures` caps.
 - Added `gl32` and `gl45` backends. The default backend is `gl32` and backends can be selected via
   compilation flags.
+
+#### Patch changes
+
+- Added more debug symbols.
+- OpenGL debugging now shows the callstack in a fancy way.
+- Several internal architectural changes.
 
 ### 0.6.0.4
 
