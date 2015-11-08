@@ -18,6 +18,7 @@ import Data.Foldable ( traverse_ )
 import Foreign.Ptr ( nullPtr )
 import Graphics.GL
 import Graphics.Luminance.Core.Blending ( setBlending )
+import Graphics.Luminance.Core.Debug
 import Graphics.Luminance.Core.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Core.Shader.Program ( Program(..), U(..) )
@@ -38,8 +39,8 @@ data FBBatch rw c d = FBBatch {
 -- |Run a 'FBBatch'.
 runFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
 runFBBatch (FBBatch fb spbs) = do
-  liftIO $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
-  liftIO $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
+  liftIO . debugGL $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
+  liftIO . debugGL $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
   traverse_ (\(AnySPBatch spb) -> runSPBatch spb) spbs
 
 -- |Share a 'Framebuffer' between several shader program batches.
@@ -78,7 +79,7 @@ anySPBatch = AnySPBatch
 runSPBatch :: (MonadIO m) => SPBatch rw c d u v -> m ()
 runSPBatch (SPBatch prog uni u geometries) = do
   liftIO $ do
-    glUseProgram (programID prog)
+    debugGL $ glUseProgram (programID prog)
     runU uni u
   traverse_ drawGeometry geometries
 
@@ -101,8 +102,8 @@ drawGeometry (RenderCmd blending depthTest uni u geometry) = do
   liftIO (runU uni u)
   case geometry of
     DirectGeometry (VertexArray vid mode vbNb) -> do
-      glBindVertexArray vid
-      glDrawArrays mode 0 vbNb
+      debugGL $ glBindVertexArray vid
+      debugGL $ glDrawArrays mode 0 vbNb
     IndexedGeometry (VertexArray vid mode ixNb) -> do
-      glBindVertexArray vid
-      glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
+      debugGL $ glBindVertexArray vid
+      debugGL $ glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
