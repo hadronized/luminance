@@ -48,16 +48,29 @@ an operating system with **OpenGL** installed.
 
 # What are the prerequisites?
 
-In order to use `luminance`, you need several prerequisites to be fulfilled:
+In order to use `luminance`, you need several prerequisites to be fulfilled. Those prerequisites
+determine which backend you will be able to use. Currently, two backends are available: **gl32**
+and **gl45**.
 
-1. a library to setup an **OpenGL** context.
-2. a decent **OpenGL 4.5** implementation ;
-3. support for **GL_ARB_bindless_texture** ;
+- a library to setup an *OpenGL* context.
+- **gl32**
+  - a decent *OpenGL 3.2* implementation
+  - support for extension *GL_ARB_texture_cube_map*
+- **gl45**
+  - a decent *OpenGL 4.5* implementation
+- **gl-bindless-textures** (bonus)
+  - a decent *OpenGL 4.5* implementation
+  - support for extension *GL_ARB_bindless_texture* ;
 
-`luminance` does not provide point `1.` because it’s important that he not depend on windowing
-libraries so that end-users can use whatever they like. Furthermore, such libraries typically
-implement windowing and events features, which have nothing to do with our initial purposes.
-However, a few packages might come up, like `luminance-glfw` if such libraries are judged useful.
+The backends can be enabled through **compilation flags**. You should only pick one as the more
+recent will be preferred over others. However, some of the flags can be combined. If you want
+**bindless textures**, you should enable the flags `gl45` and `gl-bindless-textures`.
+
+`luminance` does not provide point a way to create windows because it’s important that it not depend
+on windowing libraries so that end-users can use whatever they like. Furthermore, such libraries
+typically implement windowing and events features, which have nothing to do with our initial
+purposes. However, a few packages might come up, like `luminance-glfw` if such libraries are judged
+useful.
 
 ## Important point about OpenGL compatibility
 
