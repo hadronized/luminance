@@ -1,5 +1,5 @@
 name:                luminance
-version:             0.6.0.5
+version:             0.7
 synopsis:            Type-safe, type-level and stateless graphics framework
 description:         This package exposes several modules to work with /GPUs/ in a stateless and
                      type-safe way. Currently, it uses OpenGL as backend hardware technology but
@@ -46,11 +46,35 @@ flag debug-gl
   default:             False
   manual:              True
 
+flag gl45
+  description:         Compile with the OpenGL 4.5 backend
+  default:             False
+  manual:              True
+
+flag gl45-bindless-textures
+  description:         Compile with the OpenGL 4.5 + bindless textures backend
+  default:             False
+  manual:              True
+
+flag gl32
+  description:         Compile with the OpenGL 3.2 backend
+  default:             True
+  manual:              True
+
 library
   ghc-options:         -W -Wall
 
   if flag(debug-gl)
     cpp-options:       -DDEBUG_GL
+
+  if flag(gl45)
+    cpp-options:       -D__GL45
+
+  if flag(gl45-bindless-textures)
+    cpp-options:       -D__GL45 -D__GL_BINDLESS_TEXTURES
+
+  if flag(gl32)
+    cpp-options:       -D__GL32
 
   exposed-modules:     Graphics.Luminance
                      , Graphics.Luminance.Batch
@@ -67,7 +91,6 @@ library
                      , Graphics.Luminance.Shader
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
-                     , Graphics.Luminance.Shader.Uniform
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Vertex
 
@@ -87,7 +110,6 @@ library
                      , Graphics.Luminance.Core.RW
                      , Graphics.Luminance.Core.Shader.Program
                      , Graphics.Luminance.Core.Shader.Stage
-                     , Graphics.Luminance.Core.Shader.Uniform
                      , Graphics.Luminance.Core.Shader.UniformBlock
                      , Graphics.Luminance.Core.Texture
                      , Graphics.Luminance.Core.Texture1D

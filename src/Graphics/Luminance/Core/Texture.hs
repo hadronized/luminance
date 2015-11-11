@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -22,7 +23,10 @@ import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.GL
+#ifdef __GL_BINDLESS_TEXTURES
 import Graphics.GL.Ext.ARB.BindlessTexture
+#endif
+import Graphics.Luminance.Core.Debug
 import Numeric.Natural ( Natural )
 
 ----------------------------------------------------------------------------------------------------
@@ -122,11 +126,16 @@ class Texture t where
                  -> IO ()
 
 -- OpenGL texture.
+#if defined(__GL45) && defined(__GL_BINDLESS_TEXTURES)
 data BaseTexture = BaseTexture {
     baseTextureID  :: GLuint
   , baseTextureHnd :: GLuint64
   } deriving (Eq,Show)
-
+#elif defined(__GL32)
+newtype BaseTexture = BaseTexture {
+    baseTextureID  :: GLuint
+  } deriving (Eq,Show)
+#endif
 
 -- |'createTexture w h levels sampling' a new 'w'*'h' texture with 'levels' levels. The format is
 -- set through the type.
@@ -135,21 +144,38 @@ createTexture :: forall m t. (MonadIO m,MonadResource m,Texture t)
               -> Natural
               -> Sampling
               -> m t
+#if defined(__GL45) && defined(__GL_BINDLESS_TEXTURES)
 createTexture size levels sampling = do
-    (tid,texH) <- liftIO . alloca $ \p -> do
-      glCreateTextures (textureTypeEnum (Proxy :: Proxy t)) 1 p
+  (tid,texH) <- liftIO . alloca $ \p -> do
+    debugGL $ glCreateTextures (textureTypeEnum (Proxy :: Proxy t)) 1 p
+    tid <- peek p
+    textureStorage (Proxy :: Proxy t) tid (fromIntegral levels) size
+    debugGL $ glTextureParameteri tid GL_TEXTURE_BASE_LEVEL 0
+    debugGL $ glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral levels - 1)
+    setTextureSampling tid sampling
+    texH <- glGetTextureHandleARB tid 
+    debugGL $ glMakeTextureHandleResidentARB texH
+    pure (tid,texH)
+  _ <- register $ do
+    debugGL $ glMakeTextureHandleNonResidentARB texH
+    with tid (glDeleteTextures 1)
+  pure $ fromBaseTexture (BaseTexture tid texH) size
+#elif defined(__GL32)
+createTexture size levels sampling = do
+    tid <- liftIO . alloca $ \p -> do
+      debugGL $ glGenTextures 1 p
       tid <- peek p
+      debugGL $ glBindTexture target tid
+      debugGL $ glTexParameteri target GL_TEXTURE_BASE_LEVEL 0
+      debugGL $ glTexParameteri target GL_TEXTURE_MAX_LEVEL (fromIntegral levels - 1)
+      setTextureSampling target sampling
       textureStorage (Proxy :: Proxy t) tid (fromIntegral levels) size
-      glTextureParameteri tid GL_TEXTURE_BASE_LEVEL 0
-      glTextureParameteri tid GL_TEXTURE_MAX_LEVEL (fromIntegral levels - 1)
-      setTextureSampling tid sampling
-      texH <- glGetTextureHandleARB tid 
-      glMakeTextureHandleResidentARB texH
-      pure (tid,texH)
-    _ <- register $ do
-      glMakeTextureHandleNonResidentARB texH
-      with tid $ glDeleteTextures 1
-    pure $ fromBaseTexture (BaseTexture tid texH) size
+      pure tid
+    _ <- register $ with tid (glDeleteTextures 1)
+    pure $ fromBaseTexture (BaseTexture tid) size
+  where
+    target = textureTypeEnum (Proxy :: Proxy t)
+#endif
 
 ----------------------------------------------------------------------------------------------------
 -- Sampling objects --------------------------------------------------------------------------------
@@ -188,24 +214,28 @@ defaultSampling = Sampling {
 
 -- Apply a 'Sampling' object for a given type of object (texture, sampler, etc.).
 setSampling :: (Eq a,Eq b,MonadIO m,Num a,Num b) => (GLenum -> a -> b -> IO ()) -> GLenum -> Sampling -> m ()
-setSampling f objID s = liftIO $ do
+setSampling f oid s = liftIO $ do
   -- wraps
-  f objID GL_TEXTURE_WRAP_S . fromWrap $ samplingWrapS s
-  f objID GL_TEXTURE_WRAP_T . fromWrap $ samplingWrapT s
-  f objID GL_TEXTURE_WRAP_R . fromWrap $ samplingWrapR s
+  debugGL $ f oid GL_TEXTURE_WRAP_S . fromWrap $ samplingWrapS s
+  debugGL $ f oid GL_TEXTURE_WRAP_T . fromWrap $ samplingWrapT s
+  debugGL $ f oid GL_TEXTURE_WRAP_R . fromWrap $ samplingWrapR s
   -- filters
-  f objID GL_TEXTURE_MIN_FILTER . fromFilter $ samplingMinFilter s
-  f objID GL_TEXTURE_MAG_FILTER . fromFilter $ samplingMagFilter s
+  debugGL $ f oid GL_TEXTURE_MIN_FILTER . fromFilter $ samplingMinFilter s
+  debugGL $ f oid GL_TEXTURE_MAG_FILTER . fromFilter $ samplingMagFilter s
   -- comparison function
   case samplingCompareFunction s of
     Just cmpf -> do
-      f objID GL_TEXTURE_COMPARE_FUNC $ fromCompareFunc cmpf
-      f objID GL_TEXTURE_COMPARE_MODE GL_COMPARE_REF_TO_TEXTURE
+      debugGL $ f oid GL_TEXTURE_COMPARE_FUNC $ fromCompareFunc cmpf
+      debugGL $ f oid GL_TEXTURE_COMPARE_MODE GL_COMPARE_REF_TO_TEXTURE
     Nothing ->
-      f objID GL_TEXTURE_COMPARE_MODE GL_NONE
+      debugGL $ f oid GL_TEXTURE_COMPARE_MODE GL_NONE
 
 setTextureSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
+#ifdef __GL45
 setTextureSampling = setSampling glTextureParameteri
+#elif defined(__GL32)
+setTextureSampling = setSampling glTexParameteri
+#endif
 
 setSamplerSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
 setSamplerSampling = setSampling glSamplerParameteri
@@ -213,6 +243,7 @@ setSamplerSampling = setSampling glSamplerParameteri
 ----------------------------------------------------------------------------------------------------
 -- Samplers ----------------------------------------------------------------------------------------
 
+{-
 newtype Sampler = Sampler { samplerID :: GLuint } deriving (Eq,Show)
 
 createSampler :: (MonadIO m,MonadResource m)
@@ -226,6 +257,7 @@ createSampler s = do
     pure sid
   _ <- register . with sid $ glDeleteSamplers 1
   pure $ Sampler sid
+-}
 
 ----------------------------------------------------------------------------------------------------
 -- Texture operations ------------------------------------------------------------------------------
@@ -242,7 +274,11 @@ uploadSub :: forall a m t. (MonadIO m,Storable a,Texture t)
           -> m ()
 uploadSub tex offset size autolvl texels = liftIO $ do
     transferTexelsSub (Proxy :: Proxy t) tid offset size texels
-    when autolvl $ glGenerateTextureMipmap tid
+#ifdef __GL45
+    debugGL . when autolvl $ glGenerateTextureMipmap tid
+#elif defined(__GL32)
+    debugGL . when autolvl $ glGenerateMipmap (textureTypeEnum (Proxy :: Proxy t))
+#endif
   where
     tid = baseTextureID (toBaseTexture tex)
 
@@ -256,6 +292,10 @@ fillSub :: forall a m t. (MonadIO m,Storable a,Texture t)
         -> m ()
 fillSub tex offset size autolvl filling = liftIO $ do
     fillTextureSub (Proxy :: Proxy t) tid offset size filling
-    when autolvl $ glGenerateTextureMipmap tid
+#ifdef __GL45
+    debugGL . when autolvl $ glGenerateTextureMipmap tid
+#elif defined(__GL32)
+    debugGL . when autolvl $ glGenerateMipmap (textureTypeEnum (Proxy :: Proxy t))
+#endif
   where
     tid = baseTextureID (toBaseTexture tex)

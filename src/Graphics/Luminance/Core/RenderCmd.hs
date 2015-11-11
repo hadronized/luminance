@@ -11,7 +11,7 @@
 module Graphics.Luminance.Core.RenderCmd where
 
 import Graphics.Luminance.Core.Blending
-import Graphics.Luminance.Core.Shader.Uniform ( U(..) )
+import Graphics.Luminance.Core.Shader.Program ( U(..) )
 
 -- FIXME: we need to make a tighter link between c and blending and between d and the depth test.
 -- FIXME: is the 'rw' type parameter still useful?

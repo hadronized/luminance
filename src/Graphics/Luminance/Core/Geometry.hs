@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 -----------------------------------------------------------------------------
@@ -72,6 +73,7 @@ fromGeometryMode m = case m of
 -- If you don’t pass indices ('Nothing'), you end up with a /direct geometry/. Otherwise, you get an
 -- /indexed geometry/. You also have to provide a 'GeometryMode' to state how you want the vertices
 -- to be connected with each other.
+#ifdef __GL45
 createGeometry :: forall f m v. (Foldable f,MonadIO m,MonadResource m,Storable v,Vertex v)
                => f v
                -> Maybe (f Word32)
@@ -100,6 +102,40 @@ createGeometry vertices indices mode = do
   where
     vertNb = length vertices
     mode'  = fromGeometryMode mode
+#elif defined(__GL32)
+createGeometry :: forall f m v. (Foldable f,MonadIO m,MonadResource m,Storable v,Vertex v)
+               => f v
+               -> Maybe (f Word32)
+               -> GeometryMode
+               -> m Geometry
+createGeometry vertices indices mode = do
+    -- create the vertex array object (OpenGL-side)
+    vid <- liftIO . alloca $ \p -> do
+      glGenVertexArrays 1 p
+      peek p
+    _ <- register . with vid $ glDeleteVertexArrays 1
+    glBindVertexArray vid
+    -- vertex buffer
+    (vreg :: Region W v,vbo) <- createBuffer_ $ newRegion (fromIntegral vertNb)
+    writeWhole vreg vertices
+    liftIO $ glBindBuffer GL_ARRAY_BUFFER (bufferID vbo)
+    _ <- setFormatV vid 0 0 (Proxy :: Proxy v)
+    -- element buffer, if required
+    case indices of
+      Just indices' -> do
+        let ixNb = length indices'
+        (ireg :: Region W Word32,ibo) <- createBuffer_ $ newRegion (fromIntegral ixNb)
+        writeWhole ireg indices'
+        glBindBuffer GL_ELEMENT_ARRAY_BUFFER(bufferID ibo)
+        glBindVertexArray 0
+        pure . IndexedGeometry $ VertexArray vid mode' (fromIntegral ixNb)
+      Nothing -> do
+        glBindVertexArray 0
+        pure . DirectGeometry $ VertexArray vid mode' (fromIntegral vertNb)
+  where
+    vertNb = length vertices
+    mode'  = fromGeometryMode mode
+#endif
 
 -- |/O (n log n)/
 --

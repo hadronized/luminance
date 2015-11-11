@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -77,9 +78,10 @@ createFramebuffer :: forall c d e m rw. (HasFramebufferError e,MonadError e m,Mo
                   -> Natural
                   -> Natural
                   -> m (Framebuffer rw c d)
+#ifdef __GL45
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
-    debugGL "createFramebuffer" $ glCreateFramebuffers 1 p
+    debugGL $ glCreateFramebuffers 1 p
     peek p
   (colorOutputNb,colorTexs) <- addColorOutput fid 0 w h mipmaps (Proxy :: Proxy c)
   (hasDepthOutput,depthTex) <- addDepthOutput fid w h mipmaps (Proxy :: Proxy d)
@@ -90,6 +92,22 @@ createFramebuffer w h mipmaps = do
   if 
     | status == GL_FRAMEBUFFER_COMPLETE -> pure $ Framebuffer fid (Output colorTexs depthTex)
     | otherwise -> throwError . fromFramebufferError . IncompleteFramebuffer $ translateFramebufferStatus status
+#elif defined(__GL32)
+createFramebuffer w h mipmaps = do
+  fid <- liftIO . alloca $ \p -> do
+    debugGL $ glGenFramebuffers 1 p
+    peek p
+  glBindFramebuffer GL_FRAMEBUFFER fid
+  (colorOutputNb,colorTexs) <- addColorOutput fid 0 w h mipmaps (Proxy :: Proxy c)
+  (hasDepthOutput,depthTex) <- addDepthOutput fid w h mipmaps (Proxy :: Proxy d)
+  setColorBuffers fid colorOutputNb (Proxy :: Proxy rw)
+  unless hasDepthOutput $ setDepthRenderbuffer fid w h
+  _ <- register . with fid $ glDeleteFramebuffers 1
+  status <- glCheckFramebufferStatus GL_FRAMEBUFFER
+  if 
+    | status == GL_FRAMEBUFFER_COMPLETE -> pure $ Framebuffer fid (Output colorTexs depthTex)
+    | otherwise -> throwError . fromFramebufferError . IncompleteFramebuffer $ translateFramebufferStatus status
+#endif
 
 -- Translate OpenGL framebuffer status into human readable versions.
 translateFramebufferStatus :: GLenum -> String
@@ -156,12 +174,21 @@ setColorBuffers :: forall m proxy rw. (FramebufferColorRW rw,MonadIO m)
                 -> Natural
                 -> proxy rw
                 -> m ()
+#ifdef __GL45
 setColorBuffers fid colorOutputNb _ = case colorOutputNb of
   0 -> do
     -- disable color outputs
-    debugGL "setColorBuffers 1" $ glNamedFramebufferDrawBuffer fid GL_NONE
-    debugGL "setColorBuffers 2" $ glNamedFramebufferReadBuffer fid GL_NONE
+    debugGL $ glNamedFramebufferDrawBuffer fid GL_NONE
+    debugGL $ glNamedFramebufferReadBuffer fid GL_NONE
   _ -> setFramebufferColorRW fid colorOutputNb (Proxy :: Proxy rw)
+#elif defined(__GL32)
+setColorBuffers fid colorOutputNb _ = case colorOutputNb of
+  0 -> do
+    -- disable color outputs
+    debugGL $ glDrawBuffer GL_NONE
+    debugGL $ glReadBuffer GL_NONE
+  _ -> setFramebufferColorRW fid colorOutputNb (Proxy :: Proxy rw)
+#endif
 
 --------------------------------------------------------------------------------
 -- Framebuffer depth attachment ------------------------------------------------
@@ -188,10 +215,17 @@ setDepthRenderbuffer :: (MonadIO m,MonadResource m)
                      -> Natural
                      -> Natural
                      -> m ()
+#ifdef __GL45
 setDepthRenderbuffer fid w h = do
   renderbuffer <- createRenderbuffer w h (Proxy :: Proxy Depth32F)
-  debugGL "setDepthRenderBuffer" $ glNamedFramebufferRenderbuffer fid (fromAttachment DepthAttachment) GL_RENDERBUFFER
+  debugGL $ glNamedFramebufferRenderbuffer fid (fromAttachment DepthAttachment) GL_RENDERBUFFER
     (renderbufferID renderbuffer)
+#elif defined(__GL32)
+setDepthRenderbuffer _ w h = do
+  renderbuffer <- createRenderbuffer w h (Proxy :: Proxy Depth32F)
+  debugGL $ glFramebufferRenderbuffer GL_FRAMEBUFFER (fromAttachment DepthAttachment) GL_RENDERBUFFER
+    (renderbufferID renderbuffer)
+#endif
 
 --------------------------------------------------------------------------------
 -- Framebuffer color read/write configuration ----------------------------------
@@ -201,14 +235,26 @@ class FramebufferColorRW rw where
   setFramebufferColorRW :: (MonadIO m) => GLuint -> Natural -> proxy rw -> m ()
 
 instance FramebufferColorRW W where
+#ifdef __GL45
   setFramebufferColorRW fid nb _ = liftIO $ do
     withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
-      debugGL "setFramebufferColorRW[W]" $ glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
+      debugGL $ glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
+#elif defined(__GL32)
+  setFramebufferColorRW _ nb _ = liftIO $ do
+    withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
+      debugGL $ glDrawBuffers (fromIntegral n) buffers
+#endif
 
 instance FramebufferColorRW RW where
+#ifdef __GL45
   setFramebufferColorRW fid nb _ = liftIO $ do
     withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
-      debugGL "setFramebufferColorRW[RW]" $ glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
+      debugGL $ glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
+#elif defined(__GL32)
+  setFramebufferColorRW _ nb _ = liftIO $ do
+    withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
+      debugGL $ glDrawBuffers (fromIntegral n) buffers
+#endif
 
 --------------------------------------------------------------------------------
 -- Framebuffer read/write target configuration ---------------------------------
@@ -238,11 +284,19 @@ addOutput :: forall m p proxy. (MonadIO m,MonadResource m,Pixel p)
           -> Natural
           -> proxy p
           -> m (Texture2D p)
+#ifdef __GL45
 addOutput fid ca w h mipmaps _ = do
   tex :: Texture2D p <- createTexture (w,h) mipmaps defaultSampling
-  debugGL "addOutput" . liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
+  debugGL . liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
     (baseTextureID $ texture2DBase tex) 0
   pure tex
+#elif defined(__GL32)
+addOutput _ ca w h mipmaps _ = do
+  tex :: Texture2D p <- createTexture (w,h) mipmaps defaultSampling
+  debugGL . liftIO $ glFramebufferTexture GL_FRAMEBUFFER (fromAttachment ca)
+    (baseTextureID $ texture2DBase tex) 0
+  pure tex
+#endif
 
 --------------------------------------------------------------------------------
 -- Framebuffer textures accessors ----------------------------------------------
@@ -287,9 +341,18 @@ framebufferBlit :: (MonadIO m,Readable r,Writable w)
                 -> FramebufferBlitMask
                 -> Filter
                 -> m ()
-framebufferBlit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO . debugGL "blit" $
+#ifdef __GL45
+framebufferBlit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO . debugGL $
     glBlitNamedFramebuffer (framebufferID src) (framebufferID dst) srcX0 srcY0 srcX1 srcY1 dstX0
       dstY0 dstX1 dstY1 (fromFramebufferBlitMask mask) (fromFilter flt)
+#elif defined(__GL32)
+framebufferBlit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt =
+    liftIO . debugGL $ do
+      glBindFramebuffer GL_READ_FRAMEBUFFER (framebufferID src)
+      glBindFramebuffer GL_DRAW_FRAMEBUFFER (framebufferID dst)
+      glBlitFramebuffer srcX0 srcY0 srcX1 srcY1 dstX0 dstY0 dstX1 dstY1
+        (fromFramebufferBlitMask mask) (fromFilter flt)
+#endif
   where
     srcX0 = fromIntegral srcX
     srcY0 = fromIntegral srcY

@@ -14,9 +14,16 @@ module Graphics.Luminance.Shader.Program (
   , programID
   , createProgram
   , createProgram_
+    -- * Uniform
+  , Uniform
+  , U
+    -- * Uniform block
+  , UniformBlock
+  , UB(..)
     -- * Error handling
   , ProgramError(..)
   , HasProgramError(..)
   ) where
 
 import Graphics.Luminance.Core.Shader.Program
+import Graphics.Luminance.Core.Shader.UniformBlock

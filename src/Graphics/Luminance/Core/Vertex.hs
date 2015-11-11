@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -16,7 +17,9 @@
 module Graphics.Luminance.Core.Vertex (
     VertexAttribute(..)
   , Vertex(..)
+#ifdef __GL45
   , vertexBindingIndex
+#endif
   , module Linear.V
   , vec2
   , vec3
@@ -28,6 +31,9 @@ import Data.Int ( Int32 )
 import Data.Proxy ( Proxy(..) )
 import Data.Word ( Word32 )
 import Foreign.Storable ( Storable(sizeOf) )
+#ifdef __GL32
+import Foreign.Ptr ( nullPtr )
+#endif
 import GHC.TypeLits ( KnownNat, natVal )
 import Graphics.GL
 import Graphics.Luminance.Core.Tuple
@@ -69,10 +75,16 @@ class Vertex v where
   setFormatV :: (MonadIO m) => GLuint -> GLuint -> GLuint -> proxy v -> m (GLuint,GLuint)
 
 instance (KnownNat n,Storable a,VertexAttribute a) => Vertex (V n a) where
+#ifdef __GL45
   setFormatV vid index offset _ = do
     glVertexArrayAttribFormat vid index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE offset
     glVertexArrayAttribBinding vid index vertexBindingIndex
     glEnableVertexArrayAttrib vid index
+#elif defined(__GL32)
+  setFormatV _ index offset _ = do
+    glVertexAttribPointer index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE (fromIntegral offset) nullPtr
+    glEnableVertexAttribArray index
+#endif
     pure (succ index,offset + fromIntegral (sizeOf (undefined :: V n a)))
 
 instance (Vertex a,Vertex b) => Vertex (a :. b) where
@@ -80,6 +92,8 @@ instance (Vertex a,Vertex b) => Vertex (a :. b) where
     (nextIndex,nextOffset) <- setFormatV vid index offset (Proxy :: Proxy a)
     setFormatV vid nextIndex nextOffset (Proxy :: Proxy b)
 
+#ifdef __GL45
 -- Used to connect vertex attribute to the vertex buffer binding point. Should be 0.
 vertexBindingIndex :: GLuint
 vertexBindingIndex = 0
+#endif

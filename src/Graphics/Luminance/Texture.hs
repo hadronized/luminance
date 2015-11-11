@@ -44,12 +44,10 @@ module Graphics.Luminance.Texture (
     -- ** Cubemaps
   , Cubemap
   , CubeFace(..)
-  , cubemapW
-  , cubemapH
+  , cubemapSize
     -- ** Array textures
   , CubemapArray
-  , cubemapArrayW
-  , cubemapArrayH
+  , cubemapArraySize
   ) where
   
 import Graphics.Luminance.Core.Cubemap
