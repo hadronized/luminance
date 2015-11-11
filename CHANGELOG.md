@@ -16,6 +16,7 @@
 
 #### Patch changes
 
+- Simplified and fixed UBO implementation.
 - Added more debug symbols.
 - OpenGL debugging now shows the callstack in a fancy way.
 - Several internal architectural changes.
