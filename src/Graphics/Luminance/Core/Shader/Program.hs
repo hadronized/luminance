@@ -171,7 +171,7 @@ uniformizeBlock Program{programID = pid} name = UniformInterface $ do
   modify $ \ctxt -> ctxt { uniformInterfaceBufferBinding = succ $ uniformInterfaceBufferBinding ctxt }
   liftIO . debugGL $ glUniformBlockBinding pid index binding
   pure . U $ \r -> do
-    glBindBufferRange
+    debugGL $ glBindBufferRange
       GL_UNIFORM_BUFFER
       binding
       (bufferID $ regionBuffer r)
