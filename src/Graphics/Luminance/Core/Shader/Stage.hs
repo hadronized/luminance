@@ -31,7 +31,7 @@ import Foreign.Storable ( peek )
 -- Shader stages ---------------------------------------------------------------
 
 -- |A shader 'Stage'.
-newtype Stage = Stage { stageID :: GLuint }
+newtype Stage = Stage { stageID :: GLuint } deriving (Eq,Show)
 
 -- |A shader 'Stage' type.
 data StageType
