@@ -1,3 +1,7 @@
+## 0.7.1
+
+- Added `Graphics.Luminance.Pixel` in the export-list of `Graphics.Luminance.Texture`.
+
 # 0.7
 
 #### Breaking changes
