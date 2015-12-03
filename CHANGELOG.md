@@ -1,3 +1,7 @@
+## 0.7.2
+
+- Made `UniformInterface` visible (type only).
+
 ## 0.7.1
 
 - Added `Graphics.Luminance.Pixel` in the export-list of `Graphics.Luminance.Texture`.
