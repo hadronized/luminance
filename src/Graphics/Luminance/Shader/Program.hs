@@ -19,6 +19,7 @@ module Graphics.Luminance.Shader.Program (
   , U
   , UniformInterface
   , UniformName(..)
+  , SomeUniformName(..)
     -- * Uniform block
   , UniformBlock
   , UB(..)
