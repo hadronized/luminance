@@ -1,7 +1,10 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -67,14 +70,14 @@ newtype Program = Program { programID :: GLuint }
 -- 'Program' and the interface.
 --
 -- The builder function takes a function you can use to retrieve uniforms. You can pass
--- 'Left name' to map a 'String' to a uniform or you can pass 'Right sem' to map a semantic
--- 'Natural' to a uniform. If the uniform can’t be retrieved, throws 'InactiveUniform'.
+-- values of type 'UniformName' to identify the uniform you want to retrieve. If the uniform can’t
+-- be retrieved, throws 'InactiveUniform'.
 --
 -- In the end, you get the new 'Program' and a polymorphic value you can choose the type of in
 -- the function you pass as argument. You can use that value to gather uniforms for instance.
 createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               => [Stage]
-              -> ((forall a. (Uniform a) => Either String Natural -> UniformInterface m (U a)) -> (forall a. (UniformBlock a) => String -> UniformInterface m (U (Region rw (UB a)))) -> UniformInterface m i)
+              -> ((forall a. UniformName a -> UniformInterface m (U a)) -> UniformInterface m i)
               -> m (Program,i)
 createProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
@@ -90,7 +93,7 @@ createProgram stages buildIface = do
     throwError . fromProgramError $ LinkFailed cl
   _ <- register $ glDeleteProgram pid
   let prog = Program pid
-  a <- runUniformInterface $ buildIface (uniformize prog) (uniformizeBlock prog)
+  a <- runUniformInterface $ buildIface (uniformize prog)
   pure (prog,a)
 
 -- |A simpler version of 'createProgram'. That function assumes you don’t need a uniform interface
@@ -98,7 +101,7 @@ createProgram stages buildIface = do
 createProgram_ :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
                 => [Stage]
                 -> m Program
-createProgram_ stages = fmap fst $ createProgram stages (\_ _ -> pure ())
+createProgram_ stages = fmap fst $ createProgram stages (\_ -> pure ())
 
 -- |Is a shader program linked?
 isLinked :: GLuint -> IO Bool
@@ -144,28 +147,52 @@ emptyUniformInterfaceCtxt = UniformInterfaceCtxt {
 #endif
   }
 
--- |Either map a 'String' or 'Natural' to a uniform.
-uniformize :: (HasProgramError e,MonadError e m,MonadIO m,Uniform a)
+-- |Possible way to name uniform values.
+data UniformName :: * -> * where
+  UniformName :: (Uniform a) => String -> UniformName a
+  UniformSemantic :: (Uniform a) => Natural -> UniformName a
+  UniformBlockName :: (UniformBlock a) => String -> UniformName (Region rw (UB a))
+
+-- |A uniform name with type-erasure. You can only access the constructors and the carried name but
+-- you can’t reconstruct the phantom type.
+data SomeUniformName = forall a. SomeUniformName (UniformName a)
+
+instance Eq SomeUniformName where
+  SomeUniformName (UniformName a) == SomeUniformName (UniformName b) = a == b
+  SomeUniformName (UniformSemantic a) == SomeUniformName (UniformSemantic b) = a == b
+  SomeUniformName (UniformBlockName a) == SomeUniformName (UniformBlockName b) = a == b
+  _ == _ = False
+
+instance Show SomeUniformName where
+  show (SomeUniformName n) = case n of
+    UniformName n -> "UniformName " ++ n
+    UniformSemantic s -> "UniformSemantic " ++ show s
+    UniformBlockName n -> "UniformBlockName " ++ n
+
+-- |A way to get several kind of uniforms through a single interface.
+uniformize :: (HasProgramError e,MonadError e m,MonadIO m)
            => Program
-           -> Either String Natural
+           -> UniformName a
            -> UniformInterface m (U a)
-uniformize Program{programID = pid} access = UniformInterface $ case access of
-  Left name -> do
+uniformize program@Program{programID = pid} getter = UniformInterface $ case getter of
+  UniformName name -> do
     location <- liftIO . debugGL . withCString name $ glGetUniformLocation pid
-    when (location == -1) (throwError . fromProgramError $ InactiveUniform access)
+    when (location == -1) . throwError . fromProgramError $ InactiveUniform (SomeUniformName getter)
     runUniformInterface' (toU pid location)
-  Right sem -> do
-    when (sem == -1) (throwError . fromProgramError $ InactiveUniform access)
-    runUniformInterface' $ toU pid (fromIntegral sem)
+  UniformSemantic sem -> do
+    when (sem == -1) . throwError . fromProgramError $ InactiveUniform (SomeUniformName getter)
+    runUniformInterface' (toU pid $ fromIntegral sem)
+  UniformBlockName name -> runUniformInterface (uniformizeBlock program name $ InactiveUniform (SomeUniformName getter))
 
 -- |Map a 'String' to a uniform block.
 uniformizeBlock :: forall a e m rw. (HasProgramError e,MonadError e m,MonadIO m,UniformBlock a)
                 => Program
                 -> String
+                -> ProgramError
                 -> UniformInterface m (U (Region rw (UB a)))
-uniformizeBlock Program{programID = pid} name = UniformInterface $ do
+uniformizeBlock Program{programID = pid} name onError = UniformInterface $ do
   index <- liftIO . debugGL . withCString name $ glGetUniformBlockIndex pid
-  when (index == GL_INVALID_INDEX) (throwError . fromProgramError $ InactiveUniformBlock name)
+  when (index == GL_INVALID_INDEX) (throwError $ fromProgramError onError)
   -- retrieve a new binding value and use it
   binding <- gets uniformInterfaceBufferBinding
   modify $ \ctxt -> ctxt { uniformInterfaceBufferBinding = succ $ uniformInterfaceBufferBinding ctxt }
@@ -864,8 +891,7 @@ unQuad (x,y,z,w) = [x,y,z,w]
 -- is, unused or semantically set to a negative value.
 data ProgramError
   = LinkFailed String
-  | InactiveUniform (Either String Natural)
-  | InactiveUniformBlock String
+  | InactiveUniform SomeUniformName
     deriving (Eq,Show)
 
 -- |Types that can handle 'ProgramError' – read as, “have”.

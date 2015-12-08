@@ -1,3 +1,12 @@
+## 0.8
+
+#### Breaking changes
+
+- `createProgram` now has a new rank 2 type parameter to map uniform values. It uses the newly
+  added first-class `UniformName` type to select which kind of uniform is wanted – up to now, simple
+  uniforms or uniform block. That change is great because it unifies everything under the same type
+  and future adds won’t break the existing code – the signature of `createProgram` for instance.
+
 ## 0.7.2
 
 - Made `UniformInterface` visible (type only).
