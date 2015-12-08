@@ -1,3 +1,7 @@
+### 0.8.2
+
+- Exposed `SomeUniformName`.
+
 ### 0.8.1
 
 - Exposed `UniformName` – forgotten in 0.8 release.
