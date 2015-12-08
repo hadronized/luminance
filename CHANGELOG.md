@@ -1,3 +1,7 @@
+### 0.8.1
+
+- Exposed `UniformName` – forgotten in 0.8 release.
+
 ## 0.8
 
 #### Breaking changes
