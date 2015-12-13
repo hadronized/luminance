@@ -1,3 +1,8 @@
+### 0.8.2.1
+
+- Removed the `MonadIO` constraint on `createGeometry` as it’s already brought by `MonadResource`.
+- Clean some code about `createGeometry` conditional (gl32 / gl45).
+
 ### 0.8.2
 
 - Exposed `SomeUniformName`.
