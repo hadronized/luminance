@@ -1,3 +1,7 @@
+## 0.9
+
+- Dropped `gl32` for `gl33`.
+
 ### 0.8.2.1
 
 - Removed the `MonadIO` constraint on `createGeometry` as it’s already brought by `MonadResource`.

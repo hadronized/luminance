@@ -31,7 +31,7 @@ import Data.Int ( Int32 )
 import Data.Proxy ( Proxy(..) )
 import Data.Word ( Word32 )
 import Foreign.Storable ( Storable(sizeOf) )
-#ifdef __GL32
+#ifdef __GL33
 import Foreign.Ptr ( nullPtr )
 #endif
 import GHC.TypeLits ( KnownNat, natVal )
@@ -80,7 +80,7 @@ instance (KnownNat n,Storable a,VertexAttribute a) => Vertex (V n a) where
     glVertexArrayAttribFormat vid index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE offset
     glVertexArrayAttribBinding vid index vertexBindingIndex
     glEnableVertexArrayAttrib vid index
-#elif defined(__GL32)
+#elif defined(__GL33)
   setFormatV _ index offset _ = do
     glVertexAttribPointer index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE (fromIntegral offset) nullPtr
     glEnableVertexAttribArray index

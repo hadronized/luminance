@@ -46,7 +46,7 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
   textureStorage _ tid levels s =
     glTextureStorage3D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral s)
       (fromIntegral s) (fromIntegral $ natVal (Proxy :: Proxy n))
-#elif defined(__GL32)
+#elif defined(__GL33)
   textureStorage _ _ _ _ = pure ()
 #endif
 #ifdef __GL45
@@ -58,7 +58,7 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
-#elif defined(__GL32)
+#elif defined(__GL33)
   transferTexelsSub _ _ _ _ _ = pure ()
 #endif
 #ifdef __GL45
@@ -70,6 +70,6 @@ instance (KnownNat n, Pixel f) => Texture (CubemapArray n f) where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
-#elif defined(__GL32)
+#elif defined(__GL33)
   fillTextureSub _ _ _ _ _ = pure ()
 #endif
