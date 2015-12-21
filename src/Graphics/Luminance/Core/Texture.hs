@@ -131,7 +131,7 @@ data BaseTexture = BaseTexture {
     baseTextureID  :: GLuint
   , baseTextureHnd :: GLuint64
   } deriving (Eq,Show)
-#elif defined(__GL32)
+#elif defined(__GL33)
 newtype BaseTexture = BaseTexture {
     baseTextureID  :: GLuint
   } deriving (Eq,Show)
@@ -160,7 +160,7 @@ createTexture size levels sampling = do
     debugGL $ glMakeTextureHandleNonResidentARB texH
     with tid (glDeleteTextures 1)
   pure $ fromBaseTexture (BaseTexture tid texH) size
-#elif defined(__GL32)
+#elif defined(__GL33)
 createTexture size levels sampling = do
     tid <- liftIO . alloca $ \p -> do
       debugGL $ glGenTextures 1 p
@@ -233,7 +233,7 @@ setSampling f oid s = liftIO $ do
 setTextureSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
 #ifdef __GL45
 setTextureSampling = setSampling glTextureParameteri
-#elif defined(__GL32)
+#elif defined(__GL33)
 setTextureSampling = setSampling glTexParameteri
 #endif
 
@@ -276,7 +276,7 @@ uploadSub tex offset size autolvl texels = liftIO $ do
     transferTexelsSub (Proxy :: Proxy t) tid offset size texels
 #ifdef __GL45
     debugGL . when autolvl $ glGenerateTextureMipmap tid
-#elif defined(__GL32)
+#elif defined(__GL33)
     debugGL . when autolvl $ glGenerateMipmap (textureTypeEnum (Proxy :: Proxy t))
 #endif
   where
@@ -294,7 +294,7 @@ fillSub tex offset size autolvl filling = liftIO $ do
     fillTextureSub (Proxy :: Proxy t) tid offset size filling
 #ifdef __GL45
     debugGL . when autolvl $ glGenerateTextureMipmap tid
-#elif defined(__GL32)
+#elif defined(__GL33)
     debugGL . when autolvl $ glGenerateMipmap (textureTypeEnum (Proxy :: Proxy t))
 #endif
   where

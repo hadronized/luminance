@@ -110,8 +110,8 @@ prependGLSLPragma :: String -> String
 prependGLSLPragma src =
 #if defined(__GL45)
      "#version 450 core\n"
-#elif defined(__GL32)
-     "#version 150 core\n"
+#elif defined(__GL33)
+     "#version 330 core\n"
 #endif
 #if defined(__GL_BINDLESS_TEXTURES)
   ++ "#extension GL_ARB_bindless_texture : require\n"

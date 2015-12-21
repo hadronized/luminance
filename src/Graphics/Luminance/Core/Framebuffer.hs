@@ -92,7 +92,7 @@ createFramebuffer w h mipmaps = do
   if 
     | status == GL_FRAMEBUFFER_COMPLETE -> pure $ Framebuffer fid (Output colorTexs depthTex)
     | otherwise -> throwError . fromFramebufferError . IncompleteFramebuffer $ translateFramebufferStatus status
-#elif defined(__GL32)
+#elif defined(__GL33)
 createFramebuffer w h mipmaps = do
   fid <- liftIO . alloca $ \p -> do
     debugGL $ glGenFramebuffers 1 p
@@ -181,7 +181,7 @@ setColorBuffers fid colorOutputNb _ = case colorOutputNb of
     debugGL $ glNamedFramebufferDrawBuffer fid GL_NONE
     debugGL $ glNamedFramebufferReadBuffer fid GL_NONE
   _ -> setFramebufferColorRW fid colorOutputNb (Proxy :: Proxy rw)
-#elif defined(__GL32)
+#elif defined(__GL33)
 setColorBuffers fid colorOutputNb _ = case colorOutputNb of
   0 -> do
     -- disable color outputs
@@ -220,7 +220,7 @@ setDepthRenderbuffer fid w h = do
   renderbuffer <- createRenderbuffer w h (Proxy :: Proxy Depth32F)
   debugGL $ glNamedFramebufferRenderbuffer fid (fromAttachment DepthAttachment) GL_RENDERBUFFER
     (renderbufferID renderbuffer)
-#elif defined(__GL32)
+#elif defined(__GL33)
 setDepthRenderbuffer _ w h = do
   renderbuffer <- createRenderbuffer w h (Proxy :: Proxy Depth32F)
   debugGL $ glFramebufferRenderbuffer GL_FRAMEBUFFER (fromAttachment DepthAttachment) GL_RENDERBUFFER
@@ -239,7 +239,7 @@ instance FramebufferColorRW W where
   setFramebufferColorRW fid nb _ = liftIO $ do
     withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
       debugGL $ glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
-#elif defined(__GL32)
+#elif defined(__GL33)
   setFramebufferColorRW _ nb _ = liftIO $ do
     withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
       debugGL $ glDrawBuffers (fromIntegral n) buffers
@@ -250,7 +250,7 @@ instance FramebufferColorRW RW where
   setFramebufferColorRW fid nb _ = liftIO $ do
     withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
       debugGL $ glNamedFramebufferDrawBuffers fid (fromIntegral n) buffers
-#elif defined(__GL32)
+#elif defined(__GL33)
   setFramebufferColorRW _ nb _ = liftIO $ do
     withArrayLen (colorAttachmentsFromMax nb) $ \n buffers ->
       debugGL $ glDrawBuffers (fromIntegral n) buffers
@@ -290,7 +290,7 @@ addOutput fid ca w h mipmaps _ = do
   debugGL . liftIO $ glNamedFramebufferTexture fid (fromAttachment ca)
     (baseTextureID $ texture2DBase tex) 0
   pure tex
-#elif defined(__GL32)
+#elif defined(__GL33)
 addOutput _ ca w h mipmaps _ = do
   tex :: Texture2D p <- createTexture (w,h) mipmaps defaultSampling
   debugGL . liftIO $ glFramebufferTexture GL_FRAMEBUFFER (fromAttachment ca)
@@ -345,7 +345,7 @@ framebufferBlit :: (MonadIO m,Readable r,Writable w)
 framebufferBlit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt = liftIO . debugGL $
     glBlitNamedFramebuffer (framebufferID src) (framebufferID dst) srcX0 srcY0 srcX1 srcY1 dstX0
       dstY0 dstX1 dstY1 (fromFramebufferBlitMask mask) (fromFilter flt)
-#elif defined(__GL32)
+#elif defined(__GL33)
 framebufferBlit src dst srcX srcY srcW srcH dstX dstY dstW dstH mask flt =
     liftIO . debugGL $ do
       glBindFramebuffer GL_READ_FRAMEBUFFER (framebufferID src)
