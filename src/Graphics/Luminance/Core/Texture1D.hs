@@ -39,7 +39,7 @@ instance (Pixel f) => Texture (Texture1D f) where
 #ifdef __GL45
   textureStorage _ tid levels w =
     glTextureStorage1D tid levels (pixelIFormat (Proxy :: Proxy f)) (fromIntegral w)
-#elif defined(__GL32)
+#elif defined(__GL33)
   textureStorage _ _ levels w = do
       for_ [0..levels-1] $ \lvl -> do
         let divisor = 2 ^ lvl
@@ -51,7 +51,7 @@ instance (Pixel f) => Texture (Texture1D f) where
   transferTexelsSub _ tid x w texels =
       unsafeWith texels $ glTextureSubImage1D tid 0 (fromIntegral x) (fromIntegral w) fmt
         typ . castPtr
-#elif defined(__GL32)
+#elif defined(__GL33)
   transferTexelsSub _ tid x w texels = do
       glBindTexture GL_TEXTURE_1D tid
       unsafeWith texels $ glTexSubImage1D GL_TEXTURE_1D 0 (fromIntegral x) (fromIntegral w) fmt
@@ -69,6 +69,6 @@ instance (Pixel f) => Texture (Texture1D f) where
       proxy = Proxy :: Proxy f
       fmt = pixelFormat proxy
       typ = pixelType proxy
-#elif defined(__GL32)
+#elif defined(__GL33)
   fillTextureSub p tid x w filling = transferTexelsSub p tid x w filling
 #endif

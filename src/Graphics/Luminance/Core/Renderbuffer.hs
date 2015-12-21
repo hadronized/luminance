@@ -34,7 +34,7 @@ createRenderbuffer w h depthProxy = do
     pure rid
   _ <- register $ with rid (glDeleteRenderbuffers 1)
   pure (Renderbuffer rid)
-#elif defined(__GL32)
+#elif defined(__GL33)
 createRenderbuffer w h depthProxy = do
   rid <- liftIO . alloca $ \p -> do
     glGenRenderbuffers 1 p

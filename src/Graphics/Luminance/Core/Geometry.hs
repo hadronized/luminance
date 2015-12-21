@@ -102,7 +102,7 @@ createGeometry vertices indices mode = do
   where
     vertNb = length vertices
     mode'  = fromGeometryMode mode
-#elif defined(__GL32)
+#elif defined(__GL33)
 createGeometry vertices indices mode = do
     -- create the vertex array object (OpenGL-side)
     vid <- liftIO . alloca $ \p -> do

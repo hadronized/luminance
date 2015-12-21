@@ -1,5 +1,5 @@
 name:                luminance
-version:             0.8.2.1
+version:             0.9
 synopsis:            Type-safe, type-level and stateless graphics framework
 description:         This package exposes several modules to work with /GPUs/ in a stateless and
                      type-safe way. Currently, it uses OpenGL as backend hardware technology but
@@ -20,10 +20,6 @@ description:         This package exposes several modules to work with /GPUs/ in
                      .
                      This library doesn’t expose any architectural patterns or designs. It’s up to
                      you to design your program as you want and following your own plans.
-                     .
-                     In the end, as many people has asked me since the beginning of the development,
-                     the OpenGL version – current is 4.5 – will be lowered. You’ll be able to choose
-                     the backend to use through compilation flags.
 license:             BSD3
 license-file:        LICENSE
 author:              Dimitri Sabadie <dimitri.sabadie@gmail.com>
@@ -56,8 +52,8 @@ flag gl45-bindless-textures
   default:             False
   manual:              True
 
-flag gl32
-  description:         Compile with the OpenGL 3.2 backend
+flag gl33
+  description:         Compile with the OpenGL 3.3 backend
   default:             True
   manual:              True
 
@@ -73,8 +69,8 @@ library
   if flag(gl45-bindless-textures)
     cpp-options:       -D__GL45 -D__GL_BINDLESS_TEXTURES
 
-  if flag(gl32)
-    cpp-options:       -D__GL32
+  if flag(gl33)
+    cpp-options:       -D__GL33
 
   exposed-modules:     Graphics.Luminance
                      , Graphics.Luminance.Batch
