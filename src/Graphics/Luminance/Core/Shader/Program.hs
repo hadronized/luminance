@@ -62,7 +62,7 @@ import Numeric.Natural ( Natural )
 -- Shader program --------------------------------------------------------------
 
 -- |Shader program.
-newtype Program = Program { programID :: GLuint }
+newtype Program = Program { programID :: GLuint } deriving (Eq,Show)
 
 -- |Create a new shader 'Program'.
 --
