@@ -1,3 +1,7 @@
+### 0.9.1
+
+- Made `Program` an instance of `Eq` and `Show`.
+
 ## 0.9
 
 - Dropped `gl32` for `gl33`.
