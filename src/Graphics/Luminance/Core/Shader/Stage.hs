@@ -91,7 +91,7 @@ mkShader target src = do
 isCompiled :: GLuint -> IO Bool
 isCompiled sid = do
   ok <- debugGL . alloca $ liftA2 (*>) (glGetShaderiv sid GL_COMPILE_STATUS) peek
-  pure $ ok == GL_TRUE
+  pure $ ok == fromIntegral GL_TRUE
 
 -- Shader compilation log’s length.
 clogLength :: GLuint -> IO Int

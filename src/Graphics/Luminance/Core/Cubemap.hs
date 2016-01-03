@@ -39,7 +39,7 @@ data CubeFace
     deriving (Eq,Show)
 
 fromCubeFace :: CubeFace -> GLint
-fromCubeFace f = case f of
+fromCubeFace f = fromIntegral $ case f of
   PositiveX -> GL_TEXTURE_CUBE_MAP_POSITIVE_X
   NegativeX -> GL_TEXTURE_CUBE_MAP_NEGATIVE_X
   PositiveY -> GL_TEXTURE_CUBE_MAP_POSITIVE_Y

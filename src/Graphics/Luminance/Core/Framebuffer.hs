@@ -131,7 +131,7 @@ data Attachment
   | DepthAttachment
   deriving (Eq,Ord,Show)
 
-fromAttachment :: (Eq a,Num a) => Attachment -> a
+fromAttachment :: Attachment -> GLenum
 fromAttachment a = case a of
   ColorAttachment i -> GL_COLOR_ATTACHMENT0 + fromIntegral i
   DepthAttachment   -> GL_DEPTH_ATTACHMENT

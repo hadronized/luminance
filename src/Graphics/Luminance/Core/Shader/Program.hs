@@ -51,7 +51,7 @@ import Graphics.Luminance.Core.Texture1D
 import Graphics.Luminance.Core.Texture2D
 import Graphics.Luminance.Core.Texture3D
 import Graphics.GL
-#ifdef __GL_BINDLESS_TEXTURES
+#if defined(__GL_BINDLESS_TEXTURES) && defined(VERSION_gl)
 import Graphics.GL.Ext.ARB.BindlessTexture ( glProgramUniformHandleui64ARB )
 #endif
 import Linear
@@ -107,7 +107,7 @@ createProgram_ stages = fmap fst $ createProgram stages (\_ -> pure ())
 isLinked :: GLuint -> IO Bool
 isLinked pid = do
   ok <- debugGL . alloca $ liftA2 (*>) (glGetProgramiv pid GL_LINK_STATUS) peek
-  pure $ ok == GL_TRUE
+  pure $ ok == fromIntegral GL_TRUE
 
 -- |Shader program link log’s length.
 clogLength :: GLuint -> IO Int
@@ -817,18 +817,18 @@ instance Uniform [V 4 Float] where
 -- Matrices --------------------------------------------------------------------
 instance Uniform (M44 Float) where
 #ifdef __GL45
-  toU prog l = pure . U $ \v -> with v $ glProgramUniformMatrix4fv prog l 1 GL_FALSE . castPtr
+  toU prog l = pure . U $ \v -> with v $ glProgramUniformMatrix4fv prog l 1 (fromIntegral GL_FALSE) . castPtr
 #elif defined(__GL33)
-  toU _ l = pure . U $ \v -> with v $ glUniformMatrix4fv l 1 GL_FALSE . castPtr
+  toU _ l = pure . U $ \v -> with v $ glUniformMatrix4fv l 1 (fromIntegral GL_FALSE) . castPtr
 #endif
 
 instance Uniform [M44 Float] where
 #ifdef __GL45
   toU prog l = pure . U $ \v -> withArrayLen v $ \size p ->
-    glProgramUniformMatrix4fv prog l (fromIntegral size) GL_FALSE (castPtr p)
+    glProgramUniformMatrix4fv prog l (fromIntegral size) (fromIntegral GL_FALSE) (castPtr p)
 #elif defined(__GL33)
   toU _ l = pure . U $ \v -> withArrayLen v $ \size p ->
-    glUniformMatrix4fv l (fromIntegral size) GL_FALSE (castPtr p)
+    glUniformMatrix4fv l (fromIntegral size) (fromIntegral GL_FALSE) (castPtr p)
 #endif
 
 --------------------------------------------------------------------------------

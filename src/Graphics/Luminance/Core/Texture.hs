@@ -23,7 +23,7 @@ import Foreign.Marshal.Alloc ( alloca )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( Storable(peek) )
 import Graphics.GL
-#ifdef __GL_BINDLESS_TEXTURES
+#if defined(__GL_BINDLESS_TEXTURES) && defined(VERSION_gl)
 import Graphics.GL.Ext.ARB.BindlessTexture
 #endif
 import Graphics.Luminance.Core.Debug
@@ -47,8 +47,8 @@ data Wrap
   | MirroredRepeat
     deriving (Eq,Show)
 
-fromWrap :: (Eq a,Num a) => Wrap -> a
-fromWrap w = case w of
+fromWrap :: Wrap -> GLint
+fromWrap w = fromIntegral $ case w of
   ClampToEdge    -> GL_CLAMP_TO_EDGE
   -- ClampToBorder  -> GL_CLAMP_TO_BORDER
   Repeat         -> GL_REPEAT
@@ -61,7 +61,7 @@ data Filter
   | Linear
     deriving (Eq,Show)
 
-fromFilter :: (Eq a,Num a) => Filter -> a
+fromFilter :: Filter -> GLenum
 fromFilter f = case f of
   Nearest -> GL_NEAREST
   Linear  -> GL_LINEAR
@@ -79,8 +79,8 @@ data CompareFunc
   | Always
     deriving (Eq,Show)
 
-fromCompareFunc :: (Eq a,Num a) => CompareFunc -> a
-fromCompareFunc f = case f of
+fromCompareFunc :: CompareFunc -> GLint
+fromCompareFunc f = fromIntegral $ case f of
   Never          -> GL_NEVER
   Less           -> GL_LESS
   Equal          -> GL_EQUAL
@@ -213,22 +213,22 @@ defaultSampling = Sampling {
   }
 
 -- Apply a 'Sampling' object for a given type of object (texture, sampler, etc.).
-setSampling :: (Eq a,Eq b,MonadIO m,Num a,Num b) => (GLenum -> a -> b -> IO ()) -> GLenum -> Sampling -> m ()
+setSampling :: (MonadIO m) => (GLenum -> GLenum -> GLint -> IO ()) -> GLenum -> Sampling -> m ()
 setSampling f oid s = liftIO $ do
   -- wraps
   debugGL $ f oid GL_TEXTURE_WRAP_S . fromWrap $ samplingWrapS s
   debugGL $ f oid GL_TEXTURE_WRAP_T . fromWrap $ samplingWrapT s
   debugGL $ f oid GL_TEXTURE_WRAP_R . fromWrap $ samplingWrapR s
   -- filters
-  debugGL $ f oid GL_TEXTURE_MIN_FILTER . fromFilter $ samplingMinFilter s
-  debugGL $ f oid GL_TEXTURE_MAG_FILTER . fromFilter $ samplingMagFilter s
+  debugGL $ f oid GL_TEXTURE_MIN_FILTER . fromIntegral . fromFilter $ samplingMinFilter s
+  debugGL $ f oid GL_TEXTURE_MAG_FILTER . fromIntegral . fromFilter $ samplingMagFilter s
   -- comparison function
   case samplingCompareFunction s of
     Just cmpf -> do
       debugGL $ f oid GL_TEXTURE_COMPARE_FUNC $ fromCompareFunc cmpf
-      debugGL $ f oid GL_TEXTURE_COMPARE_MODE GL_COMPARE_REF_TO_TEXTURE
+      debugGL $ f oid GL_TEXTURE_COMPARE_MODE (fromIntegral GL_COMPARE_REF_TO_TEXTURE)
     Nothing ->
-      debugGL $ f oid GL_TEXTURE_COMPARE_MODE GL_NONE
+      debugGL $ f oid GL_TEXTURE_COMPARE_MODE (fromIntegral GL_NONE)
 
 setTextureSampling :: (MonadIO m) => GLenum -> Sampling -> m ()
 #ifdef __GL45
