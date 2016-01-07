@@ -164,7 +164,7 @@ instance Eq SomeUniformName where
   _ == _ = False
 
 instance Show SomeUniformName where
-  show (SomeUniformName n) = case n of
+  show (SomeUniformName name) = case name of
     UniformName n -> "UniformName " ++ n
     UniformSemantic s -> "UniformSemantic " ++ show s
     UniformBlockName n -> "UniformBlockName " ++ n
