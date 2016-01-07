@@ -17,12 +17,12 @@ class Readable r where
 class Writable w where
 
 -- |Read-only type.
-data R  = R deriving (Eq,Ord,Show)
+data R = R deriving (Eq,Ord,Show)
 
 instance Readable R
 
 -- |Write-only type.
-data W  = W deriving (Eq,Ord,Show)
+data W = W deriving (Eq,Ord,Show)
 
 instance Writable W
 
