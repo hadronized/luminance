@@ -42,10 +42,6 @@ data StageType
   | FragmentShader
     deriving (Eq,Show)
 
--- |Create a new tessellation control shader from a 'String' representation of its source code.
-createTessCtrlShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m) => String -> m Stage
-createTessCtrlShader = mkShader GL_TESS_CONTROL_SHADER
-
 -- |Create a shader stage from a 'String' representation of its source code and its type.
 --
 -- Note: on some hardware and backends, /tessellation shaders/ aren’t available. That function

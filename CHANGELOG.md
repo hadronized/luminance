@@ -1,3 +1,9 @@
+### 0.10
+
+- `createFramebuffer` now expects a `rw` parameter so that we don’t need to give an explicit ;
+  type signature (GHC can infer it)
+- ditto for `createBuffer` and `createBuffer_`.
+
 ### 0.9.1
 
 - Made `Program` an instance of `Eq` and `Show`.
