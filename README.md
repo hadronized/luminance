@@ -49,16 +49,16 @@ an operating system with **OpenGL** installed.
 # What are the prerequisites?
 
 In order to use `luminance`, you need several prerequisites to be fulfilled. Those prerequisites
-determine which backend you will be able to use. Currently, two backends are available: **gl32**
+determine which backend you will be able to use. Currently, two backends are available: **gl33**
 and **gl45**.
 
 - a library to setup an *OpenGL* context.
-- **gl32**
-  - a decent *OpenGL 3.2* implementation
+- **gl33**
+  - a decent *OpenGL 3.3* implementation
   - support for extension *GL_ARB_texture_cube_map*
 - **gl45**
   - a decent *OpenGL 4.5* implementation
-- **gl-bindless-textures** (bonus)
+- **gl-45-bindless-textures** (bonus)
   - a decent *OpenGL 4.5* implementation
   - support for extension *GL_ARB_bindless_texture* ;
 
@@ -71,13 +71,6 @@ on windowing libraries so that end-users can use whatever they like. Furthermore
 typically implement windowing and events features, which have nothing to do with our initial
 purposes. However, a few packages might come up, like `luminance-glfw` if such libraries are judged
 useful.
-
-## Important point about OpenGL compatibility
-
-Recently, a lot of people asked whether older version of **OpenGL** are planned to be supported.
-Even though I decided not to support them, I’ve changed my mind. A support for **OpenGL 3.2+**
-might be planned as well as a version for **OpenGL ES**. The specification is yet to set but it will
-eventually be a thing.
 
 # How to dig in?
 
