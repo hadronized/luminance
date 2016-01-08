@@ -21,50 +21,26 @@ import Graphics.GL
 --------------------------------------------------------------------------------
 -- Channel size ----------------------------------------------------------------
 
-class ChannelSize c where
-  channelSize :: (Num size) => proxy c -> size
-
 -- |A 8-bit channel.
 data C8 = C8 deriving (Eq,Ord,Show)
-
-instance ChannelSize C8 where
-  channelSize _ = 8
 
 -- |A 16-bit channel.
 data C16 = C16 deriving (Eq,Ord,Show)
 
-instance ChannelSize C16 where
-  channelSize _ = 16
-
 -- |A 32-bit channel.
 data C32 = C32 deriving (Eq,Ord,Show)
-
-instance ChannelSize C32 where
-  channelSize _ = 32
 
 --------------------------------------------------------------------------------
 -- Channel type ----------------------------------------------------------------
 
-class ChannelType t where
-  channelType :: proxy t -> GLenum
-
 -- |Channels are integral values.
 data CInts = CInts deriving (Eq,Ord,Show)
-
-instance ChannelType CInts where
-  channelType _ = GL_INT
 
 -- |Channels are unsigned integral values.
 data CUInts = CUInts deriving (Eq,Ord,Show)
 
-instance ChannelType CUInts where
-  channelType _ = GL_UNSIGNED_INT
-
 -- |Channels are floating values.
 data CFloats = CFloats deriving (Eq,Ord,Show)
-
-instance ChannelType CFloats where
-  channelType _ = GL_FLOAT
 
 --------------------------------------------------------------------------------
 -- Channel shape ---------------------------------------------------------------
@@ -89,9 +65,6 @@ data CDepth a = CDepth deriving (Eq,Ord,Show)
 
 -- |A pixel format.
 data Format t c = Format deriving (Eq,Ord,Show)
-
-instance (ChannelType t) => ChannelType (Format t c) where
-  channelType _ = channelType (Proxy :: Proxy t)
 
 type RGB8UI   = Format CUInts  (CRGB C8 C8 C8)
 type RGBA8UI  = Format CUInts  (CRGBA C8 C8 C8 C8)
