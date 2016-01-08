@@ -10,12 +10,10 @@
 
 module Graphics.Luminance.Pixel (
     -- * Channel size
-    ChannelSize
-  , C8(..)
+    C8(..)
   , C16(..)
   , C32(..)
     -- * Channel type
-  , ChannelType
   , CInts(..)
   , CUInts(..)
   , CFloats(..)
