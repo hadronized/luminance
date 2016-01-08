@@ -13,10 +13,8 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
--- FIXME: #13
 module Graphics.Luminance.Core.Pixel where
 
-import Data.Proxy ( Proxy(..) )
 import Data.Word ( Word8 )
 import Graphics.GL
 
