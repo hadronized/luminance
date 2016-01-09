@@ -77,12 +77,12 @@ class Vertex v where
 instance (KnownNat n,Storable a,VertexAttribute a) => Vertex (V n a) where
 #ifdef __GL45
   setFormatV vid index offset _ = do
-    glVertexArrayAttribFormat vid index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) (fromIntegral GL_FALSE) offset
+    glVertexArrayAttribFormat vid index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE offset
     glVertexArrayAttribBinding vid index vertexBindingIndex
     glEnableVertexArrayAttrib vid index
 #elif defined(__GL33)
   setFormatV _ index offset _ = do
-    glVertexAttribPointer index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) (fromIntegral GL_FALSE) (fromIntegral offset) nullPtr
+    glVertexAttribPointer index (fromIntegral $ natVal (Proxy :: Proxy n)) (vertexGLType (Proxy :: Proxy a)) GL_FALSE (fromIntegral offset) nullPtr
     glEnableVertexAttribArray index
 #endif
     pure (succ index,offset + fromIntegral (sizeOf (undefined :: V n a)))
