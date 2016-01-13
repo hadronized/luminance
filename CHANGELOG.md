@@ -1,25 +1,29 @@
-### 0.9.1
+### 0.9.1.1
+
+- Several minor changes (clean up mostly).
+
+## 0.9.1
 
 - Made `Program` an instance of `Eq` and `Show`.
 
-## 0.9
+# 0.9
 
 - Dropped `gl32` for `gl33`.
 
-### 0.8.2.1
+## 0.8.2.1
 
 - Removed the `MonadIO` constraint on `createGeometry` as it’s already brought by `MonadResource`.
 - Clean some code about `createGeometry` conditional (gl32 / gl45).
 
-### 0.8.2
+## 0.8.2
 
 - Exposed `SomeUniformName`.
 
-### 0.8.1
+## 0.8.1
 
 - Exposed `UniformName` – forgotten in 0.8 release.
 
-## 0.8
+# 0.8
 
 #### Breaking changes
 
