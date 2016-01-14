@@ -109,14 +109,14 @@ prependGLSLPragma src = unlines
     "#version 450 core"
 #elif defined(__GL33)
     "#version 330 core"
-	, "#extension GL_ARB_separate_shader_objects : require"
+  , "#extension GL_ARB_separate_shader_objects : require"
 #endif
 #if defined(__GL_BINDLESS_TEXTURES)
   , "#extension GL_ARB_bindless_texture : require"
   , "layout (bindless_sampler) uniform;"
 #endif
   , src
-	]
+  ]
 
 --------------------------------------------------------------------------------
 -- Shader stage errors ---------------------------------------------------------
