@@ -103,17 +103,20 @@ clog l sid =
       (peekCString . castPtr)
 
 prependGLSLPragma :: String -> String
-prependGLSLPragma src =
+prependGLSLPragma src = unlines
+  [
 #if defined(__GL45)
-     "#version 450 core\n"
+    "#version 450 core"
 #elif defined(__GL33)
-     "#version 330 core\n"
+    "#version 330 core"
+	, "#extension GL_ARB_separate_shader_objects : require"
 #endif
 #if defined(__GL_BINDLESS_TEXTURES)
-  ++ "#extension GL_ARB_bindless_texture : require\n"
-  ++ "layout (bindless_sampler) uniform;"
+  , "#extension GL_ARB_bindless_texture : require"
+  , "layout (bindless_sampler) uniform;"
 #endif
-  ++ src
+  , src
+	]
 
 --------------------------------------------------------------------------------
 -- Shader stage errors ---------------------------------------------------------
