@@ -1,3 +1,7 @@
+### 0.9.1.2
+
+- Support for GL_ARB_separate_shader_objects for `gl33` backend (shader pragma).
+
 ### 0.9.1.1
 
 - Several minor changes (clean up mostly).
