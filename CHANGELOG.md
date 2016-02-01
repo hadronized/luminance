@@ -1,3 +1,7 @@
+### 0.9.1.3
+
+- Internal changes to make `createStage` errors more verbose about the type of the stage.
+
 ### 0.9.1.2
 
 - Support for `contravariant-1.4`.
