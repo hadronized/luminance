@@ -1,4 +1,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -16,6 +19,7 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 import Data.Bits
 import Data.Foldable ( traverse_ )
 import Foreign.Ptr ( nullPtr )
+import GHC.Exts ( Constraint )
 import Graphics.GL
 import Graphics.Luminance.Core.Blending ( setBlending )
 import Graphics.Luminance.Core.Debug
@@ -23,6 +27,15 @@ import Graphics.Luminance.Core.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Core.Shader.Program ( Program(..), U(..) )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
+
+newtype Batch s a = Batch { runBatch :: s -> a } deriving (Applicative,Functor,Monad)
+
+type family (<=) a b :: Constraint where
+  Program <= Framebuffer rw c d = ()
+  a <= Program = ()
+
+share :: (s <= t) => s -> Batch s a -> Batch t a
+share s (Batch f) = Batch (\_ -> f s)
 
 --------------------------------------------------------------------------------
 -- Framebuffer batch -----------------------------------------------------------
