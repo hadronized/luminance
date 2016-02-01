@@ -42,6 +42,14 @@ data StageType
   | FragmentShader
     deriving (Eq,Show)
 
+fromStageType :: StageType -> GLenum
+fromStageType st = case st of
+  TessControlShader -> GL_TESS_CONTROL_SHADER
+  TessEvaluationShader -> GL_TESS_EVALUATION_SHADER
+  VertexShader -> GL_VERTEX_SHADER
+  GeometryShader -> GL_GEOMETRY_SHADER
+  FragmentShader -> GL_FRAGMENT_SHADER
+
 -- |Create a shader stage from a 'String' representation of its source code and its type.
 --
 -- Note: on some hardware and backends, /tessellation shaders/ aren’t available. That function
@@ -50,26 +58,27 @@ createStage :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m)
             => StageType
             -> String
             -> m Stage
-createStage t src = case t of
-    TessControlShader -> checkTessSupport t >> mkShader GL_TESS_CONTROL_SHADER src
-    TessEvaluationShader -> checkTessSupport t >> mkShader GL_TESS_EVALUATION_SHADER src
-    VertexShader -> mkShader GL_VERTEX_SHADER src
-    GeometryShader -> mkShader GL_GEOMETRY_SHADER src
-    FragmentShader -> mkShader GL_FRAGMENT_SHADER src
+createStage stageType src = do
+    -- check whether we can create such a stage
+    case stageType of
+      TessControlShader -> checkTessSupport
+      TessEvaluationShader -> checkTessSupport
+      _ -> pure ()
+    mkShader stageType src
   where
-    checkTessSupport stage = do
+    checkTessSupport = do
       exts <- getGLExtensions
-      unless ("GL_ARB_tessellation_shader" `elem` exts) $
-        throwError $ fromStageError (UnsupportedStage stage)
+      unless ("GL_ARB_tessellation_shader" `elem` exts) . throwError $
+        fromStageError (UnsupportedStage stageType)
 
 -- Create a shader from the kind of shader and its source code 'String' representation.
 mkShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m)
-         => GLenum
+         => StageType 
          -> String
          -> m Stage
-mkShader target src = do
+mkShader stageType src = do
   (sid,compiled,cl) <- liftIO $ do
-    sid <- debugGL $ glCreateShader target
+    sid <- debugGL $ glCreateShader (fromStageType stageType)
     withCString (prependGLSLPragma src) $ \cstr -> do
       with cstr $ \pcstr -> debugGL $ glShaderSource sid 1 pcstr nullPtr
       debugGL $ glCompileShader sid
@@ -79,7 +88,7 @@ mkShader target src = do
       pure (sid,compiled,cl)
   unless compiled $ do
     liftIO (glDeleteShader sid)
-    throwError . fromStageError $ CompilationFailed cl
+    throwError . fromStageError . CompilationFailed $ show stageType ++ ": " ++ cl
   _ <- register $ glDeleteShader sid
   pure $ Stage sid
 
