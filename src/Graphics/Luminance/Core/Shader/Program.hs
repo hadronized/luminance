@@ -232,17 +232,6 @@ newtype U a = U { runU :: a -> IO () }
 instance Contravariant U where
   contramap f u = U $ runU u . f
 
-instance Decidable U where
-  lose f = U $ absurd . f
-  choose f p q = U $ either (runU p) (runU q) . f
-
-instance Divisible U where
-  divide f p q = U $ \a -> do
-    let (b,c) = f a
-    runU p b
-    runU q c
-  conquer = mempty
-
 instance Monoid (U a) where
   mempty = U . const $ pure ()
   mappend = (<>)
