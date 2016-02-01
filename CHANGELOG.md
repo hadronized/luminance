@@ -1,5 +1,7 @@
-### 0.9.1.3
+### 0.10
 
+- Removed `Decidable` and `Divisible` instances for `U` as uniforms are not supposed to be used this
+  way.
 - Internal changes to make `createStage` errors more verbose about the type of the stage.
 
 ### 0.9.1.2
