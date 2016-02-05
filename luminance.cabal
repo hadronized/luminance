@@ -76,7 +76,6 @@ library
                      , Graphics.Luminance.Batch
                      , Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
-                     , Graphics.Luminance.Cmd
                      , Graphics.Luminance.Core.Tuple
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
@@ -93,12 +92,12 @@ library
   other-modules:       Graphics.Luminance.Core.Batch
                      , Graphics.Luminance.Core.Blending
                      , Graphics.Luminance.Core.Buffer
-                     , Graphics.Luminance.Core.Cmd
                      , Graphics.Luminance.Core.Cubemap
                      , Graphics.Luminance.Core.CubemapArray
                      , Graphics.Luminance.Core.Debug
                      , Graphics.Luminance.Core.Framebuffer
                      , Graphics.Luminance.Core.Geometry
+                     , Graphics.Luminance.Core.Lum
                      , Graphics.Luminance.Core.Pixel
                      , Graphics.Luminance.Core.Query
                      , Graphics.Luminance.Core.RenderCmd
