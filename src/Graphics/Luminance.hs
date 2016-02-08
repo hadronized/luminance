@@ -305,6 +305,7 @@ module Graphics.Luminance (
   , module Graphics.Luminance.Core.Tuple
   , module Graphics.Luminance.Framebuffer
   , module Graphics.Luminance.Geometry
+  , module Graphics.Luminance.GPU
   , module Graphics.Luminance.Pixel
   , module Graphics.Luminance.Query
   , module Graphics.Luminance.RenderCmd
@@ -320,6 +321,7 @@ import Graphics.Luminance.Buffer
 import Graphics.Luminance.Core.Tuple
 import Graphics.Luminance.Framebuffer
 import Graphics.Luminance.Geometry
+import Graphics.Luminance.GPU
 import Graphics.Luminance.Pixel
 import Graphics.Luminance.Query
 import Graphics.Luminance.RenderCmd
