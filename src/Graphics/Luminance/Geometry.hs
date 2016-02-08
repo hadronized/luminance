@@ -12,7 +12,7 @@ module Graphics.Luminance.Geometry (
     -- * Geometry creation
     Geometry
   , GeometryMode(..)
-  , createGeometry
+  , geometry
   , nubDirect
   ) where
 

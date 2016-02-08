@@ -25,6 +25,7 @@ import Foreign.Marshal.Utils ( with )
 import Foreign.Storable ( Storable(..) )
 import Graphics.GL
 import Graphics.Luminance.Core.Buffer
+import Graphics.Luminance.Core.GPU ( GPU, once )
 import Graphics.Luminance.Core.RW ( W )
 import Graphics.Luminance.Core.Vertex
 
@@ -73,13 +74,13 @@ fromGeometryMode m = case m of
 -- If you don’t pass indices ('Nothing'), you end up with a /direct geometry/. Otherwise, you get an
 -- /indexed geometry/. You also have to provide a 'GeometryMode' to state how you want the vertices
 -- to be connected with each other.
-createGeometry :: forall f m v. (Foldable f,MonadResource m,Storable v,Vertex v)
-               => f v
-               -> Maybe (f Word32)
-               -> GeometryMode
-               -> m Geometry
+geometry :: forall f m v. (Foldable f,MonadResource m,Storable v,Vertex v)
+         => f v
+         -> Maybe (f Word32)
+         -> GeometryMode
+         -> GPU m Geometry
+geometry vertices indices mode = once $ do
 #ifdef __GL45
-createGeometry vertices indices mode = do
     -- create the vertex array object (OpenGL-side)
     vid <- liftIO . alloca $ \p -> do
       glCreateVertexArrays 1 p
@@ -103,7 +104,6 @@ createGeometry vertices indices mode = do
     vertNb = length vertices
     mode'  = fromGeometryMode mode
 #elif defined(__GL33)
-createGeometry vertices indices mode = do
     -- create the vertex array object (OpenGL-side)
     vid <- liftIO . alloca $ \p -> do
       glGenVertexArrays 1 p
