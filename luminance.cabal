@@ -79,6 +79,7 @@ library
                      , Graphics.Luminance.Core.Tuple
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
+                     , Graphics.Luminance.GPU
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.Query
                      , Graphics.Luminance.RW
