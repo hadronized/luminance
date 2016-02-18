@@ -9,12 +9,14 @@
 -----------------------------------------------------------------------------
 
 module Graphics.Luminance.Cmd (
+  {-
     -- * Command type
     Cmd
   , runCmd
     -- * Available commands
   , draw
   , blit
+  -}
   ) where
 
 import Graphics.Luminance.Core.Cmd

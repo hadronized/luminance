@@ -9,6 +9,7 @@
 -----------------------------------------------------------------------------
 
 module Graphics.Luminance.Batch (
+  {-
     -- * Framebuffer batch
     FBBatch
   , framebufferBatch
@@ -18,6 +19,7 @@ module Graphics.Luminance.Batch (
   , anySPBatch
   , shaderProgramBatch
   , shaderProgramBatch_
+  -}
   ) where
 
 import Graphics.Luminance.Core.Batch

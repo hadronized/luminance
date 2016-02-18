@@ -19,6 +19,7 @@ import Graphics.Luminance.Core.RW ( Readable, Writable )
 import Graphics.Luminance.Core.Texture ( Filter )
 import Numeric.Natural ( Natural )
 
+{-
 -- |Command type. Used to accumulate GPU commands. Use 'runCmd' to execute
 -- the whole chain of commands.
 newtype Cmd a = Cmd (IO a) deriving (Applicative,Functor,Monad)
@@ -51,3 +52,5 @@ blit :: (Readable r,Writable w)
 blit r w rx ry rwidth rheight wx wy wwidth wheight mask flt = Cmd $ do
   framebufferBlit r w rx ry rwidth rheight wx wy wwidth wheight mask flt
   pure (framebufferOutput w)
+
+-}

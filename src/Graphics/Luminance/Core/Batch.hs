@@ -24,6 +24,8 @@ import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Core.Shader.Program ( Program(..), U(..) )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
 
+{-
+
 --------------------------------------------------------------------------------
 -- Framebuffer batch -----------------------------------------------------------
 
@@ -107,3 +109,5 @@ drawGeometry (RenderCmd blending depthTest uni u geometry) = do
     IndexedGeometry (VertexArray vid mode ixNb) -> do
       debugGL $ glBindVertexArray vid
       debugGL $ glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
+
+-}
