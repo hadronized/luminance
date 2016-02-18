@@ -28,11 +28,9 @@ import Control.Monad.Trans.Resource ( MonadResource, register )
 import Control.Monad.Trans.State ( StateT, evalStateT, gets, modify )
 import Data.Foldable ( toList, traverse_ )
 import Data.Functor.Contravariant ( Contravariant(..) )
-import Data.Functor.Contravariant.Divisible ( Decidable(..), Divisible(..) )
 import Data.Int ( Int32 )
 import Data.Proxy ( Proxy(..) )
 import Data.Semigroup ( Semigroup(..) )
-import Data.Void ( absurd )
 import Data.Word ( Word32 )
 import Foreign.C ( peekCString, withCString )
 import Foreign.Marshal.Alloc ( alloca )
@@ -62,7 +60,10 @@ import Numeric.Natural ( Natural )
 -- Shader program --------------------------------------------------------------
 
 -- |Shader program.
-newtype Program = Program { programID :: GLuint } deriving (Eq,Show)
+data Program u = Program {
+    programID :: GLuint
+  , programInterface :: u
+  } deriving (Eq,Show)
 
 -- |Create a new shader 'Program'.
 --
@@ -78,7 +79,7 @@ newtype Program = Program { programID :: GLuint } deriving (Eq,Show)
 createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
               => [Stage]
               -> ((forall a. UniformName a -> UniformInterface m (U a)) -> UniformInterface m i)
-              -> m (Program,i)
+              -> m (Program i)
 createProgram stages buildIface = do
   (pid,linked,cl) <- liftIO $ do
     pid <- debugGL glCreateProgram
@@ -92,16 +93,15 @@ createProgram stages buildIface = do
     liftIO (glDeleteProgram pid)
     throwError . fromProgramError $ LinkFailed cl
   _ <- register $ glDeleteProgram pid
-  let prog = Program pid
-  a <- runUniformInterface $ buildIface (uniformize prog)
-  pure (prog,a)
+  a <- runUniformInterface $ buildIface (uniformize pid)
+  pure (Program pid a)
 
 -- |A simpler version of 'createProgram'. That function assumes you don’t need a uniform interface
 -- and then just returns the 'Program'.
 createProgram_ :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
                 => [Stage]
-                -> m Program
-createProgram_ stages = fmap fst $ createProgram stages (\_ -> pure ())
+                -> m (Program ())
+createProgram_ stages = createProgram stages (\_ -> pure ())
 
 -- |Is a shader program linked?
 isLinked :: GLuint -> IO Bool
@@ -171,10 +171,10 @@ instance Show SomeUniformName where
 
 -- |A way to get several kind of uniforms through a single interface.
 uniformize :: (HasProgramError e,MonadError e m,MonadIO m)
-           => Program
+           => GLuint
            -> UniformName a
            -> UniformInterface m (U a)
-uniformize program@Program{programID = pid} getter = UniformInterface $ case getter of
+uniformize pid getter = UniformInterface $ case getter of
   UniformName name -> do
     location <- liftIO . debugGL . withCString name $ glGetUniformLocation pid
     when (location == -1) . throwError . fromProgramError $ InactiveUniform (SomeUniformName getter)
@@ -182,15 +182,15 @@ uniformize program@Program{programID = pid} getter = UniformInterface $ case get
   UniformSemantic sem -> do
     when (sem == -1) . throwError . fromProgramError $ InactiveUniform (SomeUniformName getter)
     runUniformInterface' (toU pid $ fromIntegral sem)
-  UniformBlockName name -> runUniformInterface (uniformizeBlock program name $ InactiveUniform (SomeUniformName getter))
+  UniformBlockName name -> runUniformInterface (uniformizeBlock pid name $ InactiveUniform (SomeUniformName getter))
 
 -- |Map a 'String' to a uniform block.
 uniformizeBlock :: forall a e m rw. (HasProgramError e,MonadError e m,MonadIO m,UniformBlock a)
-                => Program
+                => GLuint 
                 -> String
                 -> ProgramError
                 -> UniformInterface m (U (Region rw (UB a)))
-uniformizeBlock Program{programID = pid} name onError = UniformInterface $ do
+uniformizeBlock pid name onError = UniformInterface $ do
   index <- liftIO . debugGL . withCString name $ glGetUniformBlockIndex pid
   when (index == GL_INVALID_INDEX) (throwError $ fromProgramError onError)
   -- retrieve a new binding value and use it
