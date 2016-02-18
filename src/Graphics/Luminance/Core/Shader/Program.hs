@@ -215,6 +215,9 @@ nextTextureUnit = UniformInterface $ do
 
 -- |Update uniforms in a program. That function enables you to update only the uniforms you want
 -- and not the whole.
+--
+-- If you want to update several uniforms (not only one), you can use the 'Semigroup'/'Monoid'
+-- instances (use '(<>)' or 'sconcat'/'mconcat' for instance).
 updateUniforms :: (MonadIO m) => Program a -> (a -> U') -> m ()
 updateUniforms prog f = do
 #ifdef __GL33
