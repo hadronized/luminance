@@ -213,12 +213,13 @@ nextTextureUnit = UniformInterface $ do
   pure texUnit
 #endif
 
+-- |Update uniforms in a program. That function enables you to update only the uniforms you want
+-- and not the whole.
 updateUniforms :: (MonadIO m) => Program a -> (a -> U') -> m ()
 updateUniforms prog f = do
 #ifdef __GL33
   glUseProgram (programID prog)
 #endif
-
   liftIO . runU' . f $ programInterface prog
 
 --------------------------------------------------------------------------------
