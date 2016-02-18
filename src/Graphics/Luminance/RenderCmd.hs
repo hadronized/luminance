@@ -14,7 +14,6 @@ module Graphics.Luminance.RenderCmd (
   , renderCmd
     -- * Special render commands
   , stdRenderCmd
-  , stdRenderCmd_
   ) where
 
 import Graphics.Luminance.Core.RenderCmd

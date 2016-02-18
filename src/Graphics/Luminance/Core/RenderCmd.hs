@@ -11,7 +11,6 @@
 module Graphics.Luminance.Core.RenderCmd where
 
 import Graphics.Luminance.Core.Blending
-import Graphics.Luminance.Core.Shader.Program ( U(..) )
 
 -- FIXME: we need to make a tighter link between c and blending and between d and the depth test.
 -- FIXME: is the 'rw' type parameter still useful?
@@ -31,30 +30,21 @@ import Graphics.Luminance.Core.Shader.Program ( U(..) )
 --
 -- Finally, a 'RenderCmd' holds a value. That value will be consumed later by other functions. In
 -- general, it’ll be 'Geometry'.
-data RenderCmd rw c d u a = RenderCmd (Maybe (BlendingMode,BlendingFactor,BlendingFactor)) Bool (U u) u a
+data RenderCmd rw c d a = RenderCmd (Maybe (BlendingMode,BlendingFactor,BlendingFactor)) Bool a
 
-instance Functor (RenderCmd rw c d u) where
-  fmap f (RenderCmd blending depthTest uni u a) = RenderCmd blending depthTest uni u (f a)
+instance Functor (RenderCmd rw c d) where
+  fmap f (RenderCmd blending depthTest a) = RenderCmd blending depthTest (f a)
 
--- |@'renderCmd' blending depthTest uniformInterface u a@ constructs a new 'RenderCmd'.
+-- |@'renderCmd' blending depthTest a@ constructs a new 'RenderCmd'.
 renderCmd :: Maybe (BlendingMode,BlendingFactor,BlendingFactor)
           -> Bool
-          -> U u
-          -> u 
           -> a 
-          -> RenderCmd rw c d u a
+          -> RenderCmd rw c d a
 renderCmd = RenderCmd
 
 -- |A standard 'RenderCmd' builder.
 --
 --   - no /blending/
 --   - /depth test/ enabled
-stdRenderCmd :: U u -> u -> a -> RenderCmd rw c d u a
+stdRenderCmd :: a -> RenderCmd rw c d a
 stdRenderCmd = RenderCmd Nothing True
-
--- |A standard 'RenderCmd' builder with no uniform interface.
---
---   - no /blending/
---   - /depth test/ enabled
-stdRenderCmd_ :: a -> RenderCmd rw c d () a
-stdRenderCmd_ = stdRenderCmd undefined () -- TODO: remove that shit
