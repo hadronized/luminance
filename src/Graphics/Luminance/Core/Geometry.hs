@@ -3,7 +3,7 @@
 
 -----------------------------------------------------------------------------
 -- |
--- Copyright   : (C) 2015 Dimitri Sabadie
+-- Copyright   : (C) 2015, 2016 Dimitri Sabadie
 -- License     : BSD3
 --
 -- Maintainer  : Dimitri Sabadie <dimitri.sabadie@gmail.com>
