@@ -1,5 +1,6 @@
 ### 0.10
 
+- Removed batches in favor of `Region`s.
 - Removed `Decidable` and `Divisible` instances for `U` as uniforms are not supposed to be used this
   way.
 - Internal changes to make `createStage` errors more verbose about the type of the stage.
