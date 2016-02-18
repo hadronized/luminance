@@ -57,4 +57,4 @@ stdRenderCmd = RenderCmd Nothing True
 --   - no /blending/
 --   - /depth test/ enabled
 stdRenderCmd_ :: a -> RenderCmd rw c d () a
-stdRenderCmd_ = stdRenderCmd mempty ()
+stdRenderCmd_ = stdRenderCmd undefined () -- TODO: remove that shit

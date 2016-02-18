@@ -213,6 +213,14 @@ nextTextureUnit = UniformInterface $ do
   pure texUnit
 #endif
 
+updateUniforms :: (MonadIO m) => Program a -> (a -> U') -> m ()
+updateUniforms prog f = do
+#ifdef __GL33
+  glUseProgram (programID prog)
+#endif
+
+  liftIO . runU' . f $ programInterface prog
+
 --------------------------------------------------------------------------------
 -- Uniform ---------------------------------------------------------------------
 
@@ -232,12 +240,18 @@ newtype U a = U { runU :: a -> IO () }
 instance Contravariant U where
   contramap f u = U $ runU u . f
 
-instance Monoid (U a) where
-  mempty = U . const $ pure ()
+newtype U' = U' { runU' :: IO () }
+
+instance Monoid U' where
+  mempty = U' $ pure ()
   mappend = (<>)
 
-instance Semigroup (U a) where
-  u <> v = U $ \a -> runU u a >> runU v a
+instance Semigroup U' where
+  a <> b = U' $ runU' a >> runU' b
+
+-- |Feed @'U' a@ with a value.
+(.=) :: U a -> a -> U'
+u .= a = U' (runU u a)
 
 -- |Class of types that can be sent down to shaders. That class is closed because shaders cannot
 -- handle a lot of uniform types. However, you should have a look at the 'U' documentation for
@@ -251,7 +265,7 @@ class Uniform a where
 -- Unit instance ---------------------------------------------------------------
 
 instance Uniform () where
-  toU _ _ = pure mempty
+  toU _ _ = pure . U . const $ pure ()
 
 --------------------------------------------------------------------------------
 -- Int32 instances -------------------------------------------------------------
