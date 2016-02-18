@@ -72,7 +72,8 @@ library
   if flag(gl33)
     cpp-options:       -D__GL33
 
-  exposed-modules:     Graphics.Luminance
+  exposed-modules:     Control.Some
+                     , Graphics.Luminance
                      , Graphics.Luminance.Batch
                      , Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
@@ -87,7 +88,6 @@ library
                      , Graphics.Luminance.Shader
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
-                     , Graphics.Luminance.Some
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Vertex
 
