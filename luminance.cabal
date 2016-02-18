@@ -87,6 +87,7 @@ library
                      , Graphics.Luminance.Shader
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
+                     , Graphics.Luminance.Some
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Vertex
 
