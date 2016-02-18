@@ -1,4 +1,7 @@
-{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -16,6 +19,7 @@ import Control.Monad.IO.Class ( MonadIO(..) )
 import Data.Bits
 import Data.Foldable ( traverse_ )
 import Foreign.Ptr ( nullPtr )
+import GHC.Exts ( Constraint )
 import Graphics.GL
 import Graphics.Luminance.Core.Blending ( setBlending )
 import Graphics.Luminance.Core.Debug
@@ -24,34 +28,25 @@ import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Core.Shader.Program ( Program(..), U(..) )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
 
-{-
+type family (<) (a :: k) (b :: q) :: Constraint where
+  a < () = ()
+  Program < Framebuffer = ()
+
+newtype Region r m a = Region { runRegion :: m a} deriving (Applicative,Functor,Monad)
 
 --------------------------------------------------------------------------------
--- Framebuffer batch -----------------------------------------------------------
+-- Regions ---------------------------------------------------------------------
 
--- |'Framebuffer' batch.
---
--- A 'FBBatch' is used to expose a 'Framebuffer' and share it between several shader program
--- batches.
-data FBBatch rw c d = FBBatch {
-    fbBatchFramebuffer :: Framebuffer rw c d
-  , fbBatchSPBatch     :: [AnySPBatch rw c d]
-  }
-
--- |Run a 'FBBatch'.
-runFBBatch :: (MonadIO m) => FBBatch rw c d -> m ()
-runFBBatch (FBBatch fb spbs) = do
+newFrame :: (MonadIO m) => Framebuffer rw c d -> Region Framebuffer m a -> m a
+newFrame fb fbRegion = do
   liftIO . debugGL $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
   liftIO . debugGL $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
-  traverse_ (\(AnySPBatch spb) -> runSPBatch spb) spbs
-
--- |Share a 'Framebuffer' between several shader program batches.
-framebufferBatch :: Framebuffer rw c d -> [AnySPBatch rw c d] -> FBBatch rw c d
-framebufferBatch = FBBatch
+  runRegion fbRegion
 
 --------------------------------------------------------------------------------
 -- Shader program batch --------------------------------------------------------
 
+{-
 -- |Shader 'Program' batch.
 --
 -- Such a batch is used to share a 'Program' between several 'RenderCmd'. It also
