@@ -24,9 +24,6 @@ import Graphics.Luminance.Core.Blending
 --     to pass @'Just' (mode,srcK,dstK)@, where @mode@ is the 'BlendingMode' and @srcK@ and @dstK@
 --     are both 'BlendingFactor' representing the source and destination factors.
 --   - /depth test/: the depth test can be enabled by passing 'True' and disabled with 'False'.
---   - a /per draw command uniform interface and uniform value/: that is the way you can customize
---     the draw calls. You just have to pass the uniform interface and the value to send down to the
---     shader.
 --
 -- Finally, a 'RenderCmd' holds a value. That value will be consumed later by other functions. In
 -- general, it’ll be 'Geometry'.
