@@ -1,7 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PolyKinds #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -16,8 +14,9 @@
 module Graphics.Luminance.Core.Batch where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
+import Control.Monad.Trans ( MonadTrans(..) )
+import Control.Some ( Some(..) )
 import Data.Bits
-import Data.Foldable ( traverse_ )
 import Foreign.Ptr ( nullPtr )
 import GHC.Exts ( Constraint )
 import Graphics.GL
@@ -28,11 +27,10 @@ import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Core.Shader.Program ( Program(..), U(..) )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
 
-type family (<) (a :: k) (b :: q) :: Constraint where
-  a < () = ()
-  Program < Framebuffer = ()
+newtype Region r m a = Region { runRegion :: m a} deriving (Applicative,Functor,Monad,MonadIO)
 
-newtype Region r m a = Region { runRegion :: m a} deriving (Applicative,Functor,Monad)
+instance MonadTrans (Region r) where
+  lift = Region
 
 --------------------------------------------------------------------------------
 -- Regions ---------------------------------------------------------------------
@@ -43,60 +41,16 @@ newFrame fb fbRegion = do
   liftIO . debugGL $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
   runRegion fbRegion
 
---------------------------------------------------------------------------------
--- Shader program batch --------------------------------------------------------
-
-{-
--- |Shader 'Program' batch.
---
--- Such a batch is used to share a 'Program' between several 'RenderCmd'. It also
--- gathers a uniform @'U' u@ and a 'u' value to send to the uniform.
---
--- The 'u' type can be used to send uniforms for the whole batch. It can be useful
--- for cold values – that won’t change very often for a given frame – like the resolution of the
--- screen, the mouse cursor coordinates, the time, and so on and so forth.
---
--- The 'v' type variable is used to add uniforms per-'RenderCmd'.
-data SPBatch rw c d u v = SPBatch {
-    spBatchShaderProgram :: Program
-  , spBatchUniform       :: U u
-  , spBatchUniformValue  :: u
-  , spBatchGeometries    :: [RenderCmd rw c d v Geometry]
-  }
-
--- |Abstract 'SPBatch' over uniform interface.
-data AnySPBatch rw c d = forall u v. AnySPBatch (SPBatch rw c d u v)
-
--- FIXME: should we call this function 'abstractSPBatch'?
--- |Abstract 'SPBatch'.
-anySPBatch :: SPBatch rw c d u v -> AnySPBatch rw c d
-anySPBatch = AnySPBatch
-
--- Run a 'SPBatch' in 'MonadIO'.
-runSPBatch :: (MonadIO m) => SPBatch rw c d u v -> m ()
-runSPBatch (SPBatch prog uni u geometries) = do
-  liftIO $ do
-    debugGL $ glUseProgram (programID prog)
-    runU uni u
-  traverse_ drawGeometry geometries
-
--- |Create a new 'SPBatch'.
-shaderProgramBatch :: Program -> U u -> u -> [RenderCmd rw c d v Geometry] -> SPBatch rw c d u v
-shaderProgramBatch = SPBatch
-
--- |Create a new 'SPBatch' with no uniform interface.
-shaderProgramBatch_ :: Program -> [RenderCmd rw c d v Geometry] -> SPBatch rw c d () v
-shaderProgramBatch_ p = SPBatch p mempty ()
-
---------------------------------------------------------------------------------
--- Geometry draw function ------------------------------------------------------
+newShading :: (MonadIO m) => Some Program -> Region Program m a -> Region Framebuffer m a
+newShading (Some prog) progRegion = do
+  liftIO . debugGL $ glUseProgram (programID prog)
+  lift (runRegion progRegion)
 
 -- Draw the 'Geometry' held by a 'RenderCmd'.
-drawGeometry :: (MonadIO m) => RenderCmd rw c d u Geometry -> m ()
-drawGeometry (RenderCmd blending depthTest uni u geometry) = do
+drawGeometry :: RenderCmd rw c d Geometry -> IO ()
+drawGeometry (RenderCmd blending depthTest geometry) = do
   setBlending blending
   (if depthTest then glEnable else glDisable) GL_DEPTH_TEST
-  liftIO (runU uni u)
   case geometry of
     DirectGeometry (VertexArray vid mode vbNb) -> do
       debugGL $ glBindVertexArray vid
@@ -104,5 +58,3 @@ drawGeometry (RenderCmd blending depthTest uni u geometry) = do
     IndexedGeometry (VertexArray vid mode ixNb) -> do
       debugGL $ glBindVertexArray vid
       debugGL $ glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
-
--}
