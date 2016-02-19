@@ -29,7 +29,11 @@ module Graphics.Luminance.Shader.Program (
     -- * Error handling
   , ProgramError(..)
   , HasProgramError(..)
+    -- * Re-exported
+  , (<>)
+  , sconcat
   ) where
 
 import Graphics.Luminance.Core.Shader.Program
 import Graphics.Luminance.Core.Shader.UniformBlock
+import Data.Semigroup
