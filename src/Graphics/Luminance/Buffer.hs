@@ -10,15 +10,12 @@
 
 module Graphics.Luminance.Buffer (
     -- * Buffer creation
-    Buffer
-  , bufferID
-  , createBuffer
-  , createBuffer_
+    createBuffer
     -- * Buffer access
   , BufferRW
     -- * Buffer regions
-  , Region
-  , BuildRegion
+  , Buffer 
+  , BuildBuffer
   , newRegion
     -- * Operations on buffer regions
   , readWhole

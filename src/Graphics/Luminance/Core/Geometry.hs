@@ -86,17 +86,17 @@ createGeometry vertices indices mode = do
       peek p
     _ <- register . with vid $ glDeleteVertexArrays 1
     -- vertex buffer
-    (vreg :: Region W v,vbo) <- createBuffer_ $ newRegion (fromIntegral vertNb)
+    vreg :: Buffer W v <- createBuffer $ newRegion (fromIntegral vertNb)
     writeWhole vreg vertices
-    liftIO $ glVertexArrayVertexBuffer vid vertexBindingIndex (bufferID vbo) 0 (fromIntegral $ sizeOf (undefined :: v))
+    liftIO $ glVertexArrayVertexBuffer vid vertexBindingIndex (bufferID reg) 0 (fromIntegral $ sizeOf (undefined :: v))
     _ <- setFormatV vid 0 0 (Proxy :: Proxy v)
     -- element buffer, if required
     case indices of
       Just indices' -> do
         let ixNb = length indices'
-        (ireg :: Region W Word32,ibo) <- createBuffer_ $ newRegion (fromIntegral ixNb)
+        ireg :: Buffer W Word32 <- createBuffer $ newRegion (fromIntegral ixNb)
         writeWhole ireg indices'
-        glVertexArrayElementBuffer vid (bufferID ibo)
+        glVertexArrayElementBuffer vid (bufferID ireg)
         pure . IndexedGeometry $ VertexArray vid mode' (fromIntegral ixNb)
       Nothing -> pure . DirectGeometry $ VertexArray vid mode' (fromIntegral vertNb)
   where
@@ -111,17 +111,17 @@ createGeometry vertices indices mode = do
     _ <- register . with vid $ glDeleteVertexArrays 1
     glBindVertexArray vid
     -- vertex buffer
-    (vreg :: Region W v,vbo) <- createBuffer_ $ newRegion (fromIntegral vertNb)
+    vreg :: Buffer W v <- createBuffer $ newRegion (fromIntegral vertNb)
     writeWhole vreg vertices
-    liftIO $ glBindBuffer GL_ARRAY_BUFFER (bufferID vbo)
+    liftIO $ glBindBuffer GL_ARRAY_BUFFER (bufferID vreg)
     _ <- setFormatV vid 0 0 (Proxy :: Proxy v)
     -- element buffer, if required
     case indices of
       Just indices' -> do
         let ixNb = length indices'
-        (ireg :: Region W Word32,ibo) <- createBuffer_ $ newRegion (fromIntegral ixNb)
+        ireg :: Buffer W Word32 <- createBuffer $ newRegion (fromIntegral ixNb)
         writeWhole ireg indices'
-        glBindBuffer GL_ELEMENT_ARRAY_BUFFER(bufferID ibo)
+        glBindBuffer GL_ELEMENT_ARRAY_BUFFER (bufferID ireg)
         glBindVertexArray 0
         pure . IndexedGeometry $ VertexArray vid mode' (fromIntegral ixNb)
       Nothing -> do

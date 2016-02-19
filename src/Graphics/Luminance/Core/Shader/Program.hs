@@ -38,7 +38,7 @@ import Foreign.Marshal.Array ( allocaArray, withArrayLen )
 import Foreign.Marshal.Utils ( with )
 import Foreign.Ptr ( castPtr, nullPtr )
 import Foreign.Storable ( Storable(peek) )
-import Graphics.Luminance.Core.Buffer ( Region(..), bufferID )
+import Graphics.Luminance.Core.Buffer ( Buffer(..), bufferID )
 import Graphics.Luminance.Core.Debug
 import Graphics.Luminance.Core.Cubemap ( Cubemap(..) )
 import Graphics.Luminance.Core.Pixel ( Pixel )
@@ -151,7 +151,7 @@ emptyUniformInterfaceCtxt = UniformInterfaceCtxt {
 data UniformName :: * -> * where
   UniformName :: (Uniform a) => String -> UniformName a
   UniformSemantic :: (Uniform a) => Natural -> UniformName a
-  UniformBlockName :: (UniformBlock a) => String -> UniformName (Region rw (UB a))
+  UniformBlockName :: (UniformBlock a) => String -> UniformName (Buffer rw (UB a))
 
 -- |A uniform name with type-erasure. You can only access the constructors and the carried name but
 -- you can’t reconstruct the phantom type.
@@ -189,7 +189,7 @@ uniformizeBlock :: forall a e m rw. (HasProgramError e,MonadError e m,MonadIO m,
                 => GLuint 
                 -> String
                 -> ProgramError
-                -> UniformInterface m (U (Region rw (UB a)))
+                -> UniformInterface m (U (Buffer rw (UB a)))
 uniformizeBlock pid name onError = UniformInterface $ do
   index <- liftIO . debugGL . withCString name $ glGetUniformBlockIndex pid
   when (index == GL_INVALID_INDEX) (throwError $ fromProgramError onError)
@@ -201,9 +201,9 @@ uniformizeBlock pid name onError = UniformInterface $ do
     debugGL $ glBindBufferRange
       GL_UNIFORM_BUFFER
       binding
-      (bufferID $ regionBuffer r)
-      (fromIntegral $ regionOffset r)
-      (fromIntegral $ regionSize r * sizeOfSTD140 (Proxy :: Proxy a))
+      (bufferID  r)
+      (fromIntegral $ bufferOffset r)
+      (fromIntegral $ bufferSize r * sizeOfSTD140 (Proxy :: Proxy a))
 
 #if !defined(__GL_BINDLESS_TEXTURES)
 nextTextureUnit :: (Monad m) => UniformInterface m GLuint
