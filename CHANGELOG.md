@@ -1,4 +1,8 @@
-### 0.10
+### 0.10.0.1
+
+- Added documentation/tutorial for `Buffer`.
+
+# 0.10
 
 #### Breaking changes
 
