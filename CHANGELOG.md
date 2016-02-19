@@ -1,5 +1,6 @@
 ### 0.10.0.1
 
+- Fixed *gl45* backend (didn’t compile).
 - Added documentation/tutorial for `Buffer`.
 
 # 0.10

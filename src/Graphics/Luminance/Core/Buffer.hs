@@ -166,7 +166,7 @@ newRegion size = BuildBuffer $ do
 -- |Read a whole 'Buffer'.
 readWhole :: (MonadIO m,Readable r,Storable a) => Buffer r a -> m [a]
 #ifdef __GL45
-readWhole r = liftIO $ peekArray (regionSize r) (regionPtr r)
+readWhole r = liftIO $ peekArray (bufferSize r) (bufferPtr r)
 #elif defined(__GL33)
 readWhole r = liftIO $ do
   glBindBuffer GL_ARRAY_BUFFER (bufferID r)
@@ -183,7 +183,7 @@ writeWhole :: (Foldable f,MonadIO m,Storable a,Writable w)
            -> f a
            -> m ()
 #ifdef __GL45
-writeWhole r values = liftIO . pokeArray (regionPtr r) . take (regionSize r) $ toList values
+writeWhole r values = liftIO . pokeArray (bufferPtr r) . take (bufferSize r) $ toList values
 #elif defined(__GL33)
 writeWhole r values = liftIO $ do
   glBindBuffer GL_ARRAY_BUFFER (bufferID r)
