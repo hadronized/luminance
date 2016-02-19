@@ -51,8 +51,8 @@ newShading (Some prog) progRegion = do
   liftIO . debugGL $ glUseProgram (programID prog)
   lift (runRegion progRegion)
 
--- Draw the 'Geometry' held by a 'RenderCmd'.
-drawGeometry :: RenderCmd rw c d Geometry -> IO ()
+-- |Draw the 'Geometry' held by a 'RenderCmd'.
+drawGeometry :: (MonadIO m) => RenderCmd rw c d Geometry -> Region Program m ()
 drawGeometry (RenderCmd blending depthTest geometry) = do
   setBlending blending
   (if depthTest then glEnable else glDisable) GL_DEPTH_TEST
