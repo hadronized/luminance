@@ -1,8 +1,14 @@
 ### 0.10
 
+#### Breaking changes
+
+- `Region` was removed in favor of `Buffer`; just a type renaming, don’t freak out.
 - Removed batches in favor of `Region`s.
 - Removed `Decidable` and `Divisible` instances for `U` as uniforms are not supposed to be used this
   way.
+
+#### Patch changes
+
 - Internal changes to make `createStage` errors more verbose about the type of the stage.
 
 ### 0.9.1.2
