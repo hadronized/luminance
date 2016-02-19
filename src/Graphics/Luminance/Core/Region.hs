@@ -18,31 +18,34 @@ import Control.Monad.Trans ( MonadTrans(..) )
 import Control.Some ( Some(..) )
 import Data.Bits
 import Foreign.Ptr ( nullPtr )
-import GHC.Exts ( Constraint )
 import Graphics.GL
 import Graphics.Luminance.Core.Blending ( setBlending )
 import Graphics.Luminance.Core.Debug
 import Graphics.Luminance.Core.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
-import Graphics.Luminance.Core.Shader.Program ( Program(..), U(..) )
+import Graphics.Luminance.Core.Shader.Program ( Program(..), )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
 
--- |A 'Region' is a monad transformer used to create relationships between two monadic layers.
--- 
+-- |A 'Region' is a monad transformer used to create relationships between two monadic layers
+-- and ensure GPU safety.
 newtype Region r m a = Region { runRegion :: m a } deriving (Applicative,Functor,Monad,MonadIO)
 
 instance MonadTrans (Region r) where
   lift = Region
 
---------------------------------------------------------------------------------
--- Regions ---------------------------------------------------------------------
+-- |The /GPU/ main 'Region'. This 'Region' is the highest and more general you can find. You’ll need
+-- to enter it if you want to enter any /GPU/ specific regions.
+gpuRegion :: Region () m a -> m a
+gpuRegion = runRegion
 
-newFrame :: (MonadIO m) => Framebuffer rw c d -> Region Framebuffer m a -> m a
+-- |The 'Framebuffer' 'Region'. This 'Region' binds a 'Framebuffer' for all children regions.
+newFrame :: (MonadIO m) => Framebuffer rw c d -> Region Framebuffer m a -> Region () m a
 newFrame fb fbRegion = do
   liftIO . debugGL $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
   liftIO . debugGL $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
-  runRegion fbRegion
+  lift (runRegion fbRegion)
 
+-- |The 'Program' 'Region'. This 'Region' binds a 'Program' for all children regions.
 newShading :: (MonadIO m) => Some Program -> Region Program m a -> Region Framebuffer m a
 newShading (Some prog) progRegion = do
   liftIO . debugGL $ glUseProgram (programID prog)
