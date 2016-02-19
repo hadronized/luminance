@@ -11,7 +11,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Core.Batch where
+module Graphics.Luminance.Core.Region where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
 import Control.Monad.Trans ( MonadTrans(..) )
@@ -27,7 +27,9 @@ import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
 import Graphics.Luminance.Core.Shader.Program ( Program(..), U(..) )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
 
-newtype Region r m a = Region { runRegion :: m a} deriving (Applicative,Functor,Monad,MonadIO)
+-- |A 'Region' is a monad transformer used to create relationships between two monadic layers.
+-- 
+newtype Region r m a = Region { runRegion :: m a } deriving (Applicative,Functor,Monad,MonadIO)
 
 instance MonadTrans (Region r) where
   lift = Region

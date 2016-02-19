@@ -13,7 +13,6 @@
 module Graphics.Luminance.Core.Cmd where
 
 import Control.Monad.IO.Class ( MonadIO(..) )
-import Graphics.Luminance.Core.Batch
 import Graphics.Luminance.Core.Framebuffer
 import Graphics.Luminance.Core.RW ( Readable, Writable )
 import Graphics.Luminance.Core.Texture ( Filter )

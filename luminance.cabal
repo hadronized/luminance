@@ -74,7 +74,6 @@ library
 
   exposed-modules:     Control.Some
                      , Graphics.Luminance
-                     , Graphics.Luminance.Batch
                      , Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
                      , Graphics.Luminance.Cmd
@@ -83,16 +82,16 @@ library
                      , Graphics.Luminance.Geometry
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.Query
-                     , Graphics.Luminance.RW
+                     , Graphics.Luminance.Region
                      , Graphics.Luminance.RenderCmd
+                     , Graphics.Luminance.RW
                      , Graphics.Luminance.Shader
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Vertex
 
-  other-modules:       Graphics.Luminance.Core.Batch
-                     , Graphics.Luminance.Core.Blending
+  other-modules:       Graphics.Luminance.Core.Blending
                      , Graphics.Luminance.Core.Buffer
                      , Graphics.Luminance.Core.Cmd
                      , Graphics.Luminance.Core.Cubemap
@@ -102,6 +101,7 @@ library
                      , Graphics.Luminance.Core.Geometry
                      , Graphics.Luminance.Core.Pixel
                      , Graphics.Luminance.Core.Query
+                     , Graphics.Luminance.Core.Region
                      , Graphics.Luminance.Core.RenderCmd
                      , Graphics.Luminance.Core.Renderbuffer
                      , Graphics.Luminance.Core.RW

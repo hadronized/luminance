@@ -299,8 +299,7 @@
 -----------------------------------------------------------------------
 
 module Graphics.Luminance (
-    module Graphics.Luminance.Batch
-  , module Graphics.Luminance.Blending
+    module Graphics.Luminance.Blending
   , module Graphics.Luminance.Buffer
   , module Graphics.Luminance.Cmd
   , module Graphics.Luminance.Core.Tuple
@@ -308,6 +307,7 @@ module Graphics.Luminance (
   , module Graphics.Luminance.Geometry
   , module Graphics.Luminance.Pixel
   , module Graphics.Luminance.Query
+  , module Graphics.Luminance.Region
   , module Graphics.Luminance.RenderCmd
   , module Graphics.Luminance.RW
   , module Graphics.Luminance.Shader
@@ -315,7 +315,6 @@ module Graphics.Luminance (
   , module Graphics.Luminance.Vertex
   ) where
 
-import Graphics.Luminance.Batch
 import Graphics.Luminance.Blending
 import Graphics.Luminance.Buffer
 import Graphics.Luminance.Cmd
@@ -324,6 +323,7 @@ import Graphics.Luminance.Framebuffer
 import Graphics.Luminance.Geometry
 import Graphics.Luminance.Pixel
 import Graphics.Luminance.Query
+import Graphics.Luminance.Region
 import Graphics.Luminance.RenderCmd
 import Graphics.Luminance.RW
 import Graphics.Luminance.Shader

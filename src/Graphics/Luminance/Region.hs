@@ -8,7 +8,7 @@
 -- Portability : portable
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Batch (
+module Graphics.Luminance.Region (
   {-
     -- * Framebuffer batch
     FBBatch
@@ -22,4 +22,4 @@ module Graphics.Luminance.Batch (
   -}
   ) where
 
-import Graphics.Luminance.Core.Batch
+import Graphics.Luminance.Core.Region
