@@ -6,6 +6,157 @@
 -- Maintainer  : Dimitri Sabadie <dimitri.sabadie@gmail.com>
 -- Stability   : experimental
 -- Portability : portable
+--
+-- = What are buffers?
+--
+-- Buffers are like /GPU/ static arrays. They have a fixed size and a given
+-- type. But there’s more. A GPU buffer is more like an address on GPU and a
+-- size in raw machine units. By definition it’s then untyped continuous
+-- memory. For type safety, we expose them as typed arrays on steroids.
+--
+-- = Creating buffers
+--
+-- You can create buffers with the 'createBuffer' function:
+--
+-- @
+--   buf <- createBuffer (newRegion 10)
+-- @
+--
+-- The type of @buf@ is ambiguous in that case though because 'Buffer' is a
+-- very permissive type. You’ll almost always need to provide the type
+-- because one type parameter cannot be resolved by type inference: the
+-- buffer access type (read, write, read/write). However, you can store the
+-- buffer in a @data@ of your own so that you don’t have to explicitely give
+-- the type to the 'createBuffer' function.
+--
+-- @
+--   buf2 :: Buffer RW Int32 <- createBuffer (newRegion 10)
+-- @
+--
+-- Here, @buf2@ has type @'Buffer' 'RW' 'Int32'@ and can hold 10 'Int32'.
+--
+-- @
+--   data Foo = Foo { fooBuffer :: Buffer RW Float }
+--
+--   foo <- fmap Foo $ createBuffer (newRegion 5)
+-- @
+--
+-- Here, you can see that we don’t need to provide the type anymore, because
+-- of type inference. Make sure to understand how the type system works so
+-- that you understand all those three examples.
+--
+-- == A buffer is more than a typed array on GPU
+--
+-- The cool stuff about 'Buffer' is that it doesn’t really represent a typed
+-- array on GPU. It represents a typed slice of an untyped continuous memory
+-- area on GPU! That means you can have several slices in the same continuous
+-- area with different types!
+--
+-- @
+--   data Slices = Slices {
+--       floats :: Buffer RW Float
+--     , ints   :: Buffer RW Int32
+--     }
+--
+--   slices <- createBuffer $
+--     Slices <$> newRegion 100 <*> newRegion 8
+-- @
+--
+-- Here, we’ve just asked the GPU to allocate a continuous memory area to
+-- store two slices in there: 100 'Float' followed by 8 'Int32'. And we have
+-- @floats slices :: Buffer RW Float@ and @ints slices :: Buffer RW Int32@.
+-- Pretty simple, see?
+--
+-- == More about the 'BuildBuffer' type
+--
+-- 'BuildBuffer' is a type used to map the number of elements in the buffers
+-- you ask for into the number of bytes the GPU will actually need to allocate
+-- all of them. 'newRegion' is the function to ask for the creation of a new
+-- buffer in the continuous memory you’re building up!
+--
+-- = I/O with buffers
+--
+-- Buffers are used to customize and add information to your renderer. They
+-- have plenty of uses and in all cases you’ll need two kind of operations:
+--
+-- * writes ;
+-- * reads.
+--
+-- == Writing to buffers
+--
+-- Once you have a 'Buffer', you can write values to it if it supports
+-- /write access/. Use 'W' or 'RW' as buffer access to enable writing to it.
+--
+-- === Filling
+--
+-- The moste simple operation on 'Buffer's is to clean all its memory to a
+-- certain value. That is done with the 'fill' function:
+--
+-- @
+--   buf :: Buffer W Float <- createBuffer (newBuffer 10)
+--
+--   fill buf pi
+-- @
+--
+-- Here we’ll fill @buf@ with @pi@. Typical use is to fill it with zeros.
+--
+-- === Writing the whole buffer
+--
+-- You can fill the buffer with a different value for each index with the
+-- 'writeWhole' function. That function takes a 'Foldable' value and writes
+-- its content to the buffer. Typical use is to pass a list of values.
+--
+-- @
+--   buf :: Buffer W Float <- createBuffer (newBuffer 4)
+--
+--   writeWhole buf [7, 3, -234, 34]
+-- @
+--
+-- Check 'writeWhole' documentation for further details on special cases.
+--
+-- === Indexed write
+--
+-- You can write a single element in a buffer by providing an index like you
+-- do with regular arrays:
+--
+-- @
+--   buf :: Buffer W Float <- createBuffer (newBuffer 10)
+
+--   writeAt buf 3 pi
+--   writeAt' buf 5 100
+-- @
+--
+-- 'writeAt' is used to write a value at a given index in the buffer.
+-- 'writeAt'' is the unsafe version of 'writeAt'.
+--
+-- == Reading from buffers
+--
+-- You can read from a 'Buffer' if it supports /read access/. Use 'R' or 'RW'
+-- as buffer access to enable reads.
+--
+-- === Reading the whole buffer
+--
+-- You can retrieve all the elements in a buffer via the 'readWhole' function:
+--
+-- @
+--   buf :: Buffer R Float <- createBuffer (newBuffer 10)
+--
+--   readWhole buf >>= print -- will print out the content as a @[Float]@
+-- @
+--
+-- === Indexed read
+--
+-- You can read a single element in a buffer by providing an index:
+--
+-- @
+--   buf :: Buffer R Float <- createBuffer (newBuffer 10)
+--
+--   buf @? 8 >>= traverse_ print -- print the value only if it’s not out out bounds
+--   buf @! 5 >>= traverse_ print -- unsafe version
+-- @
+--
+-- The '(@?)' operator is the indexed read operator for 'Buffer' and '(@!)'
+-- is its unsafe version.
 -----------------------------------------------------------------------------
 
 module Graphics.Luminance.Buffer (
