@@ -29,6 +29,8 @@ module Graphics.Luminance.Framebuffer (
   , FramebufferBlitMask(..)
     -- * Special framebuffers
   , defaultFramebuffer
+    -- * Special operations on framebuffers
+  , framebufferBlit
     -- * Framebuffer errors
   , FramebufferError(..)
   , HasFramebufferError(..)
