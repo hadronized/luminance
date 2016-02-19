@@ -299,7 +299,8 @@
 -----------------------------------------------------------------------
 
 module Graphics.Luminance (
-    module Graphics.Luminance.Blending
+    module Control.Some
+  , module Graphics.Luminance.Blending
   , module Graphics.Luminance.Buffer
   , module Graphics.Luminance.Cmd
   , module Graphics.Luminance.Core.Tuple
@@ -315,6 +316,7 @@ module Graphics.Luminance (
   , module Graphics.Luminance.Vertex
   ) where
 
+import Control.Some
 import Graphics.Luminance.Blending
 import Graphics.Luminance.Buffer
 import Graphics.Luminance.Cmd
