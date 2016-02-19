@@ -1,3 +1,7 @@
+### 0.10.0.2
+
+- Fixed `Buffer` documentation.
+
 ### 0.10.0.1
 
 - Fixed *gl45* backend (didn’t compile).
