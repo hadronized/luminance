@@ -121,7 +121,7 @@
 --
 -- @
 --   buf :: Buffer W Float <- createBuffer (newBuffer 10)
-
+--
 --   writeAt buf 3 pi
 --   writeAt' buf 5 100
 -- @
