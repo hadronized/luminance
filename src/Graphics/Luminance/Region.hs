@@ -9,17 +9,13 @@
 -----------------------------------------------------------------------------
 
 module Graphics.Luminance.Region (
-  {-
-    -- * Framebuffer batch
-    FBBatch
-  , framebufferBatch
-    -- * Shader program batch
-  , SPBatch
-  , AnySPBatch
-  , anySPBatch
-  , shaderProgramBatch
-  , shaderProgramBatch_
-  -}
+    -- * Regions
+    Region
+  , gpuRegion
+  , newFrame
+  , newShading
+    -- * Drawing
+  , drawGeometry
   ) where
 
 import Graphics.Luminance.Core.Region
