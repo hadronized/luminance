@@ -16,16 +16,16 @@
 -- This library doesn’t expose any architectural patterns or designs. It’s up to you to design your
 -- program as you want and following your own plans. Because it’s a graphics and rendering API, you
 -- won’t find several common things you find in animations, games or simulations. If you need those
--- you’ll have to look for dedicated libraries instead.
+-- you’ll have to look for dedicated libraries instead or write your own.
 --
 -- One of the most important thing you have to keep in mind is the fact that luminance won’t
 -- provide you with anything else than working with the /GPU/. That is, it won’t even provide
 -- functions to open windows. That’s actually a good thing, because then you’ll be able to use it
--- with /any kind of windowing and system library you want to/!
+-- with /any kind of windowing and system library you want/!
 --
 -- The drawback is about safety. If you screw up setting up the OpenGL context, there’s no way
--- luminance will work. If users feel the need, a few dedicated packages will be uploaded, like
--- __luminance-glfw__ to add "GLFW-b" support for instance.
+-- luminance will work. A few dedicated packages will be uploaded, like __luminance-glfw__ to add
+-- "GLFW-b" support for instance.
 --
 -- = Getting started
 --
@@ -51,9 +51,11 @@
 -- @
 --
 -- That part just setup the window’s OpenGL hints so that we create a compatible context for
--- luminance. luminance will work with __OpenGL 4.5__ only, don’t even try to make it work with a
+-- luminance. That part is important as you need to select which OpenGL versions you want to use.
+-- luminance will work with __OpenGL 3.3__ and upper only, don’t even try to make it work with a
 -- lower implementation. We also disable the /forward compatibility/ because we don’t need it and
--- ask to stick to a /core/ profile.
+-- ask to stick to a /core/ profile. You’ll need to compile with the proper flags depending on what
+-- context you’d have choosen.
 --
 -- @
 --     case window of
@@ -102,9 +104,9 @@
 --
 -- luminance generalizes OpenGL concepts so that they’re made safer. In order to render something
 -- onto the screen, you have to understand what the screen truly is. It’s actually… a back buffer –
--- assuming we have double buffering enabled, which the case with "GLFW-b" by default. So rendering
--- to the screen is the same thing than rendering to the back buffer and ask "GLFW-b" to swap the
--- back buffer with the front buffer.
+-- assuming we have double buffering enabled, which is the case with "GLFW-b" by default. So
+-- rendering to the screen is the same thing than rendering to the back buffer and ask "GLFW-b" to
+-- swap the back buffer with the front buffer.
 --
 -- And guess what. luminance wraps the back buffer into a 'Framebuffer' object. You can access it
 -- through 'defaultFramebuffer'. That value will always represent the back buffer.
@@ -114,25 +116,21 @@
 -- In most graphics frameworks, rendering is the act of taking an object and getting it rendered.
 -- luminance follows a different path. Because of real world needs and, well, real applications, you
 -- cannot do that in luminance. Because, what serious application will render only __one__ object?
--- None. If so, then it’s an exception. We shouldn’t design our libraries and interface for the
+-- None. If so, then it’s an exception. We shouldn’t design our libraries and interfaces for the
 -- exceptions. We should build them for the most used case, which is, having a lot of objects in a
 -- scene.
 --
 -- That’s why luminance exposes the concept of /batched rendering/. The idea is that you have to
--- gather you objects in /batches/ and render them all at once. That enables a correct sharing of
--- resources – for instance, framebuffers or textures – and is very straight-forward to reason
+-- gather your objects in /batches/ and render them all at once. That enables a correct sharing of
+-- resources – for instance, framebuffers or shaders – and is very straight-forward to reason
 -- about.
 --
--- luminance has several types of batches, each for the type of shared information. You can – up to
--- now – shared two information between the rendered objects:
+-- Render batches are not directly exposed through the interface. Another concept is used instead:
+-- regions. Regions are used to bind resources and share them in a safe way. You can find two types
+-- of regions right now:
 --
--- * /framebuffer/: that means you can create a 'FBBatch' that will gather several values under the
---   same 'Framebuffer';
--- * or /shaders/: that means you can create a 'SPBatch' that will gather several values under the
---   same shader 'Program'.
---
--- The idea is that the 'SPBatch'es are stored in 'FBBatch'es. That creates a structure similar to
--- an AST luminance knows how to dispatch to the GPU.
+-- * /framebuffer/ regions ;
+-- * /shaders/ regions.
 --
 -- == About shader stages
 --
@@ -144,13 +142,13 @@
 -- * /geometry shader/
 -- * /fragment shader/
 --
--- Additionnaly, you can create /compute shaders/ but they’re not usable up to now.
---
 -- When creating a new shader, you have to pass a 'String' representing the source code. This will
 -- change in the end. An EDSL is planned to make things easier and safer, but in the waiting, you
 -- are stuck with 'String', I’m sorry.
 --
--- You have to write /GLSL450/-conformant code.
+-- You have to write either /GLSL330/ or /GLSL450/ conformant code. If you compile with the
+-- __gl45-bindless-textures__ flag, samplers will have an automatic qualifier to make them
+-- bindless.
 --
 -- == About uniforms
 --
