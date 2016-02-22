@@ -39,17 +39,19 @@ gpuRegion :: Region () m a -> m a
 gpuRegion = runRegion
 
 -- |The 'Framebuffer' 'Region'. This 'Region' binds a 'Framebuffer' for all children regions.
-newFrame :: (MonadIO m) => Framebuffer rw c d -> Region Framebuffer m a -> Region () m a
+newFrame :: (MonadIO m) => Framebuffer rw c d -> Region Framebuffer m a -> Region () m ()
 newFrame fb fbRegion = do
   liftIO . debugGL $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
   liftIO . debugGL $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
   lift (runRegion fbRegion)
+  pure ()
 
 -- |The 'Program' 'Region'. This 'Region' binds a 'Program' for all children regions.
-newShading :: (MonadIO m) => Some Program -> Region Program m a -> Region Framebuffer m a
+newShading :: (MonadIO m) => Some Program -> Region Program m a -> Region Framebuffer m ()
 newShading (Some prog) progRegion = do
   liftIO . debugGL $ glUseProgram (programID prog)
   lift (runRegion progRegion)
+  pure ()
 
 -- |Draw the 'Geometry' held by a 'RenderCmd'.
 drawGeometry :: (MonadIO m) => RenderCmd rw c d Geometry -> Region Program m ()
