@@ -1,5 +1,5 @@
 name:                luminance
-version:             0.10.0.2
+version:             0.11
 synopsis:            Type-safe, type-level and stateless graphics framework
 description:         This package exposes several modules to work with /GPUs/ in a stateless and
                      type-safe way. Currently, it uses OpenGL as backend hardware technology but

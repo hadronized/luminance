@@ -47,10 +47,10 @@ newFrame fb fbRegion = do
   pure ()
 
 -- |The 'Program' 'Region'. This 'Region' binds a 'Program' for all children regions.
-newShading :: (MonadIO m) => Program a -> (((a -> U') -> m ()) -> Region Program m b) -> Region Framebuffer m ()
+newShading :: (MonadIO m) => Program a -> (((a -> U') -> Region Program m ()) -> Region Program m b) -> Region Framebuffer m ()
 newShading prog progRegion = do
   liftIO . debugGL $ glUseProgram (programID prog)
-  lift $ runRegion (progRegion $ updateUniforms prog)
+  lift $ runRegion (progRegion $ lift . updateUniforms prog)
   pure ()
 
 -- |Draw the 'Geometry' held by a 'RenderCmd'.
