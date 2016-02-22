@@ -1,3 +1,8 @@
+# 0.11
+
+- Changed the behavior of `newShading`. Now on, `newShading` provides the user with a function that
+  replaces the removed `updateUniforms`, used to send uniforms to the bound program.
+
 ### 0.10.0.2
 
 - Fixed `Buffer` documentation.

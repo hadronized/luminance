@@ -23,7 +23,7 @@ import Graphics.Luminance.Core.Blending ( setBlending )
 import Graphics.Luminance.Core.Debug
 import Graphics.Luminance.Core.Framebuffer ( Framebuffer(..) )
 import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
-import Graphics.Luminance.Core.Shader.Program ( Program(..), )
+import Graphics.Luminance.Core.Shader.Program ( Program(..), U', updateUniforms )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
 
 -- |A 'Region' is a monad transformer used to create relationships between two monadic layers
@@ -47,10 +47,10 @@ newFrame fb fbRegion = do
   pure ()
 
 -- |The 'Program' 'Region'. This 'Region' binds a 'Program' for all children regions.
-newShading :: (MonadIO m) => Some Program -> Region Program m a -> Region Framebuffer m ()
-newShading (Some prog) progRegion = do
+newShading :: (MonadIO m) => Program a -> (((a -> U') -> m ()) -> Region Program m b) -> Region Framebuffer m ()
+newShading prog progRegion = do
   liftIO . debugGL $ glUseProgram (programID prog)
-  lift (runRegion progRegion)
+  lift $ runRegion (progRegion $ updateUniforms prog)
   pure ()
 
 -- |Draw the 'Geometry' held by a 'RenderCmd'.
