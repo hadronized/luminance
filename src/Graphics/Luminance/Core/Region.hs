@@ -28,10 +28,7 @@ import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
 
 -- |A 'Region' is a monad transformer used to create relationships between two monadic layers
 -- and ensure GPU safety.
-newtype Region r m a = Region { runRegion :: m a } deriving (Applicative,Functor,Monad,MonadIO)
-
-instance MonadTrans (Region r) where
-  lift = Region
+newtype Region r m a = Region { runRegion :: m a } deriving (Applicative,Functor,Monad)
 
 -- |The /GPU/ main 'Region'. This 'Region' is the highest and more general you can find. You’ll need
 -- to enter it if you want to enter any /GPU/ specific regions.
@@ -41,21 +38,21 @@ gpuRegion = runRegion
 -- |The 'Framebuffer' 'Region'. This 'Region' binds a 'Framebuffer' for all children regions.
 newFrame :: (MonadIO m) => Framebuffer rw c d -> Region Framebuffer m a -> Region () m ()
 newFrame fb fbRegion = do
-  liftIO . debugGL $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
-  liftIO . debugGL $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
-  lift (runRegion fbRegion)
+  Region . debugGL $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
+  Region . debugGL $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
+  Region (runRegion fbRegion)
   pure ()
 
 -- |The 'Program' 'Region'. This 'Region' binds a 'Program' for all children regions.
 newShading :: (MonadIO m) => Program a -> (((a -> U') -> Region Program m ()) -> Region Program m b) -> Region Framebuffer m ()
 newShading prog progRegion = do
-  liftIO . debugGL $ glUseProgram (programID prog)
-  lift $ runRegion (progRegion $ lift . updateUniforms prog)
+  Region . debugGL $ glUseProgram (programID prog)
+  Region $ runRegion (progRegion $ Region . updateUniforms prog)
   pure ()
 
 -- |Draw the 'Geometry' held by a 'RenderCmd'.
 drawGeometry :: (MonadIO m) => RenderCmd rw c d Geometry -> Region Program m ()
-drawGeometry (RenderCmd blending depthTest geometry) = do
+drawGeometry (RenderCmd blending depthTest geometry) = Region $ do
   setBlending blending
   (if depthTest then glEnable else glDisable) GL_DEPTH_TEST
   case geometry of
