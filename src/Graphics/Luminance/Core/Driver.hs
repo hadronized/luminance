@@ -174,7 +174,7 @@ class (Monad m) => Driver m where
   -- |Draw output.
   type Output m :: * -> * -> *
   type RenderCommand m :: * -> *
-  -- |Issue a draw command to the GPU. Don’t be afraid about the type signature. Let’s explain it.
+  -- |Issue a draw command to the GPU. Don’t be afraid of the type signature. Let’s explain it.
   --
   -- The first parameter is the framebuffer you want to perform the rendering in. It must be
   -- writable.
