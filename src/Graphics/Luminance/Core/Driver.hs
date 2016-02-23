@@ -191,4 +191,4 @@ class (Monad m) => Driver m where
   --
   -- This function outputs yields a value of type @'Output' m c d'@, which represents the output of
   -- the render – typically, textures or '()'.
-  draw :: (Writable w) => Framebuffer m w c d -> [(Program m a,a -> U' m,[a -> (U' m,RenderCommand m (Geometry m))])] -> m (Output m c d)
+  draw :: (Monoid (U' m),Writable w) => Framebuffer m w c d -> [(Program m a,a -> U' m,[a -> (U' m,RenderCommand m (Geometry m))])] -> m (Output m c d)
