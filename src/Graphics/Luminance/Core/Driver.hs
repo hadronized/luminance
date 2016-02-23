@@ -18,14 +18,11 @@ module Graphics.Luminance.Core.Driver where
 import Control.Monad.Except ( MonadError )
 import Data.Word ( Word32 )
 import GHC.Exts ( Constraint )
-import Graphics.Luminance.Core.Framebuffer ( FramebufferBlitMask
-                                           , HasFramebufferError )
+import Graphics.Luminance.Core.Framebuffer ( HasFramebufferError )
 import Graphics.Luminance.Core.Geometry ( GeometryMode )
 import Graphics.Luminance.Core.RW ( Readable, RW, Writable )
 import Graphics.Luminance.Core.Shader.Program ( HasProgramError )
 import Graphics.Luminance.Core.Shader.Stage ( HasStageError, StageType )
-import Graphics.Luminance.Core.Texture ( Filter )
-import Graphics.Luminance.Core.Vertex ( Vertex )
 import Numeric.Natural ( Natural )
 
 class (Monad m) => Driver m where
@@ -41,10 +38,13 @@ class (Monad m) => Driver m where
   (@!)         :: Buffer m r a -> Natural -> m a
   writeAt      :: Buffer m w a -> Natural -> a -> m ()
   writeAt'     :: Buffer m w a -> Natural -> a -> m ()
+  -- textures
+  type Filter m :: *
   -- framebuffers
   type Framebuffer m :: * -> * -> * -> *
   type FramebufferColorAttachment m :: * -> Constraint
   type FramebufferDepthAttachment m :: * -> Constraint
+  type FramebufferBlitMask m :: *
   createFramebuffer  :: (FramebufferColorAttachment m c,FramebufferDepthAttachment m d,HasFramebufferError e,MonadError e m)
                      => Natural
                      -> Natural
@@ -62,12 +62,13 @@ class (Monad m) => Driver m where
                      -> Int
                      -> Natural
                      -> Natural
-                     -> FramebufferBlitMask
-                     -> Filter
+                     -> FramebufferBlitMask m
+                     -> Filter m
                      -> m ()
   -- geometries
   type Geometry m :: *
-  createGeometry :: (Foldable f,Vertex v)
+  type Vertex m :: * -> Constraint
+  createGeometry :: (Foldable f,Vertex m v)
                  => f v
                  -> Maybe (f Word32)
                  -> GeometryMode
