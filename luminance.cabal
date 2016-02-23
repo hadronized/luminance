@@ -97,6 +97,7 @@ library
                      , Graphics.Luminance.Core.Cubemap
                      , Graphics.Luminance.Core.CubemapArray
                      , Graphics.Luminance.Core.Debug
+                     , Graphics.Luminance.Core.Driver
                      , Graphics.Luminance.Core.Framebuffer
                      , Graphics.Luminance.Core.Geometry
                      , Graphics.Luminance.Core.Pixel
