@@ -106,6 +106,10 @@ class (Monad m) => Driver m where
               -> Vector a
               -> m ()
 
+  -- pixel formats
+  -- |All possible pixel formats.
+  type Pixel m :: * -> Constraint
+
   -- framebuffers
   -- |A 'Framebuffer' represents two buffers: a /color/ buffer and /depth/ buffer.
   -- You can select which one you want and specify the formats to use by providing 'Pixel'
