@@ -27,6 +27,7 @@ import Graphics.Luminance.Core.Shader.Program ( HasProgramError )
 import Graphics.Luminance.Core.Shader.Stage ( HasStageError, StageType )
 import Numeric.Natural ( Natural )
 
+-- |A driver to implement to be considered as a luminance backend.
 class (Monad m) => Driver m where
   -- buffers
   -- |Convenient type to build 'Buffer's.
