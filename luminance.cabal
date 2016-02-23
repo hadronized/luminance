@@ -91,13 +91,13 @@ library
                      , Graphics.Luminance.Texture
                      , Graphics.Luminance.Vertex
 
-  other-modules:       Graphics.Luminance.Core.Blending
+  other-modules:       Graphics.Luminance.Core.AST
+                     , Graphics.Luminance.Core.Blending
                      , Graphics.Luminance.Core.Buffer
                      , Graphics.Luminance.Core.Cmd
                      , Graphics.Luminance.Core.Cubemap
                      , Graphics.Luminance.Core.CubemapArray
                      , Graphics.Luminance.Core.Debug
-                     , Graphics.Luminance.Core.Driver
                      , Graphics.Luminance.Core.Framebuffer
                      , Graphics.Luminance.Core.Geometry
                      , Graphics.Luminance.Core.Pixel
@@ -121,6 +121,7 @@ library
                      , containers     >= 0.5  && < 0.6
                      , contravariant  >= 1.3  && < 1.5
                      , dlist          >= 0.7  && < 0.8
+                     , free           >= 4.12 && < 4.13
                      , gl             >= 0.7  && < 0.8
                      , linear         >= 1.19 && < 1.21
                      , mtl            >= 2.2  && < 2.3
