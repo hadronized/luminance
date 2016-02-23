@@ -1,6 +1,6 @@
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -----------------------------------------------------------------------------
 -- |
@@ -17,39 +17,43 @@ module Graphics.Luminance.Core.Driver where
 
 import Control.Monad.Except ( MonadError )
 import Data.Word ( Word32 )
-import Graphics.Luminance.Core.Buffer ( BuildBuffer, Buffer )
-import Graphics.Luminance.Core.Framebuffer (Framebuffer, FramebufferBlitMask
-                                           , FramebufferColorAttachment, FramebufferDepthAttachment
+import GHC.Exts ( Constraint )
+import Graphics.Luminance.Core.Framebuffer ( FramebufferBlitMask
                                            , HasFramebufferError )
-import Graphics.Luminance.Core.Geometry ( Geometry, GeometryMode )
+import Graphics.Luminance.Core.Geometry ( GeometryMode )
 import Graphics.Luminance.Core.RW ( Readable, RW, Writable )
-import Graphics.Luminance.Core.Shader.Program ( HasProgramError, Program, U, UniformInterface
-                                              , UniformName )
-import Graphics.Luminance.Core.Shader.Stage ( HasStageError, Stage, StageType )
+import Graphics.Luminance.Core.Shader.Program ( HasProgramError )
+import Graphics.Luminance.Core.Shader.Stage ( HasStageError, StageType )
 import Graphics.Luminance.Core.Texture ( Filter )
 import Graphics.Luminance.Core.Vertex ( Vertex )
 import Numeric.Natural ( Natural )
 
 class (Monad m) => Driver m where
   -- buffers
-  createBuffer :: BuildBuffer rw a -> m a
-  readWhole    :: Buffer r a -> m [a]
-  writeWhole   :: Buffer w a -> f a -> m ()
-  fill         :: Buffer w a -> a -> m ()
-  (@?)         :: Buffer r a -> Natural -> m (Maybe a)
-  (@!)         :: Buffer r a -> Natural -> m a
-  writeAt      :: Buffer w a -> Natural -> a -> m ()
-  writeAt'     :: Buffer w a -> Natural -> a -> m ()
+  type BuildBuffer m :: * -> * -> *
+  type Buffer m :: * -> * -> *
+  createRegion :: Natural -> BuildBuffer m rw (Buffer m rw a)
+  createBuffer :: BuildBuffer m rw a -> m a
+  readWhole    :: Buffer m r a -> m [a]
+  writeWhole   :: Buffer m w a -> f a -> m ()
+  fill         :: Buffer m w a -> a -> m ()
+  (@?)         :: Buffer m r a -> Natural -> m (Maybe a)
+  (@!)         :: Buffer m r a -> Natural -> m a
+  writeAt      :: Buffer m w a -> Natural -> a -> m ()
+  writeAt'     :: Buffer m w a -> Natural -> a -> m ()
   -- framebuffers
-  createFramebuffer  :: (FramebufferColorAttachment c,FramebufferDepthAttachment d,HasFramebufferError e,MonadError e m)
+  type Framebuffer m :: * -> * -> * -> *
+  type FramebufferColorAttachment m :: * -> Constraint
+  type FramebufferDepthAttachment m :: * -> Constraint
+  createFramebuffer  :: (FramebufferColorAttachment m c,FramebufferDepthAttachment m d,HasFramebufferError e,MonadError e m)
                      => Natural
                      -> Natural
                      -> Natural
-                     -> m (Framebuffer rw c d)
-  defaultFramebuffer :: m (Framebuffer RW () ())
+                     -> m (Framebuffer m rw c d)
+  defaultFramebuffer :: m (Framebuffer m RW () ())
   framebufferBlit    :: (Readable r,Writable w)
-                     => Framebuffer r c d
-                     -> Framebuffer w c' d'
+                     => Framebuffer m r c d
+                     -> Framebuffer m w c' d'
                      -> Int
                      -> Int
                      -> Natural
@@ -62,24 +66,28 @@ class (Monad m) => Driver m where
                      -> Filter
                      -> m ()
   -- geometries
+  type Geometry m :: *
   createGeometry :: (Foldable f,Vertex v)
                  => f v
                  -> Maybe (f Word32)
                  -> GeometryMode
-                 -> m Geometry
+                 -> m (Geometry m)
   -- shader stages
+  type Stage m :: *
   createStage :: (HasStageError e,MonadError e m)
               => StageType
               -> String
-              -> m Stage
+              -> m (Stage m)
+  type Program m :: * -> *
+  type UniformName m :: * -> *
+  type UniformInterface m :: * -> *
+  type U m :: * -> *
+  type U' m :: *
   createProgram :: (HasProgramError e,MonadError e m)
-                => [Stage]
-                -> ((forall a. UniformName a -> UniformInterface m (U a)) -> UniformInterface m i)
-                -> m (Program i)
-
--- |A simpler version of 'createProgram'. That function assumes you don’t need a uniform interface
--- and then just returns the 'Program'.
-createProgram_ :: (Driver m,HasProgramError e,MonadError e m)
-                => [Stage]
-                -> m (Program ())
-createProgram_ stages = createProgram stages (\_ -> pure ())
+                => [Stage m]
+                -> ((forall a. UniformName m a -> UniformInterface m (U m a)) -> UniformInterface m i)
+                -> m (Program m i)
+  updateUniform :: Program m a -> (a -> U' m) -> m ()
+  -- draw
+  type Output m :: * -> * -> *
+  draw :: (Writable w) => Framebuffer m w c d -> [(Program m a,a -> U' m,[a -> (U' m,Geometry m)])] -> m (Output m c d)
