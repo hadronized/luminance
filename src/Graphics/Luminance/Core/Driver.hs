@@ -30,7 +30,6 @@ import Graphics.Luminance.Core.Texture ( Filter )
 import Graphics.Luminance.Core.Vertex ( Vertex )
 import Numeric.Natural ( Natural )
 
-
 class (Monad m) => Driver m where
   -- buffers
   createBuffer :: BuildBuffer rw a -> m a
