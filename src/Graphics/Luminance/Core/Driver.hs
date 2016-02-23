@@ -17,6 +17,7 @@ module Graphics.Luminance.Core.Driver where
 
 import Control.Monad.Except ( MonadError )
 import Data.Semigroup ( Semigroup )
+import Data.Vector.Storable ( Vector )
 import Data.Word ( Word32 )
 import GHC.Exts ( Constraint )
 import Graphics.Luminance.Core.Framebuffer ( FramebufferBlitMask, HasFramebufferError )
@@ -54,16 +55,64 @@ class (Monad m) => Driver m where
   writeAt'     :: Buffer m w a -> Natural -> a -> m ()
 
   -- textures
+  -- |All possible texture types.
+  type Texture m :: * -> Constraint
+  -- |Associate a texture size type to a texture.
+  type TextureSize m :: * -> *
+  -- |Associate a texture offset type to a texture.
+  type TextureOffset m :: * -> *
+  -- |Minification and magnification filter.
   type Filter m :: *
+  -- |Sampling parameters.
+  type Sampling m :: *
+  -- |Wrap filter.
+  type Wrap m :: *
+  -- |Depth comparison function.
+  type CompareFunc m :: *
+  -- |Type of 1D textures.
+  type Texture1D m :: *
+  -- |Type of 2D textures.
+  type Texture2D m :: *
+  -- |Type of 3D textures.
+  type Texture3D m :: *
+  -- |Type of cubemap textures.
+  type Cubemap m :: *
+  -- |Type of cubemaps’ faces.
+  type CubeFace m :: *
+  -- |Type of texture arrays.
+  type TextureArray m :: * -> *
+  -- |Default 'Sampling' if you’re juste lazy.
+  defaultSampling :: Sampling m
+  -- |@'createTexture' size lvl smpl@ creates a new texture with @lvl@ levels and which size is
+  -- @size@. The format is set through the type. @smpl@ is the 'Sampling' parameter.
+  createTexture :: (Texture m t) => TextureSize m t -> Natural -> Sampling m -> m t
+  -- |@'uploadTexture tex offset size autolvl texels@ uploads data to a subpart of the texture’s
+  -- storage. The offset is given with origin at upper-left corner, and @size@ is the size of the
+  -- area to upload to. @autolvl@ is a 'Bool' that can be used to automatically generate mipmaps.
+  uploadSub :: (Texture m t)
+            => t
+            -> TextureOffset m t
+            -> TextureSize m t
+            -> Bool
+            -> Vector a
+            -> m ()
+  -- |Fill a subpart of the texture’s storage with a given value.
+  fillTexture :: (Texture m t)
+              => t
+              -> TextureOffset m t
+              -> TextureSize m t
+              -> Bool
+              -> Vector a
+              -> m ()
 
   -- framebuffers
   -- |A 'Framebuffer' represents two buffers: a /color/ buffer and /depth/ buffer.
   -- You can select which one you want and specify the formats to use by providing 'Pixel'
   -- types. If you want to mute a buffer, use '()'.
   type Framebuffer m :: * -> * -> * -> *
-  -- |Typeclass of possible framebuffer color attachments.
+  -- |All possible framebuffer color attachments.
   type FramebufferColorAttachment m :: * -> Constraint
-  -- |Typeclass of possible framebuffer depth attachments.
+  -- |All possible framebuffer depth attachments.
   type FramebufferDepthAttachment m :: * -> Constraint
   -- |@'createFramebuffer' w h mipmaps@ creates a new 'Framebuffer' with dimension @w * h@ and
   -- allocating spaces for @mipmaps@ level of textures. The textures are created by providing a
@@ -114,7 +163,7 @@ class (Monad m) => Driver m where
   -- - /indexed geometry/: requires indices to know how to connect and share vertices between each
   --   other.
   type Geometry m :: *
-  -- |Typeclass of accepted types to build up vertices.
+  -- |All accepted types to build up vertices.
   type Vertex m :: * -> Constraint
   -- |This function is the single one to create 'Geometry'. It takes a 'Foldable' type of vertices
   -- used to provide the 'Geometry' with vertices and might take a 'Foldable' of indices ('Word32').
