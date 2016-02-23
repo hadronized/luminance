@@ -170,6 +170,7 @@ class (Monad m) => Driver m where
   -- If you want to update several uniforms (not only one), you can use the 'Semigroup' instance
   -- (use '(<>)' or 'sconcat' for instance).
   updateUniforms :: (Semigroup (U' m)) => Program m a -> (a -> U' m) -> m ()
+
   -- draw
   -- |Draw output.
   type Output m :: * -> * -> *
