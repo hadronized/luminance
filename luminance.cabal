@@ -91,6 +91,7 @@ library
                      , Graphics.Luminance.RenderCmd
                      , Graphics.Luminance.RW
                      , Graphics.Luminance.Shader
+                     , Graphics.Luminance.ShaderDriver
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
                      , Graphics.Luminance.Texture
