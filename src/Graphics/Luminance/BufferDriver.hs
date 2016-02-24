@@ -13,6 +13,7 @@
 
 module Graphics.Luminance.BufferDriver where
 
+import Foreign.Storable ( Storable )
 import Numeric.Natural ( Natural )
 
 -- |A driver to implement to provide buffer features.
@@ -22,7 +23,7 @@ class (Monad m) => BufferDriver m where
   -- |A 'Buffer' is a GPU typed memory area. It can be pictured as a GPU array.
   type Buffer m :: * -> * -> *
   -- |Create a new 'Buffer' by providing the number of wished elements.
-  createRegion :: Natural -> BuildBuffer m rw (Buffer m rw a)
+  createRegion :: (Storable a) => Natural -> BuildBuffer m rw (Buffer m rw a)
   -- |Create a new 'Buffer'. Through the 'BuildBuffer' type, you can yield new buffers and embed
   -- them in the type of your choice. The function returns that type.
   createBuffer :: BuildBuffer m rw a -> m a
