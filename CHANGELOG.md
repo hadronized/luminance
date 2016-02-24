@@ -1,7 +1,8 @@
 # 0.11
 
-- Changed the behavior of `newShading`. Now on, `newShading` provides the user with a function that
-  replaces the removed `updateUniforms`, used to send uniforms to the bound program.
+- Big refactoring, almost from scratch! This package is now a full abstraction and doesn’t provide
+  implementations. Furthermore, it’s been decided that all the GPU code, even the one for creating
+	objects, would be pure. Refer to the interpreters for effects.
 
 ### 0.10.0.2
 
