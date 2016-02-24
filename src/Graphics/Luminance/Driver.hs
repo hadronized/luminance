@@ -17,39 +17,17 @@ module Graphics.Luminance.Driver where
 
 import Control.Monad.Except ( MonadError )
 import Data.Semigroup ( Semigroup )
-import Data.Word ( Word32 )
-import GHC.Exts ( Constraint )
-import Graphics.Luminance.Core.Geometry ( GeometryMode )
 import Graphics.Luminance.Core.RW ( Writable )
 import Graphics.Luminance.Core.Shader.Program ( HasProgramError )
 import Graphics.Luminance.Core.Shader.Stage ( HasStageError, StageType )
 import Graphics.Luminance.BufferDriver
 import Graphics.Luminance.FramebufferDriver
+import Graphics.Luminance.GeometryDriver
 import Graphics.Luminance.PixelDriver
 import Graphics.Luminance.TextureDriver
 
 -- |A driver to implement to be considered as a luminance backend.
-class (BufferDriver m, FramebufferDriver m,PixelDriver m,TextureDriver m) => Driver m where
-  -- |A 'Geometry' represents a GPU version of a mesh; that is, vertices attached with indices and a
-  -- geometry mode. 
-  --
-  -- - /direct geometry/: doesn’t require any indices as all vertices are unique and in the right
-  --   order to connect vertices between each other ;
-  -- - /indexed geometry/: requires indices to know how to connect and share vertices between each
-  --   other.
-  type Geometry m :: *
-  -- |All accepted types to build up vertices.
-  type Vertex m :: * -> Constraint
-  -- |This function is the single one to create 'Geometry'. It takes a 'Foldable' type of vertices
-  -- used to provide the 'Geometry' with vertices and might take a 'Foldable' of indices ('Word32').
-  -- If you don’t pass indices ('Nothing'), you end up with a /direct geometry/. Otherwise, you get an
-  -- /indexed geometry/. You also have to provide a 'GeometryMode' to state how you want the vertices
-  -- to be connected with each other.
-  createGeometry :: (Foldable f,Vertex m v)
-                 => f v
-                 -> Maybe (f Word32)
-                 -> GeometryMode
-                 -> m (Geometry m)
+class (BufferDriver m, FramebufferDriver m,GeometryDriver m,PixelDriver m,TextureDriver m) => Driver m where
 
   -- shader stages
   -- |A shader stage.

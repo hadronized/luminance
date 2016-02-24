@@ -83,6 +83,7 @@ library
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.FramebufferDriver
                      , Graphics.Luminance.Geometry
+                     , Graphics.Luminance.GeometryDriver
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.PixelDriver
                      , Graphics.Luminance.Query
