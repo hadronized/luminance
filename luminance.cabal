@@ -76,6 +76,7 @@ library
                      , Graphics.Luminance
                      , Graphics.Luminance.Blending
                      , Graphics.Luminance.Buffer
+                     , Graphics.Luminance.BufferDriver
                      , Graphics.Luminance.Cmd
                      , Graphics.Luminance.Core.Tuple
                      , Graphics.Luminance.Driver

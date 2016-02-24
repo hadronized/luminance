@@ -25,35 +25,12 @@ import Graphics.Luminance.Core.Geometry ( GeometryMode )
 import Graphics.Luminance.Core.RW ( Readable, RW, Writable )
 import Graphics.Luminance.Core.Shader.Program ( HasProgramError )
 import Graphics.Luminance.Core.Shader.Stage ( HasStageError, StageType )
+import Graphics.Luminance.BufferDriver
 import Numeric.Natural ( Natural )
 
 -- |A driver to implement to be considered as a luminance backend.
-class (Monad m) => Driver m where
+class (BufferDriver m) => Driver m where
   -- buffers
-  -- |Convenient type to build 'Buffer's.
-  type BuildBuffer m :: * -> * -> *
-  -- |A 'Buffer' is a GPU typed memory area. It can be pictured as a GPU array.
-  type Buffer m :: * -> * -> *
-  -- |Create a new 'Buffer' by providing the number of wished elements.
-  createRegion :: Natural -> BuildBuffer m rw (Buffer m rw a)
-  -- |Create a new 'Buffer'. Through the 'BuildBuffer' type, you can yield new buffers and embed
-  -- them in the type of your choice. The function returns that type.
-  createBuffer :: BuildBuffer m rw a -> m a
-  -- |Read a whole 'Buffer'.
-  readWhole    :: Buffer m r a -> m [a]
-  -- |Write the whole 'Buffer'. If values are missing, only the provided values will replace the
-  -- existing ones. If there are more values than the size of the 'Buffer', they are ignored.
-  writeWhole   :: Buffer m w a -> f a -> m ()
-  -- |Fill a 'Buffer' with a value.
-  fill         :: Buffer m w a -> a -> m ()
-  -- |Index getter. Bounds checking is performed and returns 'Nothing' if out of bounds.
-  (@?)         :: Buffer m r a -> Natural -> m (Maybe a)
-  -- |Index getter. Unsafe version of '(@?)'.
-  (@!)         :: Buffer m r a -> Natural -> m a
-  -- |Index setter. Bounds checking is performed and nothing is done if out of bounds.
-  writeAt      :: Buffer m w a -> Natural -> a -> m ()
-  -- |Index setter. Unsafe version of 'writeAt'.
-  writeAt'     :: Buffer m w a -> Natural -> a -> m ()
 
   -- textures
   -- |All possible texture types.
