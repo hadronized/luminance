@@ -17,7 +17,6 @@ module Graphics.Luminance.Driver where
 
 import Control.Monad.Except ( MonadError )
 import Data.Semigroup ( Semigroup )
-import Data.Vector.Storable ( Vector )
 import Data.Word ( Word32 )
 import GHC.Exts ( Constraint )
 import Graphics.Luminance.Core.Framebuffer ( FramebufferBlitMask, HasFramebufferError )
@@ -25,63 +24,13 @@ import Graphics.Luminance.Core.Geometry ( GeometryMode )
 import Graphics.Luminance.Core.RW ( Readable, RW, Writable )
 import Graphics.Luminance.Core.Shader.Program ( HasProgramError )
 import Graphics.Luminance.Core.Shader.Stage ( HasStageError, StageType )
+import Graphics.Luminance.Core.Texture ( Filter )
 import Graphics.Luminance.BufferDriver
+import Graphics.Luminance.TextureDriver
 import Numeric.Natural ( Natural )
 
 -- |A driver to implement to be considered as a luminance backend.
-class (BufferDriver m) => Driver m where
-  -- buffers
-
-  -- textures
-  -- |All possible texture types.
-  type Texture m :: * -> Constraint
-  -- |Associate a texture size type to a texture.
-  type TextureSize m :: * -> *
-  -- |Associate a texture offset type to a texture.
-  type TextureOffset m :: * -> *
-  -- |Minification and magnification filter.
-  type Filter m :: *
-  -- |Sampling parameters.
-  type Sampling m :: *
-  -- |Wrap filter.
-  type Wrap m :: *
-  -- |Depth comparison function.
-  type CompareFunc m :: *
-  -- |Type of 1D textures.
-  type Texture1D m :: *
-  -- |Type of 2D textures.
-  type Texture2D m :: *
-  -- |Type of 3D textures.
-  type Texture3D m :: *
-  -- |Type of cubemap textures.
-  type Cubemap m :: *
-  -- |Type of cubemaps’ faces.
-  type CubeFace m :: *
-  -- |Type of texture arrays.
-  type TextureArray m :: * -> *
-  -- |Default 'Sampling' if you’re juste lazy.
-  defaultSampling :: Sampling m
-  -- |@'createTexture' size lvl smpl@ creates a new texture with @lvl@ levels and which size is
-  -- @size@. The format is set through the type. @smpl@ is the 'Sampling' parameter.
-  createTexture :: (Texture m t) => TextureSize m t -> Natural -> Sampling m -> m t
-  -- |@'uploadTexture tex offset size autolvl texels@ uploads data to a subpart of the texture’s
-  -- storage. The offset is given with origin at upper-left corner, and @size@ is the size of the
-  -- area to upload to. @autolvl@ is a 'Bool' that can be used to automatically generate mipmaps.
-  uploadSub :: (Texture m t)
-            => t
-            -> TextureOffset m t
-            -> TextureSize m t
-            -> Bool
-            -> Vector a
-            -> m ()
-  -- |Fill a subpart of the texture’s storage with a given value.
-  fillTexture :: (Texture m t)
-              => t
-              -> TextureOffset m t
-              -> TextureSize m t
-              -> Bool
-              -> Vector a
-              -> m ()
+class (BufferDriver m, TextureDriver m) => Driver m where
 
   -- pixel formats
   -- |All possible pixel formats.
@@ -133,7 +82,7 @@ class (BufferDriver m) => Driver m where
                      -> Natural
                      -> Natural
                      -> FramebufferBlitMask
-                     -> Filter m
+                     -> Filter
                      -> m ()
 
   -- geometries

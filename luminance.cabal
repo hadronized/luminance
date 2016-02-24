@@ -91,6 +91,7 @@ library
                      , Graphics.Luminance.Shader.Program
                      , Graphics.Luminance.Shader.Stage
                      , Graphics.Luminance.Texture
+                     , Graphics.Luminance.TextureDriver
                      , Graphics.Luminance.Vertex
 
   other-modules:       Graphics.Luminance.Core.Blending

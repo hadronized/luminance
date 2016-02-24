@@ -15,7 +15,7 @@ module Graphics.Luminance.BufferDriver where
 
 import Numeric.Natural ( Natural )
 
--- |A driver to implement to provide buffer’s features.
+-- |A driver to implement to provide buffer features.
 class (Monad m) => BufferDriver m where
   -- |Convenient type to build 'Buffer's.
   type BuildBuffer m :: * -> * -> *
