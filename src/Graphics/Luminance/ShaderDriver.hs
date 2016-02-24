@@ -20,7 +20,7 @@ import Data.Semigroup ( Semigroup )
 import Graphics.Luminance.Shader.Stage ( HasStageError, StageType )
 import Graphics.Luminance.Shader.Program ( HasProgramError )
 
--- |A driver to implement to provide geometry features.
+-- |A driver to implement to provide shader features.
 class (Monad m) => ShaderDriver m where
   -- |A shader stage.
   type Stage m :: *
