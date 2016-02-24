@@ -83,6 +83,7 @@ library
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
                      , Graphics.Luminance.Pixel
+                     , Graphics.Luminance.PixelDriver
                      , Graphics.Luminance.Query
                      , Graphics.Luminance.Region
                      , Graphics.Luminance.RenderCmd

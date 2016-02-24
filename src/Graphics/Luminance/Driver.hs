@@ -26,16 +26,12 @@ import Graphics.Luminance.Core.Shader.Program ( HasProgramError )
 import Graphics.Luminance.Core.Shader.Stage ( HasStageError, StageType )
 import Graphics.Luminance.Core.Texture ( Filter )
 import Graphics.Luminance.BufferDriver
+import Graphics.Luminance.PixelDriver
 import Graphics.Luminance.TextureDriver
 import Numeric.Natural ( Natural )
 
 -- |A driver to implement to be considered as a luminance backend.
-class (BufferDriver m, TextureDriver m) => Driver m where
-
-  -- pixel formats
-  -- |All possible pixel formats.
-  type Pixel m :: * -> Constraint
-
+class (BufferDriver m, PixelDriver m,TextureDriver m) => Driver m where
   -- framebuffers
   -- |A 'Framebuffer' represents two buffers: a /color/ buffer and /depth/ buffer.
   -- You can select which one you want and specify the formats to use by providing 'Pixel'
