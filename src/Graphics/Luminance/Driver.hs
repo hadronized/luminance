@@ -19,69 +19,17 @@ import Control.Monad.Except ( MonadError )
 import Data.Semigroup ( Semigroup )
 import Data.Word ( Word32 )
 import GHC.Exts ( Constraint )
-import Graphics.Luminance.Core.Framebuffer ( FramebufferBlitMask, HasFramebufferError )
 import Graphics.Luminance.Core.Geometry ( GeometryMode )
-import Graphics.Luminance.Core.RW ( Readable, RW, Writable )
+import Graphics.Luminance.Core.RW ( Writable )
 import Graphics.Luminance.Core.Shader.Program ( HasProgramError )
 import Graphics.Luminance.Core.Shader.Stage ( HasStageError, StageType )
-import Graphics.Luminance.Core.Texture ( Filter )
 import Graphics.Luminance.BufferDriver
+import Graphics.Luminance.FramebufferDriver
 import Graphics.Luminance.PixelDriver
 import Graphics.Luminance.TextureDriver
-import Numeric.Natural ( Natural )
 
 -- |A driver to implement to be considered as a luminance backend.
-class (BufferDriver m, PixelDriver m,TextureDriver m) => Driver m where
-  -- framebuffers
-  -- |A 'Framebuffer' represents two buffers: a /color/ buffer and /depth/ buffer.
-  -- You can select which one you want and specify the formats to use by providing 'Pixel'
-  -- types. If you want to mute a buffer, use '()'.
-  type Framebuffer m :: * -> * -> * -> *
-  -- |All possible framebuffer color attachments.
-  type FramebufferColorAttachment m :: * -> Constraint
-  -- |All possible framebuffer depth attachments.
-  type FramebufferDepthAttachment m :: * -> Constraint
-  -- |@'createFramebuffer' w h mipmaps@ creates a new 'Framebuffer' with dimension @w * h@ and
-  -- allocating spaces for @mipmaps@ level of textures. The textures are created by providing a
-  -- correct type.
-  --
-  -- For the color part, you can pass either:
-  --
-  -- - '()': that will mute the color buffer of the framebuffer;
-  -- - @'Format' t c@: that will create a single texture with the wished color format;
-  -- - or @a ':.' b@: that will create a chain of textures; 'a' and 'b' cannot be '()'.
-  --
-  -- For the depth part, you can pass either:
-  --
-  -- - '()': that will mute the depth buffer of the framebuffer;
-  -- - @'Format' t c@: that will create a single texture with the wished depth format.
-  --
-  -- Finally, the @rw@ parameter can be set to 'R', 'W' or 'RW' to specify which kind of framebuffer
-  -- access you’ll need.
-  createFramebuffer  :: (FramebufferColorAttachment m c,FramebufferDepthAttachment m d,HasFramebufferError e,MonadError e m)
-                     => Natural
-                     -> Natural
-                     -> Natural
-                     -> m (Framebuffer m rw c d)
-  -- |The default 'Framebuffer' represents the screen (back buffer with double buffering).
-  defaultFramebuffer :: m (Framebuffer m RW () ())
-  -- Blit two framebuffers.
-  framebufferBlit    :: (Readable r,Writable w)
-                     => Framebuffer m r c d
-                     -> Framebuffer m w c' d'
-                     -> Int
-                     -> Int
-                     -> Natural
-                     -> Natural
-                     -> Int
-                     -> Int
-                     -> Natural
-                     -> Natural
-                     -> FramebufferBlitMask
-                     -> Filter
-                     -> m ()
-
-  -- geometries
+class (BufferDriver m, FramebufferDriver m,PixelDriver m,TextureDriver m) => Driver m where
   -- |A 'Geometry' represents a GPU version of a mesh; that is, vertices attached with indices and a
   -- geometry mode. 
   --
