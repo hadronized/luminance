@@ -79,6 +79,7 @@ library
                      , Graphics.Luminance.BufferDriver
                      , Graphics.Luminance.Cmd
                      , Graphics.Luminance.Core.Tuple
+                     , Graphics.Luminance.DrawDriver
                      , Graphics.Luminance.Driver
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.FramebufferDriver
