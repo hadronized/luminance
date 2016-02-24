@@ -78,7 +78,7 @@ library
                      , Graphics.Luminance.Buffer
                      , Graphics.Luminance.Cmd
                      , Graphics.Luminance.Core.Tuple
-                     , Graphics.Luminance.Core.Driver
+                     , Graphics.Luminance.Driver
                      , Graphics.Luminance.Framebuffer
                      , Graphics.Luminance.Geometry
                      , Graphics.Luminance.Pixel

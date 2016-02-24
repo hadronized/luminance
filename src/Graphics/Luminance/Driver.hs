@@ -13,7 +13,7 @@
 --
 -----------------------------------------------------------------------------
 
-module Graphics.Luminance.Core.Driver where
+module Graphics.Luminance.Driver where
 
 import Control.Monad.Except ( MonadError )
 import Data.Semigroup ( Semigroup )
