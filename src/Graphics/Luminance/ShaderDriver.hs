@@ -10,15 +10,18 @@
 -- Maintainer  : Dimitri Sabadie <dimitri.sabadie@gmail.com>
 -- Stability   : experimental
 -- Portability : portable
---
 -----------------------------------------------------------------------------
 
 module Graphics.Luminance.ShaderDriver where
 
 import Control.Monad.Except ( MonadError )
+import Data.Int ( Int32 )
 import Data.Semigroup ( Semigroup )
+import Data.Word ( Word32 )
+import GHC.Exts ( Constraint )
 import Graphics.Luminance.Shader.Stage ( HasStageError, StageType )
 import Graphics.Luminance.Shader.Program ( HasProgramError )
+import Linear ( V2, V3, V4 )
 
 -- |A driver to implement to provide shader features.
 class (Monad m) => ShaderDriver m where
@@ -64,3 +67,50 @@ class (Monad m) => ShaderDriver m where
   -- If you want to update several uniforms (not only one), you can use the 'Semigroup' instance
   -- (use '(<>)' or 'sconcat' for instance).
   updateUniforms :: (Semigroup (U' m)) => Program m a -> (a -> U' m) -> m ()
+
+type family Uniform a :: Constraint where
+  -- Int32
+  Uniform Int32 = ()
+  Uniform (Int32,Int32) = ()
+  Uniform (Int32,Int32,Int32) = ()
+  Uniform (Int32,Int32,Int32,Int32) = ()
+  Uniform (V2 Int32) = ()
+  Uniform (V3 Int32) = ()
+  Uniform (V4 Int32) = ()
+  Uniform [Int32] = ()
+  Uniform [(Int32,Int32)] = ()
+  Uniform [(Int32,Int32,Int32)] = ()
+  Uniform [(Int32,Int32,Int32,Int32)] = ()
+  Uniform [(V2 Int32)] = ()
+  Uniform [(V3 Int32)] = ()
+  Uniform [(V4 Int32)] = ()
+  -- Word32
+  Uniform Word32 = ()
+  Uniform (Word32,Word32) = ()
+  Uniform (Word32,Word32,Word32) = ()
+  Uniform (Word32,Word32,Word32,Word32) = ()
+  Uniform (V2 Word32) = ()
+  Uniform (V3 Word32) = ()
+  Uniform (V4 Word32) = ()
+  Uniform [Word32] = ()
+  Uniform [(Word32,Word32)] = ()
+  Uniform [(Word32,Word32,Word32)] = ()
+  Uniform [(Word32,Word32,Word32,Word32)] = ()
+  Uniform [(V2 Word32)] = ()
+  Uniform [(V3 Word32)] = ()
+  Uniform [(V4 Word32)] = ()
+  -- Float
+  Uniform Float = ()
+  Uniform (Float,Float) = ()
+  Uniform (Float,Float,Float) = ()
+  Uniform (Float,Float,Float,Float) = ()
+  Uniform (V2 Float) = ()
+  Uniform (V3 Float) = ()
+  Uniform (V4 Float) = ()
+  Uniform [Float] = ()
+  Uniform [(Float,Float)] = ()
+  Uniform [(Float,Float,Float)] = ()
+  Uniform [(Float,Float,Float,Float)] = ()
+  Uniform [(V2 Float)] = ()
+  Uniform [(V3 Float)] = ()
+  Uniform [(V4 Float)] = ()
