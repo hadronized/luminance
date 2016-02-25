@@ -32,14 +32,14 @@ class (Monad m) => BufferDriver m where
   readWhole    :: (Readable r,Storable a) => Buffer m r a -> m [a]
   -- |Write the whole 'Buffer'. If values are missing, only the provided values will replace the
   -- existing ones. If there are more values than the size of the 'Buffer', they are ignored.
-  writeWhole   :: (Storable a,Writable w) => Buffer m w a -> f a -> m ()
+  writeWhole   :: (Foldable f,Storable a,Writable w) => Buffer m w a -> f a -> m ()
   -- |Fill a 'Buffer' with a value.
-  fill         :: Buffer m w a -> a -> m ()
+  fill         :: (Storable a,Writable w) => Buffer m w a -> a -> m ()
   -- |Index getter. Bounds checking is performed and returns 'Nothing' if out of bounds.
-  (@?)         :: Buffer m r a -> Natural -> m (Maybe a)
+  (@?)         :: (Readable r,Storable a) => Buffer m r a -> Natural -> m (Maybe a)
   -- |Index getter. Unsafe version of '(@?)'.
-  (@!)         :: Buffer m r a -> Natural -> m a
+  (@!)         :: (Readable r,Storable a) => Buffer m r a -> Natural -> m a
   -- |Index setter. Bounds checking is performed and nothing is done if out of bounds.
-  writeAt      :: Buffer m w a -> Natural -> a -> m ()
+  writeAt      :: (Storable a,Writable w) => Buffer m w a -> Natural -> a -> m ()
   -- |Index setter. Unsafe version of 'writeAt'.
-  writeAt'     :: Buffer m w a -> Natural -> a -> m ()
+  writeAt'     :: (Storable a,Writable w) => Buffer m w a -> Natural -> a -> m ()
