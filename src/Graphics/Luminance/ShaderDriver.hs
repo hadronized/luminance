@@ -21,7 +21,8 @@ import Data.Word ( Word32 )
 import GHC.Exts ( Constraint )
 import Graphics.Luminance.Shader.Stage ( HasStageError, StageType )
 import Graphics.Luminance.Shader.Program ( HasProgramError )
-import Linear ( V2, V3, V4 )
+import Graphics.Luminance.TextureDriver
+import Linear ( M44, V2, V3, V4 )
 
 -- |A driver to implement to provide shader features.
 class (Monad m) => ShaderDriver m where
@@ -114,3 +115,7 @@ type family Uniform a :: Constraint where
   Uniform [(V2 Float)] = ()
   Uniform [(V3 Float)] = ()
   Uniform [(V4 Float)] = ()
+  -- Matrices
+  Uniform (M44 Float) = ()
+  Uniform [M44 Float] = ()
+  -- Textures
