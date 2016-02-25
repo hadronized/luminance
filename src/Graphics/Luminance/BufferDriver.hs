@@ -14,6 +14,7 @@
 module Graphics.Luminance.BufferDriver where
 
 import Foreign.Storable ( Storable )
+import Graphics.Luminance.RW ( Readable, Writable )
 import Numeric.Natural ( Natural )
 
 -- |A driver to implement to provide buffer features.
@@ -28,10 +29,10 @@ class (Monad m) => BufferDriver m where
   -- them in the type of your choice. The function returns that type.
   createBuffer :: BuildBuffer m rw a -> m a
   -- |Read a whole 'Buffer'.
-  readWhole    :: (Storable a) => Buffer m r a -> m [a]
+  readWhole    :: (Readable r,Storable a) => Buffer m r a -> m [a]
   -- |Write the whole 'Buffer'. If values are missing, only the provided values will replace the
   -- existing ones. If there are more values than the size of the 'Buffer', they are ignored.
-  writeWhole   :: (Storable a) => Buffer m w a -> f a -> m ()
+  writeWhole   :: (Storable a,Writable w) => Buffer m w a -> f a -> m ()
   -- |Fill a 'Buffer' with a value.
   fill         :: Buffer m w a -> a -> m ()
   -- |Index getter. Bounds checking is performed and returns 'Nothing' if out of bounds.
