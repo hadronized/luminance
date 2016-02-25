@@ -20,7 +20,7 @@ import Data.Semigroup ( Semigroup )
 import Data.Word ( Word32 )
 import GHC.Exts ( Constraint )
 import Graphics.Luminance.Shader.Stage ( HasStageError, StageType )
-import Graphics.Luminance.Shader.Program ( HasProgramError )
+import Graphics.Luminance.Shader.Program ( HasProgramError, UniformName )
 import Graphics.Luminance.TextureDriver
 import Linear ( M44, V2, V3, V4 )
 
@@ -38,8 +38,6 @@ class (Monad m) => ShaderDriver m where
               -> m (Stage m)
   -- |Shader program.
   type Program m :: * -> *
-  -- |Encode all possible ways to name uniform values.
-  type UniformName m :: * -> *
   -- |A special closed, monadic type in which one can create new uniforms.
   type UniformInterface m :: * -> *
   -- |A shader uniform. @'U' a@ doesn’t hold any value. It’s more like a mapping between the host
@@ -60,7 +58,7 @@ class (Monad m) => ShaderDriver m where
   -- the function you pass as argument. You can use that value to gather uniforms for instance.
   createProgram :: (HasProgramError e,MonadError e m)
                 => [Stage m]
-                -> ((forall a. UniformName m a -> UniformInterface m (U m a)) -> UniformInterface m i)
+                -> ((forall a. UniformName a -> UniformInterface m (U m a)) -> UniformInterface m i)
                 -> m (Program m i)
   -- |Update uniforms in a 'Program'. That function enables you to update only the uniforms you want
   -- and not necessarily the whole.
@@ -68,54 +66,55 @@ class (Monad m) => ShaderDriver m where
   -- If you want to update several uniforms (not only one), you can use the 'Semigroup' instance
   -- (use '(<>)' or 'sconcat' for instance).
   updateUniforms :: (Semigroup (U' m)) => Program m a -> (a -> U' m) -> m ()
-
-type family Uniform a :: Constraint where
-  -- Int32
-  Uniform Int32 = ()
-  Uniform (Int32,Int32) = ()
-  Uniform (Int32,Int32,Int32) = ()
-  Uniform (Int32,Int32,Int32,Int32) = ()
-  Uniform (V2 Int32) = ()
-  Uniform (V3 Int32) = ()
-  Uniform (V4 Int32) = ()
-  Uniform [Int32] = ()
-  Uniform [(Int32,Int32)] = ()
-  Uniform [(Int32,Int32,Int32)] = ()
-  Uniform [(Int32,Int32,Int32,Int32)] = ()
-  Uniform [(V2 Int32)] = ()
-  Uniform [(V3 Int32)] = ()
-  Uniform [(V4 Int32)] = ()
-  -- Word32
-  Uniform Word32 = ()
-  Uniform (Word32,Word32) = ()
-  Uniform (Word32,Word32,Word32) = ()
-  Uniform (Word32,Word32,Word32,Word32) = ()
-  Uniform (V2 Word32) = ()
-  Uniform (V3 Word32) = ()
-  Uniform (V4 Word32) = ()
-  Uniform [Word32] = ()
-  Uniform [(Word32,Word32)] = ()
-  Uniform [(Word32,Word32,Word32)] = ()
-  Uniform [(Word32,Word32,Word32,Word32)] = ()
-  Uniform [(V2 Word32)] = ()
-  Uniform [(V3 Word32)] = ()
-  Uniform [(V4 Word32)] = ()
-  -- Float
-  Uniform Float = ()
-  Uniform (Float,Float) = ()
-  Uniform (Float,Float,Float) = ()
-  Uniform (Float,Float,Float,Float) = ()
-  Uniform (V2 Float) = ()
-  Uniform (V3 Float) = ()
-  Uniform (V4 Float) = ()
-  Uniform [Float] = ()
-  Uniform [(Float,Float)] = ()
-  Uniform [(Float,Float,Float)] = ()
-  Uniform [(Float,Float,Float,Float)] = ()
-  Uniform [(V2 Float)] = ()
-  Uniform [(V3 Float)] = ()
-  Uniform [(V4 Float)] = ()
-  -- Matrices
-  Uniform (M44 Float) = ()
-  Uniform [M44 Float] = ()
-  -- Textures
+  -- |All possible values that can be sent to shaders.
+  type Uniform m :: * -> Constraint
+  -- |That function ensures you implement all the required instances to be able to use uniforms in
+  -- your code. That function is a no-op, you shouldn’t try to use it nor implement it (its default
+  -- definition is @pure ()@).
+  uniformInstances :: ( Uniform m Int32
+                      , Uniform m (Int32,Int32)
+                      , Uniform m (Int32,Int32,Int32)
+                      , Uniform m (Int32,Int32,Int32,Int32)
+                      , Uniform m (V2 Int32)
+                      , Uniform m (V3 Int32)
+                      , Uniform m (V4 Int32)
+                      , Uniform m [Int32]
+                      , Uniform m [(Int32,Int32)]
+                      , Uniform m [(Int32,Int32,Int32)]
+                      , Uniform m [(Int32,Int32,Int32,Int32)]
+                      , Uniform m [(V2 Int32)]
+                      , Uniform m [(V3 Int32)]
+                      , Uniform m [(V4 Int32)]
+                      , Uniform m Word32
+                      , Uniform m (Word32,Word32)
+                      , Uniform m (Word32,Word32,Word32)
+                      , Uniform m (Word32,Word32,Word32,Word32)
+                      , Uniform m (V2 Word32)
+                      , Uniform m (V3 Word32)
+                      , Uniform m (V4 Word32)
+                      , Uniform m [Word32]
+                      , Uniform m [(Word32,Word32)]
+                      , Uniform m [(Word32,Word32,Word32)]
+                      , Uniform m [(Word32,Word32,Word32,Word32)]
+                      , Uniform m [(V2 Word32)]
+                      , Uniform m [(V3 Word32)]
+                      , Uniform m [(V4 Word32)]
+                      , Uniform m Float
+                      , Uniform m (Float,Float)
+                      , Uniform m (Float,Float,Float)
+                      , Uniform m (Float,Float,Float,Float)
+                      , Uniform m (V2 Float)
+                      , Uniform m (V3 Float)
+                      , Uniform m (V4 Float)
+                      , Uniform m [Float]
+                      , Uniform m [(Float,Float)]
+                      , Uniform m [(Float,Float,Float)]
+                      , Uniform m [(Float,Float,Float,Float)]
+                      , Uniform m [(V2 Float)]
+                      , Uniform m [(V3 Float)]
+                      , Uniform m [(V4 Float)]
+                      , Uniform m (M44 Float)
+                      , Uniform m [M44 Float]
+                      )
+                   => m ()
+  uniformInstances = pure ()
