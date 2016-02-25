@@ -300,8 +300,8 @@ module Graphics.Luminance (
     module Control.Some
   , module Graphics.Luminance.Blending
   , module Graphics.Luminance.Buffer
-  , module Graphics.Luminance.Cmd
   , module Graphics.Luminance.Core.Tuple
+  , module Graphics.Luminance.Core.Draw
   , module Graphics.Luminance.Framebuffer
   , module Graphics.Luminance.Geometry
   , module Graphics.Luminance.Pixel
@@ -317,8 +317,8 @@ module Graphics.Luminance (
 import Control.Some
 import Graphics.Luminance.Blending
 import Graphics.Luminance.Buffer
-import Graphics.Luminance.Cmd
 import Graphics.Luminance.Core.Tuple
+import Graphics.Luminance.Core.Draw
 import Graphics.Luminance.Framebuffer
 import Graphics.Luminance.Geometry
 import Graphics.Luminance.Pixel
