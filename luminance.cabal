@@ -81,7 +81,6 @@ library
                      , Graphics.Luminance.Geometry
                      , Graphics.Luminance.Pixel
                      , Graphics.Luminance.Query
-                     , Graphics.Luminance.Region
                      , Graphics.Luminance.RenderCmd
                      , Graphics.Luminance.RW
                      , Graphics.Luminance.Shader
@@ -100,7 +99,6 @@ library
                      , Graphics.Luminance.Core.Geometry
                      , Graphics.Luminance.Core.Pixel
                      , Graphics.Luminance.Core.Query
-                     , Graphics.Luminance.Core.Region
                      , Graphics.Luminance.Core.RenderCmd
                      , Graphics.Luminance.Core.Renderbuffer
                      , Graphics.Luminance.Core.RW

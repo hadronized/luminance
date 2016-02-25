@@ -306,7 +306,6 @@ module Graphics.Luminance (
   , module Graphics.Luminance.Geometry
   , module Graphics.Luminance.Pixel
   , module Graphics.Luminance.Query
-  , module Graphics.Luminance.Region
   , module Graphics.Luminance.RenderCmd
   , module Graphics.Luminance.RW
   , module Graphics.Luminance.Shader
@@ -323,7 +322,6 @@ import Graphics.Luminance.Framebuffer
 import Graphics.Luminance.Geometry
 import Graphics.Luminance.Pixel
 import Graphics.Luminance.Query
-import Graphics.Luminance.Region
 import Graphics.Luminance.RenderCmd
 import Graphics.Luminance.RW
 import Graphics.Luminance.Shader
