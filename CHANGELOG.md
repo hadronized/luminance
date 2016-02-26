@@ -1,7 +1,7 @@
 # 0.11
 
-- Changed the behavior of `newShading`. Now on, `newShading` provides the user with a function that
-  replaces the removed `updateUniforms`, used to send uniforms to the bound program.
+- Removed `Region`s. Now using commands (`FrameCmd`, `ShadingCmd`, `DrawCmd` and `RenderCmd`). Safer
+  interface.
 
 ### 0.10.0.2
 
