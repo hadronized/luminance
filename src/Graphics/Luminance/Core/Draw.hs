@@ -17,13 +17,41 @@ import Foreign.Ptr ( nullPtr )
 import Graphics.GL
 import Graphics.Luminance.Core.Blending ( setBlending )
 import Graphics.Luminance.Core.Debug ( debugGL )
-import Graphics.Luminance.Core.Framebuffer ( Framebuffer(..), Output )
+import Graphics.Luminance.Core.Framebuffer ( Framebuffer(..), Output, defaultFramebuffer )
 import Graphics.Luminance.Core.Geometry ( Geometry(..), VertexArray(..) )
-import Graphics.Luminance.Core.RW ( Writable )
+import Graphics.Luminance.Core.RW ( RW, Writable )
 import Graphics.Luminance.Core.RenderCmd ( RenderCmd(..) )
 import Graphics.Luminance.Core.Shader.Program ( Program(..), U'(..) )
 
--- |Issue a draw command to the GPU. Don’t be afraid of the type signature. Let’s explain it.
+-- |Frame command.
+data FrameCmd rw c d a = FrameCmd {
+    frameCmdFramebuffer :: Framebuffer rw c d
+  , frameCmdShadingCmds :: [ShadingCmd rw c d a]
+  }
+
+-- |Build a 'FrameCmd' for the default framebuffer.
+defaultFrameCmd :: [ShadingCmd RW () () a] -> FrameCmd RW () () a
+defaultFrameCmd = FrameCmd defaultFramebuffer
+
+-- |Shading command.
+data ShadingCmd rw c d a = ShadingCmd {
+    shadingCmdProgram :: Program a
+  , shadingCmdUniforms :: a -> U'
+  , shadingCmdDrawCmds :: [DrawCmd rw c d a]
+  }
+
+-- |Draw command.
+newtype DrawCmd rw c d a = DrawCmd { drawCmd :: a -> (U',RenderCmd rw c d Geometry) }
+
+-- |Build a 'DrawCmd', updating the program’s interface.
+updateAndDraw :: (a -> U') -> RenderCmd rw c d Geometry -> DrawCmd rw c d a
+updateAndDraw update rdrCmd = DrawCmd $ \a -> (update a,rdrCmd)
+
+-- |Build a 'DrawCmd' without updating the program’s interface.
+pureDraw :: RenderCmd rw c d Geometry -> DrawCmd rw c d a
+pureDraw rdrCmd = DrawCmd $ const (mempty,rdrCmd)
+
+-- |Issue a draw to the GPU. Don’t be afraid of the type signature. Let’s explain it.
 --
 -- The first parameter is the framebuffer you want to perform the rendering in. It must be
 -- writable.
@@ -41,25 +69,25 @@ import Graphics.Luminance.Core.Shader.Program ( Program(..), U'(..) )
 -- This function yields a value of type @'Output' m c d'@, which represents the output of the render
 -- – typically, textures or '()'.
 draw :: (MonadIO m,Writable w)
-     => Framebuffer w c d
-     -> [(Program a,a -> U',[a -> (U',RenderCmd w c d Geometry)])]
+     => FrameCmd w c d a
      -> m (Output c d)
-draw fb shcmds = do
-  debugGL $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral $ framebufferID fb)
+draw fc = do
+  debugGL $ glBindFramebuffer GL_DRAW_FRAMEBUFFER (fromIntegral . framebufferID $ frameCmdFramebuffer fc)
   debugGL $ glClear $ GL_DEPTH_BUFFER_BIT .|. GL_COLOR_BUFFER_BIT
-  traverse_ (\(p,u,f) -> shade p u f) shcmds
-  pure (framebufferOutput fb)
+  traverse_ shade (frameCmdShadingCmds fc)
+  pure (framebufferOutput . frameCmdFramebuffer $ fc)
 
-shade :: (MonadIO m) => Program a -> (a -> U') -> [a -> (U',RenderCmd w c d Geometry)] -> m ()
-shade prog setUniforms rdrfuns = do
+shade :: (MonadIO m) => ShadingCmd rw c d a -> m ()
+shade shd = do
     debugGL $ glUseProgram (programID prog)
-    liftIO . runU' $ setUniforms iface
-    traverse_ (\f -> uncurry render $ f iface) rdrfuns
+    liftIO . runU' $ (shadingCmdUniforms shd) iface
+    traverse_ (\drw -> uncurry render $ drawCmd drw iface) (shadingCmdDrawCmds shd)
   where
+    prog = shadingCmdProgram shd
     iface = programInterface prog
 
-render :: (MonadIO m) => U' -> RenderCmd w c d Geometry -> m ()
-render u (RenderCmd blending depthTest geometry)= do
+render :: (MonadIO m) => U' -> RenderCmd rw c d Geometry -> m ()
+render u (RenderCmd blending depthTest geometry) = do
   liftIO (runU' u)
   setBlending blending
   (if depthTest then glEnable else glDisable) GL_DEPTH_TEST
@@ -70,4 +98,3 @@ render u (RenderCmd blending depthTest geometry)= do
     IndexedGeometry (VertexArray vid mode ixNb) -> do
       debugGL $ glBindVertexArray vid
       debugGL $ glDrawElements mode ixNb GL_UNSIGNED_INT nullPtr
-
