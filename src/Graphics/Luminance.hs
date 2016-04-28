@@ -25,21 +25,22 @@
 --
 -- The drawback is about safety. If you screw up setting up the OpenGL context, there’s no way
 -- luminance will work. A few dedicated packages will be uploaded, like __luminance-glfw__ to add
--- "GLFW-b" support for instance.
+-- <https://hackage.haskell.org/package/GLFW-b GLFW-b> support for instance.
 --
 -- = Getting started
 --
 -- == Setting up the window and OpenGL context
 --
--- The first thing to do is to create a window. Here’s a typical "GLFW-b" snippet to create such
--- a window.
+-- The first thing to do is to create a window. Here’s a typical
+-- <https://hackage.haskell.org/package/GLFW-b GLFW-b> snippet to create such a window.
 --
 -- @
 --   initialized <- init
 --   when initialized $ do
 -- @
 --
--- In the first place, we initialize the "GLFW-b" library and make sure everything ran smoothly.
+-- In the first place, we initialize the <https://hackage.haskell.org/package/GLFW-b GLFW-b> library
+-- and make sure everything ran smoothly.
 --
 -- @
 --     windowHint (WindowHint'Resizable False)
@@ -76,7 +77,7 @@
 --   terminate
 -- @
 --
--- We finally close the "GLFW-b" context to cleanup everything.
+-- We finally close the <https://hackage.haskell.org/package/GLFW-b GLFW-b> context to cleanup everything.
 --
 -- == Preparing the environment for luminance
 --
@@ -103,10 +104,11 @@
 -- == About the screen
 --
 -- luminance generalizes OpenGL concepts so that they’re made safer. In order to render something
--- onto the screen, you have to understand what the screen truly is. It’s actually… a back buffer –
--- assuming we have double buffering enabled, which is the case with "GLFW-b" by default. So
--- rendering to the screen is the same thing than rendering to the back buffer and ask "GLFW-b" to
--- swap the back buffer with the front buffer.
+-- onto the screen, you have to understand what the screen truly is. It’s actually… a
+-- back buffer – assuming we have double buffering enabled, which is the case with
+-- <https://hackage.haskell.org/package/GLFW-b GLFW-b> by default. So rendering to the screen is
+-- the same thing than rendering to the back buffer and asking
+-- <https://hackage.haskell.org/package/GLFW-b GLFW-b> to swap the back buffer with the front buffer.
 --
 -- And guess what. luminance wraps the back buffer into a 'Framebuffer' object. You can access it
 -- through 'defaultFramebuffer'. That value will always represent the back buffer.
@@ -286,8 +288,8 @@
 -- We don’t need the result of 'runCmd' in our case so we discard it with 'void'. 'runCmd' runs in
 -- 'MonadIO'.
 --
--- We just need to swap the buffers with @swapBuffers window@ – see "GLFW-b" for further details –
--- and we’re good!
+-- We just need to swap the buffers with @swapBuffers window@ – see
+-- <https://hackage.haskell.org/package/GLFW-b GLFW-b> for further details – and we’re good!
 --
 -- = Dealing with 'Texture2D'
 --
