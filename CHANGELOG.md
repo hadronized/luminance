@@ -1,3 +1,7 @@
+### 0.11.0.1
+
+- Fixed documentation broken links.
+
 # 0.11
 
 - Removed `Region`s. Now using commands (`FrameCmd`, `ShadingCmd`, `DrawCmd` and `RenderCmd`). Safer
