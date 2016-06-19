@@ -99,6 +99,17 @@
 --   runResourceT . runExcepT
 -- @
 --
+-- Creating shader stages can also fail, so we need to create data type to handle those
+--
+-- @
+-- data Error = ErrorStage StageError | ErrorProgram ProgramError deriving (Show)
+-- instance HasStageError Error where
+--   fromStageError = ErrorStage
+-- 
+-- instance HasProgramError Error where
+--   fromProgramError = ErrorProgram
+-- @
+--
 -- = Getting something to the screen
 --
 -- == About the screen
@@ -147,6 +158,15 @@
 -- When creating a new shader, you have to pass a 'String' representing the source code. This will
 -- change in the end. An EDSL is planned to make things easier and safer, but in the waiting, you
 -- are stuck with 'String', I’m sorry.
+--
+-- Whenever you create a program with shader stages, you'll need to unwrap ErrorStage and
+-- ErrorProgram.
+--
+-- @
+-- (x::Either Error ()) <- runExceptT . runResourceT $ do
+-- @
+--
+-- Each time 
 --
 -- You have to write either /GLSL330/ or /GLSL450/ conformant code. If you compile with the
 -- __gl45-bindless-textures__ flag, samplers will have an automatic qualifier to make them
@@ -254,29 +274,25 @@
 -- Now, let’s create the shader 'Stage's and the shader 'Program':
 --
 -- @
---   program \<- 'sequenceA' ['createVertexShader' vsSrc,'createFragmentShader' fsSrc] \>\>= createProgram_
+--   program \<- 'sequenceA' ['createStage' 'VertexShader' vsSrc, 'createStage' 'FragmentShader' fsSrc] >>= 'createProgram_'
 -- @
 --
 -- Once again, that’s pretty straight-forward.
 --
--- Finally, we need the batches. We’ll need one 'FBBatch' and one 'SPBatch'.
+-- Finally, we need a 'FrameCmd'. To create one, we'll make a 'DrawCmd' from a 'RenderCmd' 
 --
 -- @
---   let spb = 'shaderProgramBatch_' program ['stdRenderCmd_' triangle]
---       fbb = 'framebufferBatch' 'defaultFramebuffer' ['anySPBatch' spb]
+--   let
+--       rcmd = 'renderCmd' 'Nothing' 'False'
+--       sbp geometry = 'pureDraw' $ rcmd geometry
+--       fbb program geometry = 'defaultFrameCmd' ['ShadingCmd' program (\a -> mempty) [sbp geometry]]
 -- @
 --
--- Ok, so let’s explain all of this. 'shaderProgramBatch_' is a shorter version of
--- 'shaderProgramBatch' you can use to build 'SPBatch'. The extra underscore means you don’t want no
--- uniform interface. We pass our @program@ and a singleton list containing a 'RenderCmd' we create
--- with the 'stdRenderCmd_'. Once again, the extra underscore stands for no uniform interface. We
--- then just pass our @triangle@. Notice that both 'stdRenderCmd' and 'stdRenderCmd_' disable color
--- blending and enable depth test so that you don’t have to pass those information around.
---
--- Then, we create the 'FBBatch'. That is done via the 'framebufferBatch' function. It takes the
--- 'Framebuffer' to render into – in our case, the 'defaultFramebuffer', which is the /back buffer/.
--- We also pass a singleton list of the universally quantified 'SPBatch' with the 'anySPBatch'
--- function.
+-- Ok, so let’s explain all of this. 'renderCmd' specifies a blending mode and depth test for rendering
+-- a geometry, in this case our triangle.  We pass our @program@ and a singleton list containing the 
+-- 'RenderCmd' we create with 'pureDraw' to make a 'ShadingCmd' that includes both our program and the
+-- geometry. Finally, we build a 'FrameCmd' using the 'ShadingCmd' with 'defaultFrameCmd'. 'defaultFrameCmd'
+-- uses the back buffer provided by GLFW-b.
 --
 -- We just need to issue a command to the /GPU/ to render our triangle. That is done with a
 -- constrained type, 'Cmd'.
