@@ -1,3 +1,7 @@
+### 0.11.0.2
+
+- Added support for `dlist-0.8`.
+
 ### 0.11.0.1
 
 - Fixed documentation broken links.
