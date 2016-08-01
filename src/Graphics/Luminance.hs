@@ -105,7 +105,7 @@
 -- data Error = ErrorStage StageError | ErrorProgram ProgramError deriving (Show)
 -- instance HasStageError Error where
 --   fromStageError = ErrorStage
--- 
+--
 -- instance HasProgramError Error where
 --   fromProgramError = ErrorProgram
 -- @
@@ -166,7 +166,7 @@
 -- (x::Either Error ()) <- runExceptT . runResourceT $ do
 -- @
 --
--- Each time 
+-- Each time
 --
 -- You have to write either /GLSL330/ or /GLSL450/ conformant code. If you compile with the
 -- __gl45-bindless-textures__ flag, samplers will have an automatic qualifier to make them
@@ -244,13 +244,13 @@
 -- @
 --   in vec2 co;
 --   out vec4 vertexColor;
---    
+--
 --   vec4 color[3] = vec4[](
 --       vec4(1., 0., 0., 1.)
 --     , vec4(0., 1., 0., 1.)
 --     , vec4(0., 0., 1., 1.)
 --     );
---    
+--
 --   void main() {
 --     gl_Position = vec4(co, 0., 1.);
 --     vertexColor = color[gl_VertexID];
@@ -265,7 +265,7 @@
 -- @
 --   in vec4 vertexColor;
 --   out vec4 frag;
---    
+--
 --   void main() {
 --     frag = vertexColor;
 --   }
@@ -279,7 +279,7 @@
 --
 -- Once again, that’s pretty straight-forward.
 --
--- Finally, we need a 'FrameCmd'. To create one, we'll make a 'DrawCmd' from a 'RenderCmd' 
+-- Finally, we need a 'FrameCmd'. To create one, we'll make a 'DrawCmd' from a 'RenderCmd'
 --
 -- @
 --   let
@@ -289,7 +289,7 @@
 -- @
 --
 -- Ok, so let’s explain all of this. 'renderCmd' specifies a blending mode and depth test for rendering
--- a geometry, in this case our triangle.  We pass our @program@ and a singleton list containing the 
+-- a geometry, in this case our triangle.  We pass our @program@ and a singleton list containing the
 -- 'RenderCmd' we create with 'pureDraw' to make a 'ShadingCmd' that includes both our program and the
 -- geometry. Finally, we build a 'FrameCmd' using the 'ShadingCmd' with 'defaultFrameCmd'. 'defaultFrameCmd'
 -- uses the back buffer provided by GLFW-b.
