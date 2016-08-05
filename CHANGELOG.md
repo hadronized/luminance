@@ -1,3 +1,7 @@
+### 0.11.0.3
+
+- Updated the documentation in Luminance crate module.
+
 ### 0.11.0.2
 
 - Added support for `dlist-0.8`.
