@@ -141,7 +141,7 @@ fromAttachment a = case a of
 
 -- |Typeclass of possible framebuffer color attachments.
 class FramebufferColorAttachment c where
-  addColorOutput :: (MonadIO m,MonadResource m)
+  addColorOutput :: (MonadResource m)
                  => GLuint
                  -> Natural
                  -> Natural
@@ -195,7 +195,7 @@ setColorBuffers fid colorOutputNb _ = case colorOutputNb of
 
 -- |Typeclass of possible framebuffer depth attachments.
 class FramebufferDepthAttachment d where
-  addDepthOutput :: (MonadIO m,MonadResource m)
+  addDepthOutput :: (MonadResource m)
                  => GLuint
                  -> Natural
                  -> Natural

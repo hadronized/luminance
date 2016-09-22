@@ -76,7 +76,7 @@ data Program u = Program {
 --
 -- In the end, you get the new 'Program' and a polymorphic value you can choose the type of in
 -- the function you pass as argument. You can use that value to gather uniforms for instance.
-createProgram :: (HasProgramError e,MonadError e m,MonadIO m,MonadResource m)
+createProgram :: (HasProgramError e,MonadError e m,MonadResource m)
               => [Stage]
               -> ((forall a. UniformName a -> UniformInterface m (U a)) -> UniformInterface m i)
               -> m (Program i)

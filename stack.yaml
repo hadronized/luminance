@@ -1,9 +1,9 @@
-resolver: nightly-2015-10-25
+resolver: lts-7.0
 
 packages:
   - '.'
 
-extra-deps: [linear-1.20.2]
+extra-deps: []
 
 flags: {}
 

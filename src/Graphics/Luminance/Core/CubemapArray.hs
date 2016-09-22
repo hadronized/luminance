@@ -16,7 +16,6 @@
 
 module Graphics.Luminance.Core.CubemapArray where
 
-import Data.Foldable ( for_ )
 import Data.Proxy ( Proxy(..) )
 import Data.Vector.Storable as V ( concat, unsafeWith )
 import Foreign.Ptr ( castPtr, nullPtr )
