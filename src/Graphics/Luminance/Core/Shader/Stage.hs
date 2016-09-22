@@ -54,7 +54,7 @@ fromStageType st = case st of
 --
 -- Note: on some hardware and backends, /tessellation shaders/ aren’t available. That function
 -- throws 'UnsupportedStage' error in such cases.
-createStage :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m)
+createStage :: (HasStageError e,MonadError e m,MonadResource m)
             => StageType
             -> String
             -> m Stage
@@ -72,7 +72,7 @@ createStage stageType src = do
         fromStageError (UnsupportedStage stageType)
 
 -- Create a shader from the kind of shader and its source code 'String' representation.
-mkShader :: (HasStageError e,MonadError e m,MonadIO m,MonadResource m)
+mkShader :: (HasStageError e,MonadError e m,MonadResource m)
          => StageType 
          -> String
          -> m Stage
